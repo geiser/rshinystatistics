@@ -1,0 +1,19 @@
+[Unit]
+Description=%i service of rshinystatistics with docker-compose
+
+[Service]
+Restart=always
+WorkingDirectory=/cygdrive/d/Users/gcc/Workspace/rshinystatistics
+# Remove old containers, pull images and build containers
+ExecStartPre=/cygdrive/c/Program Files/Docker/Docker/resources/bin/docker-compose -p rshinystatistics down -v
+ExecStartPre=/cygdrive/c/Program Files/Docker/Docker/resources/bin/docker-compose -p rshinystatistics pull %i
+ExecStartPre=/cygdrive/c/Program Files/Docker/Docker/resources/bin/docker-compose -p rshinystatistics build --force-rm %i
+# Compose up
+ExecStart=/cygdrive/c/Program Files/Docker/Docker/resources/bin/docker-compose -p rshinystatistics up --no-build %i
+# Compose down and restart
+ExecStop=/cygdrive/c/Program Files/Docker/Docker/resources/bin/docker-compose -p rshinystatistics down -v
+ExecReload=/cygdrive/c/Program Files/Docker/Docker/resources/bin/docker-compose -p rshinystatistics restart %i
+
+[Install]
+WantedBy=multi-user.target
+
