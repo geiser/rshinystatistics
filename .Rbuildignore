@@ -1,0 +1,7 @@
+^.*\.Rproj$
+^\.Rproj\.user$
+^.*\.md$
+^.*\.RData$
+LICENCE.*$
+Rubbish
+^_gh-pages$

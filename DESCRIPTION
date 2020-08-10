@@ -8,7 +8,7 @@ Authors@R:
            email = "geiser@usp.br",
            comment = c(ORCID = "0000-0003-4163-4803"))
 Description: What the package does (one paragraph).
-License: GPL-2
+License: GPL-3
 Encoding: UTF-8
 LazyData: false
 Imports:
