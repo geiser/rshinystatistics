@@ -1,5 +1,5 @@
 Package: rshinystatistics
-Title: What the Package Does (One Line, Title Case)
+Title: Shiny Statistics
 Version: 0.0.0.9000
 Authors@R: 
     person(given = "Geiser",
@@ -8,9 +8,9 @@ Authors@R:
            email = "geiser@usp.br",
            comment = c(ORCID = "0000-0003-4163-4803"))
 Description: What the package does (one paragraph).
-License: What license it uses
+License: GPL-2
 Encoding: UTF-8
-LazyData: true
+LazyData: false
 Imports:
 	dplyr,
 	stats,
