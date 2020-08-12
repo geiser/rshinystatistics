@@ -49,3 +49,48 @@ normality_test_at <- function(dat, vars) {
     }))
   }))
 }
+
+#' Normality Test of Residual Model
+#'
+#' This function performs a normality test in a residual model.
+#'
+#' @param data a data.frame containing the variables in which performing the normality test
+#' @param dvs a character vector containing the dependent variables
+#' @param between a character vector containing the independent variable used between-subject
+#' @param within a character vector containing the independent variable used within-subject
+#' @param dv.var column with the information to classify observations based on dependent variables
+#' @return A data frame containing the normality test
+#' @export
+normality_test_by_res <- function(data, dvs, between, within = c(), dv.var = NULL) {
+  dat <- as.data.frame(data) 
+  non.normal <- do.call(rbind, lapply(dvs, FUN = function(dv) {
+    if (!is.null(dv.var)) dat <- dat[which(dat[[dv.var]] == dv),]
+    sformula <- as.formula(paste0('`', dv, '` ~ ', paste0(paste0('`',between,'`'), collapse = '*')))
+    mdl <- lm(sformula, data = dat)
+    df <- normality_test(residuals(mdl))
+    if (nrow(df) > 0) return(cbind(var = dv, df))
+  }))
+  return(non.normal)
+}
+
+#' Normality Test per Groups
+#'
+#' This function performs a normality test per groups.
+#'
+#' @param data a data.frame containing the variables in which performing the normality test
+#' @param dvs a character vector containing the dependent variables
+#' @param vars character vector containing the independent variable used define the groups
+#' @param dv.var column with the information to classify observations based on dependent variables
+#' @return A data frame containing the normality test
+#' @export
+normality_test_per_group <- function(data, dvs, vars, dv.var = NULL) {
+  dat <- as.data.frame(data)
+  non.normal <- do.call(rbind, lapply(dvs, FUN = function(dv) {
+    if (!is.null(dv.var)) dat <- dat[which(dat[[dv.var]] == dv),]
+    dat <- dplyr::group_by_at(dat, vars)
+    df <- normality_test_at(dat, dv)
+    if (nrow(df) > 0) return(cbind(var = dv, df))
+  }))
+  return(non.normal)
+}
+

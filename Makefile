@@ -1,3 +1,8 @@
+version =  3.7
+services_dev_image =  geiser/r-studio:latest
+services_dev_container_name =  rshinystatistic_dev
+services_dev_restart =  unless-stopped
+services_dev_tty =  true
 
 PREFIX = /cygdrive/d/Users/gcc/Workspace/rshinystatistics
 APP_NAME = rshinystatistics
