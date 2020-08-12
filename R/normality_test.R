@@ -14,7 +14,11 @@ normality_test <- function(x) {
     plimit <- 0.01
     cutpoints <- c(0, 1e-05, 1e-04, 0.001, 0.01, 1)
   }
-  if (length(x) > 50) n.test <- dagoTest(x)@test
+  if (length(x) > 100) {
+    plimit <- 0.001
+    cutpoints <- c(0, 1e-06, 1e-05, 1e-04, 0.001, 1)
+  }
+  if (length(x) > 50) n.test <- fBasics::dagoTest(x)@test
 
   normality <- ifelse(n.test$p.value[1] < plimit, 'NO', 'YES')
   if (length(x) > 100) normality <- 'QQ'
