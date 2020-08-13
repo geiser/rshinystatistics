@@ -23,5 +23,6 @@ descriptive_statistics <- function(data, dvs, ivs=c(), type = "common", dv.var =
   df <- unique(df)
   cnames <- c("n","mean","median","min","max","q1","q3","sd","se","ci","iqr","mad")
   cnames <- unique(c("variable", colnames(df)[!colnames(df) %in% cnames], cnames))
+  cnames <- cnames[cnames %in% colnames(df)]
   return(df[,cnames])
 }
