@@ -9,20 +9,15 @@
 #' @param dv.var column with the information to classify observations
 #' @return A data.frame containing the results for the descriptive statistics
 #' @export
-descriptive_statistics <- function(data, dvs, ivs=c(), type = "common", dv.var = NULL) {
+descriptive_statistics <- function(data, dvs, ivs=c(), type = "common", dv.var = 'var') {
   df <- do.call(rbind, lapply(dvs, FUN = function(dv) {
-  	dat <- as.data.frame(data[,dv])
-    colnames(dat) <- c(dv)
+  	dat <- as.data.frame(data[,c(dv, ivs)])
     if (!is.null(dv.var)) {
-    	dat <- as.data.frame(data[which(data[[dv.var]] == dv), unique(c(dv, ivs))])
+    	dat <- as.data.frame(data[which(data[[dv.var]] == dv), c(dv, ivs)])
     }
     if (length(ivs) > 0) dat <- group_by_at(dat, vars(ivs))
     df <- rstatix::get_summary_stats(dat, type = type)
     if (nrow(df) > 0) return(as.data.frame(df))
   }))
-  df <- unique(df)
-  cnames <- c("n","mean","median","min","max","q1","q3","sd","se","ci","iqr","mad")
-  cnames <- unique(c("variable", colnames(df)[!colnames(df) %in% cnames], cnames))
-  cnames <- cnames[cnames %in% colnames(df)]
-  return(df[,cnames])
+  return(df)
 }
