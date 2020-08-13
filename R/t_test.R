@@ -14,12 +14,19 @@
 #' @return A data.frame containing the results for the independent t_test or a list with the dataframe in t.test and the t_test with their effect sizes
 #' @export
 ind_ttest <- function(data, dvs, iv, alternative = 'two.sided', var.equal = FALSE, hedges.correction = FALSE, dv.var = NULL, as.list = FALSE) {
-  dat <- data; tt <- list(); ez <- list()
-  t.test <- do.call(rbind, lapply(dvs, FUN = function(dv) {
+  dat <- data
+  ldvs <- as.list(dvs); names(dvs) <- dvs
+  tt <- lapply(ldvs, FUN = function(dv) {
     if (!is.null(dv.var)) dat <- as.data.frame(data[which(data[[dv.var]] == dv),])
     sformula <- as.formula(paste0('`',dv,'` ~ `',iv,'`'))
-    tt[[dv]] <- rstatix::t_test(dat, sformula, alternative = alternative, var.equal = var.equal, detailed = T)
-    ez[[dv]] <- rstatix::cohens_d(dat, sformula, var.equal = var.equal, hedges.correction = hedges.correction)
+    return(rstatix::t_test(dat, sformula, alternative = alternative, var.equal = var.equal, detailed = T))
+  })
+  ez <- lapply(ldvs, FUN = function(dv) {
+    if (!is.null(dv.var)) dat <- as.data.frame(data[which(data[[dv.var]] == dv),])
+    sformula <- as.formula(paste0('`',dv,'` ~ `',iv,'`'))
+    return(rstatix::cohens_d(dat, sformula, var.equal = var.equal, hedges.correction = hedges.correction))
+  })
+  t.test <- do.call(rbind, lapply(dvs, FUN = function(dv) {
     return(rstatix::add_significance(merge(tt[[dv]], ez[[dv]])))
   }))
   if (as.list) {

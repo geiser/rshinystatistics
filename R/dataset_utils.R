@@ -35,6 +35,13 @@ remove_from_dataset <- function(data, to_remove, wid = 'row.pos', dv.var = NULL)
       if (!is.null(dv.var)) dat <- data[which(data[[dv.var]] == dv),]
       return(dat[!dat[[wid]] %in% to_remove[[dv]],])
     }))  
+
+    dataset <- do.call(rbind, lapply(unique(data[[dv.var]]), FUN = function(dv) {
+      if (!is.null(dv.var)) dat <- data[which(data[[dv.var]] == dv),]
+      if (dv %in% names(to_remove)) {
+        return(dat[!dat[[wid]] %in% to_remove[[dv]],])
+      } else { return(dat) }
+    }))
   } else if (!is.null(dv.var)) {
     dataset <- do.call(rbind, lapply(unique(data[[dv.var]]), FUN = function(dv) {
       if (!is.null(dv.var)) dat <- data[which(data[[dv.var]] == dv),]

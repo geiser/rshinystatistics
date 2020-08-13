@@ -24,12 +24,14 @@ normality_test <- function(x) {
   if (length(x) > 100) normality <- 'QQ'
   if (length(x) > 200) normality <- '-'
 
-  return(cbind(add_significance(data.frame(
+  df <- cbind(add_significance(data.frame(
     n = length(x),
     statistic = n.test$statistic[1],
     method = strsplit(n.test$method, ' ')[[1]][1],
     p = n.test$p.value[1]
-  ), p.col = "p", cutpoints = cutpoints), normality = normality))
+  ), p.col = "p", cutpoints = cutpoints), normality = normality)
+  rownames(df) <- rep('', nrow(df))
+  return(df)
 }
 
 #' Normality Test
