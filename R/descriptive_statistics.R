@@ -10,9 +10,12 @@
 #' @return A data.frame containing the results for the descriptive statistics
 #' @export
 descriptive_statistics <- function(data, dvs, ivs=c(), type = "common", dv.var = NULL) {
-  dat <- as.data.frame(data[,c(ivs,dvs)])
   df <- do.call(rbind, lapply(dvs, FUN = function(dv) {
-    if (!is.null(dv.var)) dat <- as.data.frame(data[which(data[[dv.var]] == dv),])
+    dat <- as.data.frame(data[,dv])
+    colnames(dat) <- c(dv)
+    if (!is.null(dv.var)) {
+    	dat <- as.data.frame(data[which(data[[dv.var]] == dv), unique(c(dv, ivs))])
+    }
     if (length(ivs) > 0) dat <- group_by_at(dat, vars(ivs))
     df <- rstatix::get_summary_stats(dat, type = type)
     if (nrow(df) > 0) return(as.data.frame(df))
