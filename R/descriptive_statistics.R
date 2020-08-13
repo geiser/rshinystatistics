@@ -20,6 +20,7 @@ descriptive_statistics <- function(data, dvs, ivs=c(), type = "common", dv.var =
     df <- rstatix::get_summary_stats(dat, type = type)
     if (nrow(df) > 0) return(as.data.frame(df))
   }))
+  df <- unique(df)
   cnames <- c("n","mean","median","min","max","q1","q3","sd","se","ci","iqr","mad")
   cnames <- unique(c("variable", colnames(df)[!colnames(df) %in% cnames], cnames))
   return(df[,cnames])
