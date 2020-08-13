@@ -12,7 +12,7 @@
 homogeneity_test <- function(data, dvs, between = c(), within = c(), dv.var = NULL) {
   dat <- data.frame(data)
   levene.test <- do.call(rbind, lapply(dvs, FUN = function(dv) {
-    if (!is.null(dv.var)) dat <- dat[which(dat[[dv.var]] == dv),]
+    if (!is.null(dv.var)) dat <- data[which(data[[dv.var]] == dv),]
     sformula <- paste(paste0('`', dv, '`'), "~", paste0(paste0('`', between, '`'), collapse = "*"))
     df <- rstatix::levene_test(dat, as.formula(sformula))
     if (nrow(df) > 0) return(cbind(var = dv,  rstatix::add_significance(df)))

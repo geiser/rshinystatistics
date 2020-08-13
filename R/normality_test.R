@@ -64,7 +64,7 @@ normality_test_at <- function(dat, vars) {
 normality_test_by_res <- function(data, dvs, between, within = c(), dv.var = NULL) {
   dat <- as.data.frame(data) 
   non.normal <- do.call(rbind, lapply(dvs, FUN = function(dv) {
-    if (!is.null(dv.var)) dat <- dat[which(dat[[dv.var]] == dv),]
+    if (!is.null(dv.var)) dat <- data[which(data[[dv.var]] == dv),]
     sformula <- as.formula(paste0('`', dv, '` ~ ', paste0(paste0('`',between,'`'), collapse = '*')))
     mdl <- lm(sformula, data = dat)
     df <- normality_test(residuals(mdl))
@@ -86,7 +86,7 @@ normality_test_by_res <- function(data, dvs, between, within = c(), dv.var = NUL
 normality_test_per_group <- function(data, dvs, vars, dv.var = NULL) {
   dat <- as.data.frame(data)
   non.normal <- do.call(rbind, lapply(dvs, FUN = function(dv) {
-    if (!is.null(dv.var)) dat <- dat[which(dat[[dv.var]] == dv),]
+    if (!is.null(dv.var)) dat <- data[which(data[[dv.var]] == dv),]
     dat <- dplyr::group_by_at(dat, vars)
     df <- normality_test_at(dat, dv)
     if (nrow(df) > 0) return(cbind(var = dv, df))

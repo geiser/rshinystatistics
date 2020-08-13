@@ -39,7 +39,7 @@ tTestPlots <- function(data, dvs, iv, tts, addParam=c(), font.label.size = 10, d
   dat <- data
   ldvs <- as.list(dvs); names(dvs) <- dvs
   return(lapply(ldvs, FUN = function(dv) {
-    if (!is.null(dv.var)) dat <- as.data.frame(dat[which(dat[[dv.var]] == dv),])
-    ggPlotTTest(data, iv, dv, tts[[dv]], addParam = addParam, font.label.size = font.label.size)
+    if (!is.null(dv.var)) dat <- as.data.frame(data[which(data[[dv.var]] == dv),])
+    ggPlotTTest(dat, iv, dv, tts[[dv]], addParam = addParam, font.label.size = font.label.size)
   }))
 }

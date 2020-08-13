@@ -12,7 +12,7 @@
 descriptive_statistics <- function(data, dvs, ivs=c(), type = "common", dv.var = NULL) {
   dat <- as.data.frame(data[,c(ivs,dvs)])
   df <- do.call(rbind, lapply(dvs, FUN = function(dv) {
-    if (!is.null(dv.var)) dat <- as.data.frame(dat[which(dat[[dv.var]] == dv),])
+    if (!is.null(dv.var)) dat <- as.data.frame(data[which(data[[dv.var]] == dv),])
     if (length(ivs) > 0) dat <- group_by_at(dat, vars(ivs))
     df <- rstatix::get_summary_stats(dat, type = type)
     if (nrow(df) > 0) return(as.data.frame(df))

@@ -16,7 +16,7 @@
 ind_ttest <- function(data, dvs, iv, alternative = 'two.sided', var.equal = FALSE, hedges.correction = FALSE, dv.var = NULL, as.list = FALSE) {
   dat <- data; tt <- list(); ez <- list()
   t.test <- do.call(rbind, lapply(dvs, FUN = function(dv) {
-    if (!is.null(dv.var)) dat <- as.data.frame(dat[which(dat[[dv.var]] == dv),])
+    if (!is.null(dv.var)) dat <- as.data.frame(data[which(data[[dv.var]] == dv),])
     sformula <- as.formula(paste0('`',dv,'` ~ `',iv,'`'))
     tt[[dv]] <- rstatix::t_test(dat, sformula, alternative = alternative, var.equal = var.equal, detailed = T)
     ez[[dv]] <- rstatix::cohens_d(dat, sformula, var.equal = var.equal, hedges.correction = hedges.correction)
