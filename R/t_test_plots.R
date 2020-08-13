@@ -37,7 +37,7 @@ ggPlotTTest <- function(data, x, y, tt, addParam = c(), font.label.size = 10) {
 #' @export
 tTestPlots <- function(data, dvs, iv, tts, addParam=c(), font.label.size = 10, dv.var = NULL) {
   dat <- data
-  ldvs <- as.list(dvs); names(dvs) <- dvs
+  ldvs <- as.list(dvs); names(ldvs) <- dvs
   return(lapply(ldvs, FUN = function(dv) {
     if (!is.null(dv.var)) dat <- as.data.frame(data[which(data[[dv.var]] == dv),])
     ggPlotTTest(dat, iv, dv, tts[[dv]], addParam = addParam, font.label.size = font.label.size)

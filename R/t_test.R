@@ -15,7 +15,7 @@
 #' @export
 ind_ttest <- function(data, dvs, iv, alternative = 'two.sided', var.equal = FALSE, hedges.correction = FALSE, dv.var = NULL, as.list = FALSE) {
   dat <- data
-  ldvs <- as.list(dvs); names(dvs) <- dvs
+  ldvs <- as.list(dvs); names(ldvs) <- dvs
   tt <- lapply(ldvs, FUN = function(dv) {
     if (!is.null(dv.var)) dat <- as.data.frame(data[which(data[[dv.var]] == dv),])
     sformula <- as.formula(paste0('`',dv,'` ~ `',iv,'`'))
