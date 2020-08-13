@@ -60,14 +60,17 @@ normality_test_at <- function(dat, vars) {
 #' @param dvs a character vector containing the dependent variables
 #' @param between a character vector containing the independent variable used between-subject
 #' @param within a character vector containing the independent variable used within-subject
+#' @param covar a character indicating the column of covariate variable used in the normality test
 #' @param dv.var column with the information to classify observations based on dependent variables
 #' @return A data frame containing the normality test
 #' @export
-normality_test_by_res <- function(data, dvs, between, within = c(), dv.var = NULL) {
+normality_test_by_res <- function(data, dvs, between, within = c(), covar = NULL, dv.var = NULL) {
   dat <- as.data.frame(data) 
   non.normal <- do.call(rbind, lapply(dvs, FUN = function(dv) {
     if (!is.null(dv.var)) dat <- data[which(data[[dv.var]] == dv),]
-    sformula <- as.formula(paste0('`', dv, '` ~ ', paste0(paste0('`',between,'`'), collapse = '*')))
+    sformula <- paste0(paste0('`',between,'`'), collapse = '*')
+    if (!is.null(covar)) sformula <- paste0('`', covar, '` + ', sformula)
+    sformula <- as.formula(paste0('`', dv, '` ~ ', sformula))
     mdl <- lm(sformula, data = dat)
     df <- normality_test(residuals(mdl))
     if (nrow(df) > 0) return(cbind(var = dv, df))

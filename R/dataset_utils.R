@@ -29,19 +29,25 @@ set_dataset <- function(data, dvs, wid = 'row.pos', dv.var = 'var') {
 #' @return A data.frame with the eliminated dataset
 #' @export
 remove_from_dataset <- function(data, to_remove, wid = 'row.pos', dv.var = NULL) {
-  pos <- c()
-  if (is.list(to_remove)) {
-    for (dv in names(to_remove)) {
-      if (!is.null(dv.var)) {
-        pos <- c(which((data[[wid]] %in% to_remove[[dv]]) & (data[[dv.var]] == dv)), pos)
-      } else {
-        pos <- c(which(data[[wid]] %in% to_remove[[dv]]), pos)
+  if (length(to_remove) > 1) {
+    pos <- c()
+    if (is.list(to_remove)) {
+      for (dv in names(to_remove)) {
+        if (!is.null(dv.var)) {
+          pos <- c(which((data[[wid]] %in% to_remove[[dv]]) & (data[[dv.var]] == dv)), pos)
+        } else {
+          pos <- c(which(data[[wid]] %in% to_remove[[dv]]), pos)
+        }
       }
+    } else if (!is.null(dv.var)) {
+      for (dv in unique(data[[dv.var]])) {
+        pos <- c(which((data[[wid]] %in% to_remove) & (data[[dv.var]] == dv)), pos)
+      }
+    } else {
+      pos <- c(which(dat[[wid]] %in% to_remove), pos)  
     }
-  } else if (!is.null(dv.var)) {
-    pos <- c(which((data[[wid]] %in% to_remove) & (data[[dv.var]] == dv)), pos)
+    return(data[-c(pos),])  
   } else {
-    pos <- c(which(dat[[wid]] %in% to_remove), pos)  
-  }
-  return(data[-c(pos),])
+    return(data)
+  } 
 }
