@@ -29,26 +29,19 @@ set_dataset <- function(data, dvs, wid = 'row.pos', dv.var = 'var') {
 #' @return A data.frame with the eliminated dataset
 #' @export
 remove_from_dataset <- function(data, to_remove, wid = 'row.pos', dv.var = NULL) {
-  dat <- as.data.frame(data)
+  pos <- c()
   if (is.list(to_remove)) {
-    dataset <- do.call(rbind, lapply(names(to_remove), FUN = function(dv) {
-      if (!is.null(dv.var)) dat <- data[which(data[[dv.var]] == dv),]
-      return(dat[!dat[[wid]] %in% to_remove[[dv]],])
-    }))  
-
-    dataset <- do.call(rbind, lapply(unique(data[[dv.var]]), FUN = function(dv) {
-      if (!is.null(dv.var)) dat <- data[which(data[[dv.var]] == dv),]
-      if (dv %in% names(to_remove)) {
-        return(dat[!dat[[wid]] %in% to_remove[[dv]],])
-      } else { return(dat) }
-    }))
+    for (dv in names(to_remove)) {
+      if (!is.null(dv.var)) {
+        pos <- c(which((data[[wid]] %in% to_remove[[dv]]) & (data[[dv.var]] == dv)), pos)
+      } else {
+        pos <- c(which(data[[wid]] %in% to_remove[[dv]]), pos)
+      }
+    }
   } else if (!is.null(dv.var)) {
-    dataset <- do.call(rbind, lapply(unique(data[[dv.var]]), FUN = function(dv) {
-      if (!is.null(dv.var)) dat <- data[which(data[[dv.var]] == dv),]
-      return(dat[!dat[[wid]] %in% to_remove,])
-    }))  
+    pos <- c(which((data[[wid]] %in% to_remove) & (data[[dv.var]] == dv)), pos)
   } else {
-    dataset <- dat[!dat[[wid]] %in% to_remove]
+    pos <- c(which(dat[[wid]] %in% to_remove), pos)  
   }
-  return(dataset)
+  return(data[-c(pos),])
 }
