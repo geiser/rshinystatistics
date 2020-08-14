@@ -4,8 +4,7 @@
 \alias{homogeneity_test}
 \title{Homogeneity Test of Variance}
 \usage{
-homogeneity_test(data, dvs, between = c(), within = c(),
-  dv.var = NULL)
+homogeneity_test(data, dvs, between = c(), within = c(), dv.var = NULL)
 }
 \arguments{
 \item{data}{a data.frame containing the variables in which performing the homogenity test}

@@ -4,7 +4,14 @@
 \alias{normality_test_by_res}
 \title{Normality Test of Residual Model}
 \usage{
-normality_test_by_res(data, dvs, between, within = c(), dv.var = NULL)
+normality_test_by_res(
+  data,
+  dvs,
+  between,
+  within = c(),
+  covar = NULL,
+  dv.var = NULL
+)
 }
 \arguments{
 \item{data}{a data.frame containing the variables in which performing the normality test}
@@ -14,6 +21,8 @@ normality_test_by_res(data, dvs, between, within = c(), dv.var = NULL)
 \item{between}{a character vector containing the independent variable used between-subject}
 
 \item{within}{a character vector containing the independent variable used within-subject}
+
+\item{covar}{a character indicating the column of covariate variable used in the normality test}
 
 \item{dv.var}{column with the information to classify observations based on dependent variables}
 }

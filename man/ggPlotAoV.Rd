@@ -4,9 +4,19 @@
 \alias{ggPlotAoV}
 \title{ANOVA Plot}
 \usage{
-ggPlotAoV(data, x, y, color = c(), aov, pwc, linetype = color,
-  by = c(), addParam = c(), font.label.size = 10,
-  step.increase = 0.005)
+ggPlotAoV(
+  data,
+  x,
+  y,
+  color = c(),
+  aov,
+  pwc,
+  linetype = color,
+  by = c(),
+  addParam = c(),
+  font.label.size = 10,
+  step.increase = 0.005
+)
 }
 \arguments{
 \item{data}{a data.frame containing the data in which performing the ANOVA test}

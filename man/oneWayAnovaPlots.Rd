@@ -4,8 +4,16 @@
 \alias{oneWayAnovaPlots}
 \title{One-Way ANOVA Plots}
 \usage{
-oneWayAnovaPlots(data, dv, ivs, aov, pwcs, addParam = c(),
-  font.label.size = 10, step.increase = 0.005)
+oneWayAnovaPlots(
+  data,
+  dv,
+  ivs,
+  aov,
+  pwcs,
+  addParam = c(),
+  font.label.size = 10,
+  step.increase = 0.005
+)
 }
 \arguments{
 \item{data}{a data.frame containing the data in which performing the One-Way ANOVA test}

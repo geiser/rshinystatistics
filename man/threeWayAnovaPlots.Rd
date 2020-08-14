@@ -4,8 +4,16 @@
 \alias{threeWayAnovaPlots}
 \title{Three-Way ANOVA Plots}
 \usage{
-threeWayAnovaPlots(data, dv, ivs, aov, pwcs, addParam = c(),
-  font.label.size = 10, step.increase = 0.005)
+threeWayAnovaPlots(
+  data,
+  dv,
+  ivs,
+  aov,
+  pwcs,
+  addParam = c(),
+  font.label.size = 10,
+  step.increase = 0.005
+)
 }
 \arguments{
 \item{data}{a data.frame containing the data in which performing the Three-Way ANOVA test}

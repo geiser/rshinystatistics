@@ -4,8 +4,16 @@
 \alias{twoWayAnovaPlots}
 \title{Two-Way ANOVA Plots}
 \usage{
-twoWayAnovaPlots(data, dv, ivs, aov, pwcs, addParam = c(),
-  font.label.size = 10, step.increase = 0.005)
+twoWayAnovaPlots(
+  data,
+  dv,
+  ivs,
+  aov,
+  pwcs,
+  addParam = c(),
+  font.label.size = 10,
+  step.increase = 0.005
+)
 }
 \arguments{
 \item{data}{a data.frame containing the data in which performing the Two-Way ANOVA test}

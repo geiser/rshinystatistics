@@ -4,8 +4,15 @@
 \alias{tTestPlots}
 \title{Independent T-Test Plots}
 \usage{
-tTestPlots(data, dvs, iv, tts, addParam = c(), font.label.size = 10,
-  dv.var = NULL)
+tTestPlots(
+  data,
+  dvs,
+  iv,
+  tts,
+  addParam = c(),
+  font.label.size = 10,
+  dv.var = NULL
+)
 }
 \arguments{
 \item{data}{a data.frame containing the data in which performing the T-Test}

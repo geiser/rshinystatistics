@@ -1,6 +1,6 @@
 Package: rshinystatistics
 Title: Shiny Statistics
-Version: 0.0.0.9022
+Version: 0.0.0.9023
 Authors@R: 
     person(given = "Geiser",
            family = "Chalco Challco",
@@ -18,4 +18,4 @@ Imports:
 	rstatix,
 	ggplot2,
 	ggpubr
-RoxygenNote: 6.1.1
+RoxygenNote: 7.1.1

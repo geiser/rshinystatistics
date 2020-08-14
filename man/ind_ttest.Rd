@@ -4,8 +4,16 @@
 \alias{ind_ttest}
 \title{Independent T-Test}
 \usage{
-ind_ttest(data, dvs, iv, alternative = "two.sided", var.equal = FALSE,
-  hedges.correction = FALSE, dv.var = NULL, as.list = FALSE)
+ind_ttest(
+  data,
+  dvs,
+  iv,
+  alternative = "two.sided",
+  var.equal = FALSE,
+  hedges.correction = FALSE,
+  dv.var = NULL,
+  as.list = FALSE
+)
 }
 \arguments{
 \item{data}{a data.frame in which we will perform the t-test}
