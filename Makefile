@@ -4,11 +4,11 @@ services_dev_container_name =  rshinystatistic_dev
 services_dev_restart =  unless-stopped
 services_dev_tty =  true
 
-PREFIX = /cygdrive/d/Users/gcc/Workspace/rshinystatistics
+PREFIX = /home/rstudio/rshinystatistics
 APP_NAME = rshinystatistics
 
-DD = "/cygdrive/c/ProgramData/DockerDesktop/version-bin/docker"
-DC = "/cygdrive/c/Program Files/Docker/Docker/resources/bin/docker-compose"
+DD = ""
+DC = ""
 
 
 # HELP: This will output the help for each task

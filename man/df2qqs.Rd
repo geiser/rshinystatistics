@@ -4,15 +4,19 @@
 \alias{df2qqs}
 \title{Ranking Data Based on Quantiles}
 \usage{
-df2qqs(data, vars)
+df2qqs(data, vars = c(), qq = 3, params = NULL)
 }
 \arguments{
 \item{data}{a data.frame to be transformed}
 
 \item{vars}{numeric columns in which perform the ranking numeric data based on quantiles}
+
+\item{qq}{numeric value {2, 3} to define if the transformation will be carried out in {lower/upper, low/medium/high}}
+
+\item{params}{a list with the pairs list(var = var, qq = qq) parameters to be employed for the transformation}
 }
 \value{
-A data.frame containing the ranking data based on quantiles for the columns indicated in the argument vars
+A data.frame containing the ranking data based on quantiles for the columns indicated in the vars argument
 }
 \description{
 This function ranks numeric data into categories such as high, medium and low based on quantiles.

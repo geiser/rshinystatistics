@@ -1,53 +1,50 @@
-#' Set DataSet
+#' Settings Data Table for Dependent Variables
 #'
-#' Creates a new dataset based on a set of dependent variables 
+#' Creates a new data table based on a set of dependent variables
 #'
-#' @param data a data.frame containing the initial data
+#' @param tbl a data.frame containing the initial data
 #' @param dvs a character vector containing the dependent variables
-#' @param wid a character vector containing the unique identifier for each row
 #' @param dv.var column with the information to classify observations based on dependent variables
-#' @return A data.frame with the created dataset
+#' @return A data.frame with the created data table
 #' @export
-set_dataset <- function(data, dvs, wid = 'row.pos', dv.var = 'var') {
-  dat <- as.data.frame(data)
-  dataset <- do.call(rbind, lapply(dvs, FUN = function(dv) {
-    df <- cbind(var = dv, dat)
-    colnames(df) <- c(dv.var, colnames(dat))
+set_datatable <- function (tbl, dvs, dv.var = "var") {
+  return(do.call(rbind, lapply(dvs, FUN = function(dv) {
+    df <- cbind(var = dv, tbl)
+    colnames(df) <- c(dv.var, colnames(tbl))
     return(df)
-  }))
-  return(dataset)
+  })))
 }
 
-#' Remove Elements from DataSet
+#' Remove Elements from a Data Table for Dependent Variables
 #'
-#' Removes elements from a dataset based on a set of dependent variables 
+#' Removes elements from a data table previously setting based on dependent variables
 #'
-#' @param data a data.frame containing the dataset
-#' @param to_remove a vector or list containing the elements to be removed from the dataset
+#' @param tbl a data.frame containing the data table
+#' @param to_remove a vector or list containing the elements to be removed from the data table
 #' @param wid a character vector containing the unique identifier for each row
 #' @param dv.var column with the information to classify observations based on dependent variables
-#' @return A data.frame with the eliminated dataset
+#' @return A data.frame with the eliminated data table
 #' @export
-remove_from_dataset <- function(data, to_remove, wid = 'row.pos', dv.var = NULL) {
+remove_from_dataset <- function(tbl, to_remove, wid = 'row.pos', dv.var = NULL) {
   if (length(to_remove) > 1) {
     pos <- c()
     if (is.list(to_remove)) {
       for (dv in names(to_remove)) {
         if (!is.null(dv.var)) {
-          pos <- c(which((data[[wid]] %in% to_remove[[dv]]) & (data[[dv.var]] == dv)), pos)
+          pos <- c(which((tbl[[wid]] %in% to_remove[[dv]]) & (tbl[[dv.var]] == dv)), pos)
         } else {
-          pos <- c(which(data[[wid]] %in% to_remove[[dv]]), pos)
+          pos <- c(which(tbl[[wid]] %in% to_remove[[dv]]), pos)
         }
       }
     } else if (!is.null(dv.var)) {
-      for (dv in unique(data[[dv.var]])) {
-        pos <- c(which((data[[wid]] %in% to_remove) & (data[[dv.var]] == dv)), pos)
+      for (dv in unique(tbl[[dv.var]])) {
+        pos <- c(which((tbl[[wid]] %in% to_remove) & (tbl[[dv.var]] == dv)), pos)
       }
     } else {
-      pos <- c(which(dat[[wid]] %in% to_remove), pos)  
+      pos <- c(which(tbl[[wid]] %in% to_remove), pos)
     }
-    return(data[-c(pos),])  
+    return(tbl[-c(pos),])
   } else {
-    return(data)
-  } 
+    return(tbl)
+  }
 }

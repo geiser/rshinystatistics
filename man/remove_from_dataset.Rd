@@ -2,22 +2,22 @@
 % Please edit documentation in R/dataset_utils.R
 \name{remove_from_dataset}
 \alias{remove_from_dataset}
-\title{Remove Elements from DataSet}
+\title{Remove Elements from a Data Table for Dependent Variables}
 \usage{
-remove_from_dataset(data, to_remove, wid = "row.pos", dv.var = NULL)
+remove_from_dataset(tbl, to_remove, wid = "row.pos", dv.var = NULL)
 }
 \arguments{
-\item{data}{a data.frame containing the dataset}
+\item{tbl}{a data.frame containing the data table}
 
-\item{to_remove}{a vector or list containing the elements to be removed from the dataset}
+\item{to_remove}{a vector or list containing the elements to be removed from the data table}
 
 \item{wid}{a character vector containing the unique identifier for each row}
 
 \item{dv.var}{column with the information to classify observations based on dependent variables}
 }
 \value{
-A data.frame with the eliminated dataset
+A data.frame with the eliminated data table
 }
 \description{
-Removes elements from a dataset based on a set of dependent variables
+Removes elements from a data table previously setting based on dependent variables
 }
