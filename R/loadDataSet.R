@@ -227,7 +227,11 @@ loadDataSetMD <- function(id, var.params = list(), dv.vars = c(), rds.signature 
       # ... dealing with load data button
 
       output$setButtonUI <- renderUI({
-        if (all(do.call(c, lapply(names(var.params), FUN = function(var) { length(input[[var]]) > 0 })))) {
+        if (all(do.call(c, lapply(names(var.params), FUN = function(var) {
+          param <- var.params[[var]]
+          if ("min" %in% names(param)) length(input[[var]]) >= param[["min"]]
+          else length(input[[var]]) > 0
+        })))) {
           actionButton(ns("setButton"), tl("Load Data Set"), icon = icon("arrow-circle-up"))
         }
       })
@@ -251,10 +255,14 @@ loadDataSetMD <- function(id, var.params = list(), dv.vars = c(), rds.signature 
           values$reportId <- '000'
         } else {
           values$isSetup <- F
-          values$initTable <- NULL
           values$variables <- list()
-          values$datataTable <- NULL
-          values$outliers <- NULL
+          nlists <- names(reactiveValuesToList(values))
+          for (nlist in nlists[!nlists %in% c('isSetup','variables')]) {
+            if (nlist != 'isSetup' || nlist != 'variables') {
+              #print(nlist);
+              values[[nlist]] <- NULL
+            }
+          }
 
           updateActionButton(session, "setButton", tl("Load Data Set"), icon = icon("arrow-circle-up"))
         }

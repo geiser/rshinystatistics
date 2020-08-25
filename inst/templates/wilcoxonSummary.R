@@ -29,7 +29,7 @@ library(rshinystatistics)
 
 ## Initial Data
 
-data <- read.csv("data.csv")
+data <- read.csv("{{ path }}/data.csv")
 rownames(data) <- data[["{{ wid }}"]]
 
 ### Setting identificator, dependent and independent variables

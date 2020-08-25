@@ -30,7 +30,7 @@ library(rshinystatistics)
 
 ## Initial Data
 
-dat <- read.csv("data.csv")
+dat <- read.csv("{{ path }}/data.csv")
 rownames(dat) <- dat[["{{ wid }}"]]
 
 ## Removing outliers from the data

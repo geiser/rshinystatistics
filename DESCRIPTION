@@ -23,6 +23,7 @@ Imports:
   DT,
 	stats,
 	fBasics,
+	rcompanion,
 	rstatix,
 	readxl,
 	readr,

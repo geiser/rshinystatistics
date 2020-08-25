@@ -1,11 +1,11 @@
 #' @import shiny
 #' @export
-scheirerRayHareUI <- function(id) {
+kruskalWallisUI <- function(id) {
   ns <- NS(id)
-  tl <- getTranslator('scheirerRayHare')
+  tl <- getTranslator('kruskalWallis')
 
   fluidPage(
-    titlePanel(paste0(tl("Scheirer-Ray-Hare Module"),' (',tl("Alternative to two and three between-subject ANOVA"),')')),
+    titlePanel(paste0(tl("Kruskal-Wallis Module"),' (',tl("Alternative to One-Way Between-Subject ANOVA"),')')),
     sidebarLayout(
       sidebarPanel(
         width = 3
@@ -15,11 +15,11 @@ scheirerRayHareUI <- function(id) {
       mainPanel(
         width = 9,
         tabsetPanel(
-          id = ns("srhPanel"), type = "tabs", selected = "none"
+          id = ns("kruskalPanel"), type = "tabs", selected = "none"
           , tabPanel("DataSet", icon = icon("caret-right"), value = "none", displayDataSetUI(ns("dataSet")))
           , tabPanel(tl("Assumption: Outliers"), value = "outliers", outliersUI(ns("outliers")))
-          , tabPanel(tl("SRH Test"), value = "hypothesis", srhHypothesisUI(ns("hypothesis")))
-          , tabPanel(tl("Export"), value = "export-result", srhExportUI(ns("export-result")))
+          , tabPanel(tl("Kruskal Test"), value = "hypothesis", kruskalHypothesisUI(ns("hypothesis")))
+          , tabPanel(tl("Export"), value = "export-result", kruskalExportUI(ns("export-result")))
         )
       )
     )
@@ -28,21 +28,21 @@ scheirerRayHareUI <- function(id) {
 
 #' @import shiny
 #' @export
-scheirerRayHareMD <- function(id) {
+kruskalWallisMD <- function(id) {
   moduleServer(
     id,
     function(input, output, session) {
       ns <- session$ns
-      tl <- getTranslator('scheirerRayHare')
+      tl <- getTranslator('kruskalWallis')
 
       dataset <- loadDataSetMD(
         "loadData",
         var.params = list(
-          between = list(type = "convert.non.numeric", min = 2, max = 3, label = tl("columns for the between-subject factors (independent variables)"), removeFrom = c("wid")),
+          between = list(type = "convert.non.numeric", max = 1, label = tl("columns for the between-subject factors (independent variables)"), removeFrom = c("wid")),
           dvs = list(type = "numeric", label = tl("columns for the dependent variables (outcomes)"), removeFrom = c("wid","between"))
         ),
         dv.vars = 'dvs',
-        rds.signature = paste0('srh-',as.character(packageVersion("rshinystatistics")))
+        rds.signature = paste0('kruskal-',as.character(packageVersion("rshinystatistics")))
       )
 
       # ... setting outliers and setting normality panels
@@ -57,7 +57,7 @@ scheirerRayHareMD <- function(id) {
         if (dataset$isSetup) {
           settingOutliers(settingOutliersMD("settingOutliers", dataset, "dvs", "between", updateDataTable = T))
         } else {
-          updateTabsetPanel(session, "srhPanel", selected = "none")
+          updateTabsetPanel(session, "kruskalPanel", selected = "none")
           if (!is.null(settingOutliers())) {
             settingOutliers()$outliersObserve$suspend()
           }
@@ -66,22 +66,22 @@ scheirerRayHareMD <- function(id) {
 
       # ... update dataTable
 
-      observeEvent(input$srhPanel, {
-        if (input$srhPanel == 'none') {
+      observeEvent(input$kruskalPanel, {
+        if (input$kruskalPanel == 'none') {
           displayDataSetMD("dataSet", dataset)
         } else if (dataset$isSetup) {
-          if (input$srhPanel == 'outliers') {
+          if (input$kruskalPanel == 'outliers') {
             outliersMD("outliers", dataset, "dvs", "between")
-          } else if (input$srhPanel == 'hypothesis') {
-            srhHypothesisMD("hypothesis", dataset)
-          } else if (input$srhPanel == 'export-result' && !is.null(dataset$srhParams[["hypothesis"]])) {
-            srhExportMD("export-result", dataset)
-          } else if (input$srhPanel == 'export-result') {
+          } else if (input$kruskalPanel == 'hypothesis') {
+            kruskalHypothesisMD("hypothesis", dataset)
+          } else if (input$kruskalPanel == 'export-result' && !is.null(dataset$kruskalParams[["hypothesis"]])) {
+            kruskalExportMD("export-result", dataset)
+          } else if (input$kruskalPanel == 'export-result') {
             showNotification(tl("Before export results, you need to perform Scheirer-Ray-Hare test"), type = "error")
-            updateTabsetPanel(session, "srhPanel", selected = "hypothesis")
+            updateTabsetPanel(session, "kruskalPanel", selected = "hypothesis")
           }
         } else {
-          updateTabsetPanel(session, "srhPanel", selected = "none")
+          updateTabsetPanel(session, "kruskalPanel", selected = "none")
         }
       })
 
@@ -91,9 +91,9 @@ scheirerRayHareMD <- function(id) {
 
 #' @import shiny
 #' @export
-scheirerRayHareApp <- function() {
-  shinyApp(ui = fluidPage(scheirerRayHareUI("ScheirerRayHare")), server = function(input, output) {
-    scheirerRayHareMD("ScheirerRayHare")
+kruskalWallisApp <- function() {
+  shinyApp(ui = fluidPage(kruskalWallisUI("KruskalWallis")), server = function(input, output) {
+    kruskalWallisMD("KruskalWallis")
   })
 }
 

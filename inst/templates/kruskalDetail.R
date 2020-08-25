@@ -1,4 +1,4 @@
-# title: "Wilcoxon test for `{{ dv }}` ~ `{{ iv }}`"
+# title: "Kruskal-Wallis Test for {{ paste0('`',dv,'` ~ ',paste0(paste0('`',between,'`'), collapse='*')) }}"
 # author: {{ author }} <{{ email }}>
 # comment: This file is automatically generate by Shiny-Statistic app (https://statistic.geiser.tech/)
 #          Author - Geiser C. Challco <geiser@usp.br>
@@ -9,7 +9,7 @@
 #          GNU General Public License for more details.
 #
 #          You should have received a copy of the GNU General Public License.
-#         If not, see <https://www.gnu.org/licenses/>.
+#          If not, see <https://www.gnu.org/licenses/>.
 
 if (!'remotes' %in% rownames(installed.packages())) install.packages('remotes')
 if (!"rshinystatistics" %in% rownames(installed.packages())) {
@@ -28,30 +28,35 @@ library(ggplot2)
 library(rstatix)
 library(rshinystatistics)
 
-## Initial Data
+## Initial Data and R-Script
 
 dat <- read.csv("{{ path }}/data.csv")
 rownames(dat) <- dat[["{{ wid }}"]]
 
-### Identifying outliers
-
-identify_outliers(dplyr::group_by(dat, `{{ iv }}`), `{{ dv }}`)
-
-car::Boxplot(`{{ dv }}` ~ `{{ iv }}`, data = dat, id = list(n = Inf))
-
-### Removing outliers from the data
+## Removing outliers from the data
 
 outliers <- c({{ paste0(paste0('"',outlier.ids,'"'),collapse = ',') }})
 sdat <- dat[!dat[["{{ wid }}"]] %in% outliers,]
 
-## Computation wilcoxon test and effect size
+## Computation Kruskal-Wallis Test and Pairwise comparison
 
-res <- wilcoxon_test(sdat, "{{ dv }}", "{{ iv }}", "{{ alternative }}", as.list=T)
-(res$wilcoxon.test)
+### Kruskal-Wallis test
 
-## Descriptive Statistic and Wilcoxon Plots
 
-descriptive_statistics(sdat, "{{ dv }}", "{{ iv }}", "common")
+kruskal <- get.kruskal.test(sdat, "{{ dv }}", c({{ paste0(paste0('"',between,'"'), collapse = ',') }}))
+(get.kruskal.table(kruskal))
 
-ggPlotWilcoxon(sdat, "{{ iv }}", "{{ dv }}", res$wt[["{{ dv }}"]], c({{ paste0(paste0('"',addParam,'"'),collapse=',') }}), font.label.size={{ font.label.size }})
+
+### Pairwise comparison showing all comparisons
+
+pwc <- get.kruskal.pwc(sdat, "{{ dv }}", c({{ paste0(paste0('"',between,'"'), collapse = ',') }}), p.adjust.method="{{ p.adjust.method }}")
+(get.kruskal.pwc.table(pwc))
+
+
+## Descriptive Statistics and Plots
+
+descriptive_statistics(sdat, "{{ dv }}", c({{ paste0(paste0('"',between,'"'), collapse = ',') }}), "common")
+
+
+{{ kruskal.plots  }}
 

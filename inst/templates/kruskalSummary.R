@@ -1,4 +1,4 @@
-# title: "Wilcoxon test for `{{ dv }}` ~ `{{ iv }}`"
+# title: "Summary of Kruskal-Wallis Test for {{ paste0(paste0('`', dvs, '`'), collapse = ',') }}"
 # author: {{ author }} <{{ email }}>
 # comment: This file is automatically generate by Shiny-Statistic app (https://statistic.geiser.tech/)
 #          Author - Geiser C. Challco <geiser@usp.br>
@@ -18,40 +18,51 @@ if (!"rshinystatistics" %in% rownames(installed.packages())) {
   remotes::install_github("geiser/rshinystatistics")
 }
 
-wants <- c('ggplot2','ggpubr','rshinystatistics','car','stats','rstatix','utils','dplyr')
+wants <- c('ggplot2','ggpubr','rshinystatistics','utils')
 has <- wants %in% rownames(installed.packages())
 if (any(!has)) install.packages(wants[!has])
 
 library(utils)
 library(ggpubr)
 library(ggplot2)
-library(rstatix)
 library(rshinystatistics)
 
 ## Initial Data
 
-dat <- read.csv("{{ path }}/data.csv")
-rownames(dat) <- dat[["{{ wid }}"]]
+data <- read.csv("{{ path }}/data.csv")
+rownames(data) <- data[["{{ wid }}"]]
 
-### Identifying outliers
+### Setting identificator, dependent and independent variables
 
-identify_outliers(dplyr::group_by(dat, `{{ iv }}`), `{{ dv }}`)
+wid <- "{{ wid }}"
+between <- c({{ paste0(paste0('"', between, '"'), collapse = ',') }})
+dvs <- c({{ paste0(paste0('"', dvs, '"'), collapse = ',') }})
+dat <- set_datatable(data, dvs, "var")
 
-car::Boxplot(`{{ dv }}` ~ `{{ iv }}`, data = dat, id = list(n = Inf))
 
-### Removing outliers from the data
+## Removing outliers from the data
 
-outliers <- c({{ paste0(paste0('"',outlier.ids,'"'),collapse = ',') }})
-sdat <- dat[!dat[["{{ wid }}"]] %in% outliers,]
+outliers <- {{ code.outliers }}
+sdat <- remove_from_datatable(dat, outliers, wid, "var")
 
-## Computation wilcoxon test and effect size
 
-res <- wilcoxon_test(sdat, "{{ dv }}", "{{ iv }}", "{{ alternative }}", as.list=T)
-(res$wilcoxon.test)
+## Computation Kruskal-Wallis and Pairwise comparison
 
-## Descriptive Statistic and Wilcoxon Plots
+### Kruskal-Wallis test
 
-descriptive_statistics(sdat, "{{ dv }}", "{{ iv }}", "common")
+kruskal <- get.kruskal.test(sdat, dvs, between, dv.var = "var")
+(get.kruskal.table(kruskal))
 
-ggPlotWilcoxon(sdat, "{{ iv }}", "{{ dv }}", res$wt[["{{ dv }}"]], c({{ paste0(paste0('"',addParam,'"'),collapse=',') }}), font.label.size={{ font.label.size }})
+
+### Pairwise comparison showing only significant differences
+
+pwc <- get.kruskal.pwc(sdat, dvs, between, pwc.method = "{{ pwc.method }}", p.adjust.method = "{{ p.adjust.method }}", dv.var = "var")
+(get.kruskal.pwc.table(pwc, only.sig = T))
+
+## Descriptive Statistics and Plots
+
+descriptive_statistics(sdat, dvs, between, "common", "var")
+
+
+{{ kruskal.plots  }}
 

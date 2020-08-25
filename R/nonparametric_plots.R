@@ -33,8 +33,8 @@ ggPlotWilcoxon <- function(data, x, y, wt, addParam = c(), font.label.size = 10)
 ggPlotFactNonParam <- function(data, x, y, color = c(), non, pwc, linetype = color, by = c(), addParam = c(), font.label.size = 10, step.increase = 0.005, type = NULL) {
 
   data[[x]] <- factor(data[[x]])
-  pwc2 <- tryCatch(add_xy_position(pwc, x = x, step.increase = step.increase), error = function(e) NULL)
-  if (is.null(pwc2)) return(ggplot())
+  pwc2 <- tryCatch(rstatix::add_xy_position(pwc, x = x, step.increase = step.increase), error = function(e) NULL)
+  if (is.null(pwc2)) return(ggplot2::ggplot())
   if (length(color) > 0) {
     bxp <- ggpubr::ggboxplot(data, x = x, y = y, color = color, palette = "jco", add=addParam, facet.by = by)
     bxp1 <- bxp + ggpubr::stat_pvalue_manual(pwc2, color = color, linetype = linetype, hide.ns = T, tip.length = 0, step.group.by = by)
