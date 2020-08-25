@@ -1,0 +1,41 @@
+{
+  "languages": ["en", "pt"],
+  "translation": [
+    {
+      "en": "Anova Module",
+      "pt": "Modulo Anova"
+    },
+    {
+      "en": "columns for the dependent variables (outcomes)",
+      "pt": "colunas das variáveis dependentes (resultados)"
+    },
+    {
+      "en": "columns for the between-subject factors (independent variables)",
+      "pt": "colunas para os fatores entre sujeitos (variáveis independêntes)"
+    },
+    {
+      "en": "column for the covariate",
+      "pt": "coluna da covariável"
+    },
+    {
+      "en": "Assumption: Outliers",
+      "pt": "Premissa: Outliers"
+    },
+    {
+      "en": "Assumption: Linearity",
+      "pt": "Premissa: Linearidade"
+    },
+    {
+      "en": "Assumption: Normality",
+      "pt": "Premissa: Normalidade"
+    },
+    {
+      "en": "Ancova Hypothesis",
+      "pt": "Hipótese Ancova"
+    },
+    {
+      "en": "Export Result",
+      "pt": "Exportar Resultado"
+    }
+  ]
+}

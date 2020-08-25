@@ -1,0 +1,181 @@
+
+linearity_code <- function(dataname, dvname, covarname, ivsnames, ext = "Rmd") {
+  linearity.code <- paste0(
+    'ggscatter(',dataname,', x=',covarname,', y=',dvname,', facet.by=',ivsnames,', short.panel.labs = F) + \n stat_smooth(method = "loess", span = 0.9)')
+  if (ext == "Rmd") {
+    linearity.code <- paste0("* Linearity test in ", dvname,"\n ```{r}\n", linearity.code, "\n```\n")
+  }
+  linearity.code <- paste0(linearity.code, "\n")
+  return(linearity.code)
+}
+
+ancova_plots_code <- function(backup, dataname, dvs, between, ext = 'Rmd') {
+  ancova.plots <- paste0(lapply(dvs, FUN = function(dv) {
+    width <- 800
+    height <- 600
+    font.label.size <- 10
+    step.increase <- 0.005
+    plot.param <- backup$ancovaParams$plot[[dv]]
+    if (!is.null(plot.param)) {
+      step.increase <- plot.param$step.increase
+      font.label.size <- plot.param$font.label.size
+      width <- plot.param$width
+      height <- plot.param$height
+    }
+
+    if (length(between) == 2) {
+      nfunction <- 'twoWayAncovaPlots'
+    } else if (length(between) == 1) {
+      nfunction <- 'oneWayAncovaPlots'
+    }
+
+    plot.code <- paste0('plots <- ', nfunction,'(',dataname,'[which(',dataname,'[["var"]] == "',dv,'"),], "',dv,'", between',"\n",
+                        ', aov[["',dv,'"]], pwc[["',dv,'"]], font.label.size=',font.label.size,', step.increase=',step.increase,')')
+    if (ext == 'Rmd') {
+      plot.code <- paste0(c("```{r echo=FALSE}", plot.code, "```"), collapse = "\n")
+    }
+
+    plot.code <- paste0(c(plot.code, paste0(lapply(between, FUN = function(iv) {
+      plot.inner.code <- paste0('plots[["',iv,'"]]')
+      if (ext == 'Rmd') {
+        plot.inner.code <- paste0(
+          c(paste0("```{r, fig.width=", ceiling(width/100),", fig.height=", ceiling(height/100), "}"),
+            plot.inner.code, "```"), collapse = "\n")
+      }
+      return(paste0('\n#### Plot for: `',dv,'` ~ `',iv,'`','\n',plot.inner.code,'\n'))
+    }), collapse = "\n")), collapse = "\n")
+
+    return(paste0('\n### Ancova plots for the dependent variable "',dv,'"\n',plot.code,'\n'))
+  }), collapse = "\n")
+  return(ancova.plots)
+}
+
+
+#' @export
+ancovaSummaryAsFile <- function(ext, backup, dvs = 'dvs', between = 'between', covar = 'covar', path = getwd()) {
+
+  wid <- backup$variables$wid
+  rdvs <- unique(unlist(backup$variables[c(dvs)], use.names = F))
+  rbetween <- unique(unlist(backup$variables[c(between)], use.names = F))
+  rcovar <- unique(unlist(backup$variables[c(covar)], use.names = F))
+
+  code.skewness <- paste0(lapply(rdvs, FUN = function(dv) {
+    line.code <- skewness_code('rdat', backup$skewness[[dv]], paste0('"',dv,'"'))
+    if (is.null(line.code)) return("")
+    line.code <- paste0(c(
+      paste0('density_res_plot(rdat,"',dv,'",between,c(),covar,dv.var="var")'),
+      line.code,
+      paste0('density_res_plot(rdat,"',dv,'",between,c(),covar,dv.var="var")')),
+      collapse = "\n")
+    if (ext == 'Rmd') {
+      line.code <- paste0("\n```{r}\n",line.code,"\n```\n", "\n")
+    }
+    return(paste0('\n##### Applying normality in ',dv,' to reduce skewness\n',line.code))
+  }), collapse = "\n")
+
+  ldvs <- as.list(rdvs); names(ldvs) <- rdvs
+  linearity.code <- paste0(lapply(rdvs, FUN = function(dv) {
+    line.code <- linearity_code('sdat', paste0('"',dv,'"'), covar, between, ext)
+    return(line.code)
+  }), collapse = "\n")
+
+  aov.params <- backup$ancovaParams$hypothesis
+  tfile <- system.file("templates", paste0("ancovaSummary.",ext), package="rshinystatistics")
+
+  params <- list(
+    rshinystatistics.version = as.character(packageVersion("rshinystatistics")),
+    author = backup$author, email = backup$email,
+    wid = wid, dvs = rdvs, between = rbetween, covar = rcovar,
+    code.outliers =  list.as.code(backup$outliers),
+    code.skewness = code.skewness,
+    code.non.normal = list.as.code(backup$toRemoveForNormality),
+    linearity.code = linearity.code,
+    ancova.plots = ancova_plots_code(backup, 'sdat', rdvs, rbetween, ext),
+    type = aov.params$type, effect.size = aov.params$effect.size,
+    p.adjust.method = aov.params$p.adjust.method
+  )
+
+  if (ext != "Rmd") {
+    params[["path"]] <- path
+  } else {
+    ancova.text <- ancova.as.text(backup$aov, backup$dataTable, rbetween, rcovar, aov.params$effect.size)
+    ancova.pwc.text <- ancova.pwc.as.text(backup$pwc, rbetween, p.adjust.method = aov.params$p.adjust.method)
+    params[["ancova.text"]] <- ancova.text
+    params[["ancova.pwc.text"]] <- ancova.pwc.text
+  }
+  return(as.character(
+    do.call(templates::tmpl, c(list(".t" = paste(readLines(tfile), collapse="\n")), params))
+  ))
+}
+
+
+#' @export
+ancovaDetailAsFile <- function(ext, backup, dv, between = 'between', covar = 'covar', path = getwd()) {
+
+  wid <- backup$variables$wid
+  rbetween <- unique(unlist(backup$variables[c(between)], use.names = F))
+  rcovar <- unique(unlist(backup$variables[c(covar)], use.names = F))
+
+  code.skewness <- ""
+  line.code <- skewness_code('rdat', backup$skewness[[dv]], paste0('"',dv,'"'))
+  if (!is.null(line.code)) {
+    line.code <- paste0(c(
+      paste0('density_res_plot(rdat,"',dv,'", c(',paste0(paste0('"',rbetween,'"'), collapse = ","),'),c(),"',rcovar,'")'),
+      line.code,
+      paste0('density_res_plot(rdat,"',dv,'", c(',paste0(paste0('"',rbetween,'"'), collapse = ","),'),c(),"',rcovar,'")')
+    ), collapse = "\n")
+    if (ext == 'Rmd') {
+      line.code <- paste0("```{r}\n",line.code,"\n```\n", "\n")
+    }
+    code.skewness <- paste0('\n##### Applying normality in ',dv,' to reduce skewness\n',line.code)
+  }
+
+  width <- 800
+  height <- 600
+  font.label.size <- 10
+  step.increase <- 0.005
+  plot.param <- backup$ancovaParams$plot[[dv]]
+  if (!is.null(plot.param)) {
+    step.increase <- plot.param$step.increase
+    font.label.size <- plot.param$font.label.size
+    width <- plot.param$width
+    height <- plot.param$height
+  }
+
+  fname <- 'oneWayAncovaPlots'
+  if (length(rbetween) == 2) fname <- 'twoWayAncovaPlots'
+  plot.code <- paste0('plots <- ',fname,'(sdat,"',dv,'",c(',paste0(paste0('"',rbetween,'"'),collapse=','),'),\n',
+                      'aov[["',dv,'"]],pwc[["',dv,'"]],font.label.size=',font.label.size,',step.increase=',step.increase,')')
+  if (ext == 'Rmd') {
+    plot.code <- paste0(c("```{r echo=FALSE}", plot.code, "```"), collapse = "\n")
+  }
+  plot.code <- paste0(c(plot.code, paste0(lapply(rbetween, FUN = function(iv) {
+    plot.inner.code <- paste0('plots[["',iv,'"]]')
+    if (ext == 'Rmd') {
+      plot.inner.code <- paste0(
+        c(paste0("```{r, fig.width=", ceiling(width/100),", fig.height=", ceiling(height/100), "}"),
+          plot.inner.code, "```"), collapse = "\n")
+    }
+    return(paste0('\n#### Plot for: `',dv,'` ~ `',iv,'`','\n',plot.inner.code,'\n'))
+  }), collapse = "\n")), collapse = "\n")
+
+
+  aov.params <- backup$ancovaParams$hypothesis
+  tfile <- system.file("templates", paste0("ancovaDetail.",ext), package="rshinystatistics")
+  params <- list(
+    rshinystatistics.version = as.character(packageVersion("rshinystatistics")),
+    author = backup$author, email = backup$email,
+    wid = wid, dv = dv, between = rbetween, covar = rcovar,
+    outlier.ids =  backup$outliers[[dv]],
+    code.skewness = code.skewness,
+    non.normal.ids = backup$toRemoveForNormality[[dv]],
+    ancova.plots = plot.code,
+    type = aov.params$type, effect.size = aov.params$effect.size,
+    p.adjust.method = aov.params$p.adjust.method
+  )
+  if (ext != "Rmd") params[["path"]] <- path
+  return(as.character(
+    do.call(templates::tmpl, c(list(".t" = paste(readLines(tfile), collapse="\n")), params))
+  ))
+}
+

@@ -1,0 +1,114 @@
+---
+title: "Scheirer-Ray-Hare for {{ paste0('`',dv,'` ~ ',paste0(paste0('`',between,'`'), collapse='*')) }}"
+author: {{ author }} <{{ email }}>
+comment: This file is automatically generate by Shiny-Statistic app (https://statistic.geiser.tech/)
+         Author - Geiser C. Challco <geiser@usp.br>
+         
+         Shiny-Statistic is distributed in the hope that it will be useful,
+         but WITHOUT ANY WARRANTY; without even the implied warranty of
+         MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+         GNU General Public License for more details.
+         
+         You should have received a copy of the GNU General Public License.
+         If not, see <https://www.gnu.org/licenses/>.
+output:
+  github_document: default
+  word_document: default
+  html_document: default
+  pdf_document:
+    keep_tex: true
+fontsize: 10pt
+---
+
+```{r setup, include=FALSE}
+if (!'remotes' %in% rownames(installed.packages())) install.packages('remotes')
+if (!"rshinystatistics" %in% rownames(installed.packages())) {
+  remotes::install_github("geiser/rshinystatistics")
+} else if (packageVersion("rshinystatistics") < "{{ rshinystatistics.version }}") {
+  remotes::install_github("geiser/rshinystatistics")
+}
+
+wants <- c('ggplot2','ggpubr','rshinystatistics','car','stats','rstatix','utils','dplyr','knitr')
+has <- wants %in% rownames(installed.packages())
+if (any(!has)) install.packages(wants[!has])
+
+library(knitr)
+opts_chunk$set(echo = TRUE)
+
+library(utils)
+library(ggpubr)
+library(ggplot2)
+library(rstatix)
+library(rshinystatistics)
+
+defaultW <- getOption("warn")
+options(warn = -1)
+
+dat <- read.csv("data.csv")
+rownames(dat) <- dat[["{{ wid }}"]]
+```
+
+## Initial Data and R-Script
+
+* Initial data: [data.csv](data.csv)
+* R-script file: [srh.R](srh.R)
+
+## Removing outliers from the data
+
+```{r}
+outliers <- c({{ paste0(paste0('"',outlier.ids,'"'),collapse = ',') }})
+sdat <- dat[!dat[["{{ wid }}"]] %in% outliers,]
+```
+
+## Computation Scheirer Ray Hare and Pairwise comparison
+
+### Scheirer Ray Hare test
+
+```r
+srh <- get.scheirer.test(sdat, "{{ dv }}", c({{ paste0(paste0('"',between,'"'), collapse = ',') }}))
+(get.scheirer.table(srh))
+```
+
+```{r echo=FALSE}
+srh <- get.scheirer.test(sdat, "{{ dv }}", c({{ paste0(paste0('"',between,'"'), collapse = ',') }}))
+cnames <- c("var", "Effect", "Df", "Sum Sq", "H", "p.value","p.value.signif")
+kdf <- get.scheirer.table(srh)[,cnames]
+kdf$p.value <- round(kdf$p.value, 3)
+kdf$p.value[which(kdf$p.value < 0.001)] <- '<0.001'
+kable(kdf, digits = 3)
+```
+
+### Pairwise comparison showing all comparisons
+
+```r
+pwc <- get.scheirer.pwc(sdat, "{{ dv }}", c({{ paste0(paste0('"',between,'"'), collapse = ',') }}), p.adjust.method="{{ p.adjust.method }}")
+(get.scheirer.pwc.table(pwc))
+```
+
+```{r echo=FALSE}
+pwc <- get.scheirer.pwc(sdat, "{{ dv }}", c({{ paste0(paste0('"',between,'"'), collapse = ',') }}), p.adjust.method="{{ p.adjust.method }}")
+cnames <- c(c({{ paste0(paste0('"',between,'"'), collapse = ',') }}), "group1", "group2","estimate","statistic","p", "p.adj","p.adj.signif")
+kdf <- get.scheirer.pwc.table(pwc)[,cnames]
+kdf$p <- round(kdf$p, 3)
+kdf$p[which(kdf$p < 0.001)] <- '<0.001'
+kdf$p.adj <- round(kdf$p.adj, 3)
+kdf$p.adj[which(kdf$p.adj < 0.001)] <- '<0.001'
+kable(kdf, digits = 3)
+```
+
+## Descriptive Statistics and Plots  
+
+```r
+descriptive_statistics(sdat, "{{ dv }}", c({{ paste0(paste0('"',between,'"'), collapse = ',') }}), "common")
+```
+
+```{r echo=FALSE}
+kdf <- descriptive_statistics(sdat, "{{ dv }}", c({{ paste0(paste0('"',between,'"'), collapse = ',') }}), "common")
+cnames <- c("variable",c({{ paste0(paste0('"',between,'"'), collapse = ',') }}),"n","median","mean","min","max","iqr","sd")
+
+kdf <- kdf[,cnames]
+kable(kdf, digits = 3)
+```
+
+{{ srh.plots  }}
+

@@ -1,0 +1,13 @@
+{
+  "languages": ["en", "pt"],
+  "translation": [
+    {
+      "en": "Perform/Update Test",
+      "pt": "Executar/Atualizar Test"
+    },
+    {
+      "en": "Result from independent sample t-Test",
+      "pt": "Resultados do Teste T de amostras independentes"
+    }
+  ]
+}

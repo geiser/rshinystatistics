@@ -4,12 +4,12 @@
 \alias{normality_test_at}
 \title{Normality Test}
 \usage{
-normality_test_at(dat, vars)
+normality_test_at(dat, dvs)
 }
 \arguments{
 \item{dat}{a tibble data.frame containing the variables in which performing the normality test}
 
-\item{vars}{a list of numeric columns in which performing the normality test}
+\item{dvs}{a list of numeric columns in which performing the normality test}
 }
 \value{
 A data frame containing the value of the normality statistic and its corresponding p.value

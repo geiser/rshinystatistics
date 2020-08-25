@@ -1,0 +1,13 @@
+{
+  "languages": ["en", "pt"],
+  "translation": [
+    {
+      "en": "QQ-Plot for the residual model",
+      "pt": "Gráfico QQ do modelo residual"
+    },
+    {
+      "en": "To achive normality, we suggest to remove the elements:",
+      "pt": "Para alcançar normalidade, sugerimos remover os elementos:"
+    }
+  ]
+}

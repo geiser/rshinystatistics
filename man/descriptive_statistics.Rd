@@ -4,7 +4,7 @@
 \alias{descriptive_statistics}
 \title{Descriptive Statistics}
 \usage{
-descriptive_statistics(data, dvs, ivs = c(), type = "common", dv.var = "var")
+descriptive_statistics(data, dvs, ivs = c(), type = "common", dv.var = NULL)
 }
 \arguments{
 \item{data}{a data.frame in which we will perform the descriptive statistics}

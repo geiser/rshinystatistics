@@ -1,0 +1,62 @@
+{
+  "languages": ["en", "pt"],
+  "translation": [
+    {
+      "en": "column of the obs. identifier",
+      "pt": "coluna do identificador da obs"
+    },
+    {
+      "en": "Divide",
+      "pt": "Dividir"
+    },
+    {
+      "en": "using quantiles in:",
+      "pt": "usando quantiles em:"
+    },
+    {
+      "en": "Choose CSV, Excel or RDS file",
+      "pt": "Selecione arquivo CSV, Excel ou RDS"
+    },
+    {
+      "en": "Spreadsheet",
+      "pt": "Planilha"
+    },
+    {
+      "en": "Data Separator",
+      "pt": "Separador de dados"
+    },
+    {
+      "en": "Quoting Characters",
+      "pt": "Simbolo de Strings"
+
+    },
+    {
+      "en": "File Encoding",
+      "pt": "Encoding do Arquivo"
+    },
+    {
+      "en": "Content Encoding",
+      "pt": "Encoding do Conteúdo"
+    },
+    {
+      "en": "Choose Data to be Loaded",
+      "pt": "Escolha dados a serem carregado"
+    },
+    {
+      "en": "Please select a valid RDS file - the file should be created in rshiny-statistics app",
+      "pt": "Selecione um arquivo RDS válido - o arquivo deve ser criado no aplicativo rshiny-statistics"
+    },
+    {
+      "en": "Signature of rshiny-statistics file doesn't match with the expected value",
+      "pt": "A assinatura do arquivo do aplicativo rshiny-statistics não corresponde com o valor esperado"
+    },
+    {
+      "en": "Load Data Set",
+      "pt": "Carregar Conjunto de Dados"
+    },
+    {
+      "en": "Change Data Set",
+      "pt": "Mudar Conjunto de Dados"
+    }
+  ]
+}

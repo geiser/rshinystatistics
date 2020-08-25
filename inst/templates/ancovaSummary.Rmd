@@ -1,0 +1,200 @@
+---
+title: "Summary of ANCOVA for {{ paste0(paste0('`', dvs, '`'), collapse = ',') }}"
+author: {{ author }} <{{ email }}>
+comment: This file is automatically generate by Shiny-Statistic app (https://statistic.geiser.tech/)
+         Author - Geiser C. Challco <geiser@usp.br>
+         
+         Shiny-Statistic is distributed in the hope that it will be useful,
+         but WITHOUT ANY WARRANTY; without even the implied warranty of
+         MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+         GNU General Public License for more details.
+         
+         You should have received a copy of the GNU General Public License.
+         If not, see <https://www.gnu.org/licenses/>.
+output:
+  github_document: default
+  word_document: default
+  html_document: default
+  pdf_document:
+    keep_tex: true
+fontsize: 10pt
+---
+
+```{r setup, include=FALSE}
+if (!'remotes' %in% rownames(installed.packages())) install.packages('remotes')
+if (!"rshinystatistics" %in% rownames(installed.packages())) {
+  remotes::install_github("geiser/rshinystatistics")
+} else if (packageVersion("rshinystatistics") < "{{ rshinystatistics.version }}") {
+  remotes::install_github("geiser/rshinystatistics")
+}
+
+wants <- c('ggplot2','ggpubr','rshinystatistics','utils', 'knitr')
+has <- wants %in% rownames(installed.packages())
+if (any(!has)) install.packages(wants[!has])
+
+library(knitr)
+opts_chunk$set(echo = TRUE)
+
+library(utils)
+library(ggpubr)
+library(ggplot2)
+library(rshinystatistics)
+
+defaultW <- getOption("warn")
+options(warn = -1)
+
+data <- read.csv("data.csv")
+rownames(data) <- data[["{{ wid }}"]]
+```
+
+## Initial Data and Script
+
+* Initial data: [data.csv](data.csv)
+* R-script file: [ancova.R](ancova.R)
+
+### Setting identificator, dependent and independent variables
+
+```{r}
+wid <- "{{ wid }}"
+covar <- "{{ covar }}"
+between <- c({{ paste0(paste0('"', between, '"'), collapse = ',') }})
+dvs <- c({{ paste0(paste0('"', dvs, '"'), collapse = ',') }})
+dat <- set_datatable(data, dvs, "var")
+```
+
+## Check Assumptions
+
+### Removing outliers from the data
+
+```{r}
+outliers <- {{ code.outliers }}
+rdat <- remove_from_datatable(dat, outliers, wid, "var")
+```
+
+### Normality assumption
+
+**Observation**:
+
+As sample sizes increase, parametric tests remain valid even with the violation of normality <sup>[[1](#references)]</sup>.
+According to the central limit theorem, the sampling distribution tends to be normal if the sample is large, more than (`n > 30`) observations. Therefore, we performed parametric tests with large samples as described as follows: 
+
+- In cases with the sample size greater than 30 (`n > 30`), we adopted a significance level of `p < 0.01` instead a significance level of `p < 0.05`.
+
+- In cases with the sample size greater than 100 (`n > 100`), we adopted a significance level of `p < 0.001`
+
+- For samples with `n > 50` observation, we adopted D'Agostino-Pearson test that offers better accuracy for larger samples <sup>[[2](#references)]</sup>.
+
+- For samples' size between `n > 100` and `n <= 200`, we ignored both tests (Shapiro and D'Agostino-Persons), and our decision of normality were based only in the interpretation of QQ-plots and histograms because these tests tend to be too sensitive with values greater than 200 <sup>[[3](#references)]</sup>.
+
+- For samples with `n > 200` observation, we ignore the normality assumption based on the central theorem limit.
+
+#### Applying transformation for skewness data when normality is not achieved
+
+{{ code.skewness }}
+
+#### Removing data that affect normality (extreme values)
+
+```{r}
+non.normal <- {{ code.non.normal }}
+sdat <- remove_from_datatable(rdat, non.normal, wid, "var")
+```
+
+#### Checking normality assumption in the residual model
+
+```r
+normality_test_by_res(sdat, dvs, between, c(), covar, dv.var='var')
+```
+
+```{r echo=FALSE}
+kdf <- normality_test_by_res(sdat, dvs, between, c(), covar, dv.var='var')
+kdf$p <- round(kdf$p, 3)
+kdf$p[which(kdf$p < 0.001)] <- '<0.001'
+kable(kdf, digits = 3)
+```
+
+### Linearity assumption
+
+{{ linearity.code }}
+
+### Homogeneity assumption
+
+```r
+homogeneity_test(sdat, dvs, between, c(), covar, dv.var='var')
+```
+
+```{r echo=FALSE}
+kdf <- homogeneity_test(sdat, dvs, between, c(), covar, dv.var='var')
+kdf$p <- round(kdf$p, 3)
+kdf$p[which(kdf$p < 0.001)] <- '<0.001'
+kable(kdf, digits = 3)
+```
+
+Homogeneity may be ignored employing Wilcox's method (not jet available in rshiny-statistics).
+
+## Computation ANCOVA and Pairwise comparison
+
+### ANCOVA test
+
+```r
+aov <- ancova.test(sdat, dvs, between, covar, "{{ type }}", "{{ effect.size }}", "var")
+(get.ancova.table(aov))
+```
+
+```{r echo=FALSE}
+aov <- ancova.test(sdat, dvs, between, covar, "{{ type }}", "{{ effect.size }}", "var")
+cnames <- c("var", "Effect", "DFn", "DFd", "SSn", "SSd", "F", "p", "{{ effect.size }}", "p.signif")
+kdf <- get.ancova.table(aov)[,cnames]
+kdf$p <- round(kdf$p, 3)
+kdf$p[which(kdf$p < 0.001)] <- '<0.001'
+kable(kdf, digits = 3)
+```
+
+### Pairwise comparison showing only significant differences
+
+```r
+pwc <- ancova.pwc(sdat, dvs, between, covar, "{{ p.adjust.method }}", "var")
+(get.ancova.pwc.table(pwc, only.sig = T))
+```
+
+```{r echo=FALSE}
+pwc <- ancova.pwc(sdat, dvs, between, covar, "{{ p.adjust.method }}", "var")
+cnames <- c("var", between, "group1", "group2","estimate", "se","df","statistic","p", "p.adj","p.adj.signif")
+kdf <- get.ancova.pwc.table(pwc, only.sig = T)[,cnames]
+kdf$p <- round(kdf$p, 3)
+kdf$p[which(kdf$p < 0.001)] <- '<0.001'
+kdf$p.adj <- round(kdf$p.adj, 3)
+kdf$p.adj[which(kdf$p.adj < 0.001)] <- '<0.001'
+kable(kdf, digits = 3)
+```
+
+## Estimated Marginal Means and ANCOVA Plots 
+
+```r
+get.ancova.emmeans.with.ds(pwc, sdat, dvs, between, "common", "var")
+```
+
+```{r echo=FALSE}
+kdf <- get.ancova.emmeans.with.ds(pwc, sdat, dvs, between, "common", "var")
+cnames <- c("var",between,covar,"n","emmean","se.emms","conf.low","conf.high","mean","median","sd","ci")
+kdf <- kdf[,cnames]
+kable(kdf, digits = 3)
+```
+
+{{ ancova.plots  }}
+
+## Textual Report
+
+{{ ancova.text }}
+
+{{ ancova.pwc.text }}
+
+## References
+
+<sup>[1]</sup>: Ghasemi, A., & Zahediasl, S. (2012). Normality tests for statistical analysis: a guide for non-statisticians. International journal of endocrinology and metabolism, 10(2), 486.
+
+<sup>[1]</sup>: Miot, H. A. (2017). Assessing normality of data in clinical and experimental trials. J Vasc Bras, 16(2), 88-91.
+
+
+```{r include=FALSE}
+options(warn = defaultW)
+```

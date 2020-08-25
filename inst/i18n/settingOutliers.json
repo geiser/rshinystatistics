@@ -1,0 +1,21 @@
+{
+  "languages": ["en", "pt"],
+  "translation": [
+    {
+      "en": "Automatic identification of outliers",
+      "pt": "Identificação automática de outliers"
+    },
+    {
+      "en": "Outliers for",
+      "pt": "Outliers para"
+    },
+    {
+      "en": "Update Data Table",
+      "pt": "Atualizar Tabela de Dados"
+    },
+    {
+      "en": "Setting Outliers",
+      "pt": "Configuração de Outliers"
+    }
+  ]
+}

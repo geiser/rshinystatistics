@@ -1,0 +1,25 @@
+{
+  "languages": ["en", "pt"],
+  "translation": [
+    {
+      "en": "Linearity test",
+      "pt": "Teste de linearidade"
+    },
+    {
+      "en": "Dependent variable",
+      "pt": "Variável dependente"
+    },
+    {
+      "en": "Show labels",
+      "pt": "Apresentar etiquetas"
+    },
+    {
+      "en": "Assessing linearity in",
+      "pt": "Avaliando linearidade em"
+    },
+    {
+      "en": "for",
+      "pt": "para"
+    }
+  ]
+}

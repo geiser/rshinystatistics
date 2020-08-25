@@ -1,6 +1,6 @@
 #' T-Test Plot
 #'
-#' This function create box plots to report results from t-Test.
+#' This function create ggpubr box-plot to report result from a t-test.
 #'
 #' @param data a data.frame containing the data in which performing the t-test
 #' @param x a character string containing the name of variable used as x-axis
@@ -11,13 +11,13 @@
 #' @return A ggplot object with the t-test plot
 #' @export
 ggPlotTTest <- function(data, x, y, tt, addParam = c(), font.label.size = 10) {
-  stat.test <- add_xy_position(add_significance(tt), x=x, step.increase = 0.005)
-  bxp <- ggboxplot(
+  stat.test <- rstatix::add_xy_position(rstatix::add_significance(tt), x=x, step.increase = 0.005)
+  bxp <- ggpubr::ggboxplot(
     data, x=x, y=y, color=x, width=0.5, add=addParam, palette="jco"
   )
-  bxp <- bxp + stat_pvalue_manual(stat.test, tip.length = 0)
-  bxp <- bxp + labs(subtitle = get_test_label(stat.test, detailed=T))
-  bxp <- bxp + theme(text = element_text(size=font.label.size))
+  bxp <- bxp + ggpubr::stat_pvalue_manual(stat.test, hide.ns=T, tip.length = 0)
+  bxp <- bxp + labs(subtitle = rstatix::get_test_label(stat.test, detailed=T))
+  bxp <- bxp + ggplot2::theme(text = ggplot2::element_text(size=font.label.size))
   return(bxp)
 }
 
@@ -39,7 +39,8 @@ tTestPlots <- function(data, dvs, iv, tts, addParam=c(), font.label.size = 10, d
   dat <- data
   ldvs <- as.list(dvs); names(ldvs) <- dvs
   return(lapply(ldvs, FUN = function(dv) {
-    if (!is.null(dv.var)) dat <- as.data.frame(data[which(data[[dv.var]] == dv),])
+    if (!is.null(dv.var))
+      dat <- as.data.frame(data[which(data[[dv.var]] == dv),])
     ggPlotTTest(dat, iv, dv, tts[[dv]], addParam = addParam, font.label.size = font.label.size)
   }))
 }

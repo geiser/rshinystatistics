@@ -4,14 +4,14 @@
 \alias{normality_test_per_group}
 \title{Normality Test per Groups}
 \usage{
-normality_test_per_group(data, dvs, vars, dv.var = NULL)
+normality_test_per_group(data, dvs, ivs, dv.var = NULL)
 }
 \arguments{
 \item{data}{a data.frame containing the variables in which performing the normality test}
 
 \item{dvs}{a character vector containing the dependent variables}
 
-\item{vars}{character vector containing the independent variable used define the groups}
+\item{ivs}{character vector containing the independent variable used define the groups}
 
 \item{dv.var}{column with the information to classify observations based on dependent variables}
 }

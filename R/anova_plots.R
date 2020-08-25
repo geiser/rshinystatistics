@@ -20,14 +20,23 @@ ggPlotAoV <- function(data, x, y, color = c(), aov, pwc, linetype = color, by = 
   pwc2 <- tryCatch(add_xy_position(pwc, x = x, step.increase = step.increase), error = function(e) NULL)
   if (is.null(pwc2)) return(ggplot())
   if (length(color) > 0) {
-    bxp <- ggboxplot(data, x = x, y = y, color = color, palette = "jco", add=addParam, facet.by = by)
-    bxp <- bxp + stat_pvalue_manual(pwc2, color = color, linetype = linetype, hide.ns = T, tip.length = 0, step.group.by = by)
+    bxp <- ggpubr::ggboxplot(data, x = x, y = y, color = color, palette = "jco", add=addParam, facet.by = by)
+    bxp1 <- bxp + ggpubr::stat_pvalue_manual(pwc2, color = color, linetype = linetype, hide.ns = T, tip.length = 0, step.group.by = by)
+    ggtest <- tryCatch(ggplot2::ggplot_build(bxp1), error = function(e) NULL)
+    if (!is.null(ggtest)) bxp <- bxp1
   } else {
-    bxp <- ggboxplot(data, x = x, y = y, color = x, palette = "jco", add=addParam, facet.by = by)
-    bxp <- bxp + stat_pvalue_manual(pwc2, linetype = linetype, hide.ns = T, tip.length = 0, step.group.by = by)
+    bxp <- ggpubr::ggboxplot(data, x = x, y = y, color = x, palette = "jco", add=addParam, facet.by = by)
+    bxp1 <- bxp + ggpubr::stat_pvalue_manual(pwc2, linetype = linetype, hide.ns = T, tip.length = 0, step.group.by = by)
+    ggtest <- tryCatch(ggplot2::ggplot_build(bxp1), error = function(e) NULL)
+    if (!is.null(ggtest)) bxp <- bxp1
   }
-  bxp <- bxp + labs(subtitle = get_test_label(aov, detailed = T), caption = get_pwc_label(pwc2))
-  bxp <- bxp + theme(text = element_text(size=font.label.size))
+  bxp <- bxp + labs(subtitle = rstatix::get_test_label(aov, detailed = T), caption = rstatix::get_pwc_label(pwc2))
+  bxp <- bxp + ggplot2::theme(text = ggplot2::element_text(size=font.label.size))
+  #attr(bxp,"lbl") <- paste0(
+  #  'Plot of "',y,'" based on "',x,'"',
+  #  ifelse(length(by)>0, paste0(' grouped by "',paste0(by,collapse='*')),'"'),
+  #  ifelse(length(color)>0, paste0(' (color: ',color,')'), '')
+  #)
   return(bxp)
 }
 
@@ -48,16 +57,18 @@ ggPlotAoV <- function(data, x, y, color = c(), aov, pwc, linetype = color, by = 
 #' @export
 threeWayAnovaPlots <- function(data, dv, ivs, aov, pwcs, addParam=c(), font.label.size = 10, step.increase = 0.005) {
   livs <- as.list(ivs); names(livs) <- ivs
-  return(lapply(livs, FUN = function(iv) {
+  toReturn <- lapply(livs, FUN = function(iv) {
     pwc <- pwcs[[iv]]
     gbys <- setdiff(ivs, iv)
     lgbys <- as.list(gbys); names(lgbys) <- gbys
-    return(lapply(lgbys, FUN = function(gby) {
+    inner.toReturn <- lapply(lgbys, FUN = function(gby) {
       color <- setdiff(ivs, c(iv, gby))
       ggPlotAoV(data, iv, dv, color=color, by=gby, aov=aov, pwc=pwc, addParam=addParam,
                 font.label.size = font.label.size, step.increase = step.increase)
-    }))
-  }))
+    })
+    return(inner.toReturn)
+  })
+  return(toReturn)
 }
 
 #' Two-Way ANOVA Plots
@@ -105,3 +116,4 @@ oneWayAnovaPlots <- function(data, dv, ivs, aov, pwcs, addParam=c(), font.label.
               font.label.size = font.label.size, step.increase = step.increase)
   }))
 }
+

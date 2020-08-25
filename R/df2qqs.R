@@ -12,17 +12,17 @@
 #' @return A data.frame containing the ranking data based on quantiles for the columns indicated in the vars argument
 #' @export
 df2qqs <- function(data, vars = c(), qq = 3, params = NULL) {
-
   if (is.null(params)) {
-    params <- lapply(vars, FUN = function(var) list(var = var, qq = qq))
+    lvars <- as.list(vars); names(lvars) <- vars
+    params <- lapply(lvars, FUN = function(var) list(var = var, qq = qq))
   }
 
   vars <- c()
-  for (p in params) {
-    if (is.numeric(data[[p$var]])) {
-      quantiles <- quantile(data[[p$var]])
-      data[[p$var]] <- sapply(data[[p$var]], FUN = function(x) {
-        if (p$qq == 2) {
+  for (param in params) {
+    if (is.numeric(data[[param$var]])) {
+      quantiles <- stats::quantile(data[[param$var]])
+      data[[param$var]] <- sapply(data[[param$var]], FUN = function(x) {
+        if (as.numeric(param$qq) == 2) {
           if (x < quantiles[[3]]) "lower"
           else if (x > quantiles[[3]]) "upper"
           else NA
@@ -32,17 +32,19 @@ df2qqs <- function(data, vars = c(), qq = 3, params = NULL) {
           else "medium"
         }
       })
-      vars <- c(vars, p$var)
+      vars <- c(vars, param$var)
     }
   }
 
   data <- data[stats::complete.cases(data[,vars]),]
   for (v in vars) {
-    if (params[[v]]$qq == 2) {
+    if (as.numeric(params[[v]]$qq) == 2) {
       data[[v]] <- factor(data[[v]], levels=c("lower", "upper"))
     } else {
       data[[v]] <- factor(data[[v]], levels=c("low", "medium", "high"))
     }
   }
+
   return(data)
 }
+

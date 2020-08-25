@@ -1,0 +1,37 @@
+{
+  "languages": ["en", "pt"],
+  "translation": [
+    {
+      "en": "Point Display",
+      "pt": "Visualizaçao de Pontos"
+    },
+    {
+      "en": "Only outliers",
+      "pt": "Só outliers"
+    },
+    {
+      "en": "Boxplot for variable",
+      "pt": "Boxplots da variável"
+    },
+    {
+      "en": "With outliers",
+      "pt": "Com outliers"
+    },
+    {
+      "en": "Without outliers",
+      "pt": "Sem outlieres"
+    },
+    {
+      "en": "The following table lists all outliers",
+      "pt": "A tabela a seguir apresenta a lista de todos os outliers"
+    },
+    {
+      "en": "Possible outliers",
+      "pt": "Possiveis outliers"
+    },
+    {
+      "en": "All points",
+      "pt": "Todos os pontos"
+    }
+  ]
+}

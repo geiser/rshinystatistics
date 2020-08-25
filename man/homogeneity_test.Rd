@@ -2,9 +2,16 @@
 % Please edit documentation in R/homogeneity_test.R
 \name{homogeneity_test}
 \alias{homogeneity_test}
-\title{Homogeneity Test of Variance}
+\title{Homogeneity test for ANCOVA and ANOVA test}
 \usage{
-homogeneity_test(data, dvs, between = c(), within = c(), dv.var = NULL)
+homogeneity_test(
+  data,
+  dvs,
+  between = c(),
+  within = c(),
+  covar = NULL,
+  dv.var = NULL
+)
 }
 \arguments{
 \item{data}{a data.frame containing the variables in which performing the homogenity test}
@@ -15,10 +22,12 @@ homogeneity_test(data, dvs, between = c(), within = c(), dv.var = NULL)
 
 \item{within}{a character vector containing the independent variable used within-subject}
 
+\item{covar}{column with the variable to be used as covariance}
+
 \item{dv.var}{column with the information to classify observations based on dependent variables}
 }
 \value{
-A data frame containing the homogeneity test (levene's test)
+A data frame containing the homogeneity test (levene's test of variances and Anova slopes in ancova)
 }
 \description{
 This function performs a homogeneity test of variance.

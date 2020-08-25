@@ -1,6 +1,6 @@
 Package: rshinystatistics
 Title: Shiny Statistics
-Version: 0.0.0.9024
+Version: 0.0.0.9028
 Authors@R: 
     person(given = "Geiser",
            family = "Chalco Challco",
@@ -8,14 +8,32 @@ Authors@R:
            email = "geiser@usp.br",
            comment = c(ORCID = "0000-0003-4163-4803"))
 Description: What the package does (one paragraph).
+Depends:
+  R (>= 3.1.0)
 License: GPL-3
 Encoding: UTF-8
 LazyData: false
+Suggests:
+  testthat 
 Imports:
-	dplyr,
+  shiny (>= 1.5.0),
+  shiny.i18n,
+  shinyjs,
+  shinyTree,
+  DT,
 	stats,
 	fBasics,
 	rstatix,
+	readxl,
+	readr,
+	dplyr,
+	tidyr,
 	ggplot2,
-	ggpubr
+	ggpubr,
+	plotly,
+	zip,
+	tools,
+	digest,
+	templates,
+	stringr
 RoxygenNote: 7.1.1

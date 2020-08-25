@@ -1,0 +1,33 @@
+{
+  "languages": ["en", "pt"],
+  "translation": [
+    {
+      "en": "Normality test",
+      "pt": "Teste de normalidade"
+    },
+    {
+      "en": "Assess normality of residuals",
+      "pt": "Avaliação da normalidade dos resíduos"
+    },
+    {
+      "en": "Assess normality for all groups",
+      "pt": "Avaliação da normalidade para todos os grupos"
+    },
+    {
+      "en": "Show QQ and histograms with density plots",
+      "pt": "Apresentar gráficos QQ e histogramas com densidade"
+    },
+    {
+      "en": "Dependent variable",
+      "pt": "Variável dependente"
+    },
+    {
+      "en": "To achive normality, we suggest to remove the elements:",
+      "pt": "Para alcançar normalidade, sugerimos remover os elementos:"
+    },
+    {
+      "en": "Remove to achieve normality",
+      "pt": "Remover para alcançar normalidade"
+    }
+  ]
+}

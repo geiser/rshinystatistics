@@ -1,0 +1,65 @@
+{
+  "languages": ["en", "pt"],
+  "translation": [
+    {
+      "en": "Display plot for",
+      "pt": "Apresentar gráfico para"
+    },
+    {
+      "en": "Descriptive Statistics",
+      "pt": "Estatística Descritiva"
+    },
+    {
+      "en": "Pairwise comparison method",
+      "pt": "Método de comparação dos pares"
+    },
+    {
+    	"en": "with independent variable",
+    	"pt": "com variável independente"
+    },
+    {
+    	"en": "Update plot",
+    	"pt": "Atualizar gráfico"
+    },
+    {
+    	"en": "Step of signif.",
+    	"pt": "Passo de signif."
+    },
+    {
+    	"en": "Font text size",
+    	"pt": "Tamanho da fonte do texto"
+    },
+    {
+    	"en": "Y-axis variable",
+    	"pt": "Variável Y-axis"
+    },
+    {
+    	"en": "P-value ajust method",
+    	"pt": "método de ajuste do p-value"
+    },
+    {
+    	"en": "Effect size",
+    	"pt": "Tamanho de efeito"
+    },
+    {
+    	"en": "Type AoV",
+    	"pt": "Tipo de AoV"
+    },
+    {
+      "en": "Anova Hypothesis",
+      "pt": "Hipótese Anova"
+    },
+    {
+      "en": "Perform/Update Test",
+      "pt": "Executar/Atualizar Test"
+    },
+    {
+      "en": "Results from Scheirer-Ray-Hare test",
+      "pt": "Resultados do teste Scheirer-Ray-Hare"
+    },
+    {
+      "en": "Pairwise Comparisons",
+      "pt": "Comparações de Pares"
+    }
+  ]
+}

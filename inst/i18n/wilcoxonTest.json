@@ -1,0 +1,17 @@
+{
+  "languages": ["en", "pt"],
+  "translation": [
+    {
+      "en": "Independent Samples T-Test Module",
+      "pt": "Modulo do Teste T de Amostras Independentes"
+    },
+    {
+      "en": "column for the independent variable",
+      "pt": "coluna da variável independente"
+    },
+    {
+      "en": "columns for the dependent variables (outcomes)",
+      "pt": "colunas das variáveis dependentes (resultados)"
+    }
+  ]
+}

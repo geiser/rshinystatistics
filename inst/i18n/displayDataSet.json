@@ -1,0 +1,17 @@
+{
+  "languages": ["en", "pt"],
+  "translation": [
+    {
+      "en": "Setting Data",
+      "pt": "Dados de Configuração"
+    },
+    {
+      "en": "Generating Data",
+      "pt": "Dados Generados"
+    },
+    {
+      "en": "Initial Table",
+      "pt": "Tabela Inicial"
+    }
+  ]
+}

@@ -7,7 +7,7 @@
 normality_test_by_res(
   data,
   dvs,
-  between,
+  between = c(),
   within = c(),
   covar = NULL,
   dv.var = NULL
@@ -18,13 +18,15 @@ normality_test_by_res(
 
 \item{dvs}{a character vector containing the dependent variables}
 
-\item{between}{a character vector containing the independent variable used between-subject}
+\item{between}{a character vector containing the independent variable used as between-subject}
 
-\item{within}{a character vector containing the independent variable used within-subject}
+\item{within}{a character vector containing the independent variable used as within-subject}
 
 \item{covar}{a character indicating the column of covariate variable used in the normality test}
 
 \item{dv.var}{column with the information to classify observations based on dependent variables}
+
+\item{ivs}{a character vector containing all the independent variables}
 }
 \value{
 A data frame containing the normality test

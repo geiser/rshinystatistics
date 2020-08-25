@@ -1,0 +1,53 @@
+{
+  "languages": ["en", "pt"],
+  "translation": [
+    {
+      "en": "None",
+      "pt": "Nenhuma"
+    },
+    {
+      "en": "Removing in",
+      "pt": "Eliminando em"
+    },
+    {
+      "en": "to achieve normality",
+      "pt": "para atingir normalidade"
+    },
+    {
+      "en": "for positive moderate skew",
+      "pt": "para assimetria moderada positiva"
+    },
+    {
+      "en": "for negative moderate skew",
+      "pt": "para assimetria moderada negativa"
+    },
+    {
+      "en": "for positive greater skew",
+      "pt": "para assimetria maior positiva"
+    },
+    {
+      "en": "for negative greater skew",
+      "pt": "para assimetria maior negativa"
+    },
+    {
+      "en": "for positive severe skew",
+      "pt": "para assimetria severa positiva"
+    },
+    {
+      "en": "for negative severe skew",
+      "pt": "para assimetria severa negativa"
+    },
+    {
+      "en": "Transformation to avoid Skewness in",
+      "pt": "Transformação para evitar Assimetria em"
+    },
+    {
+      "en": "Setting Normality",
+      "pt": "Configuração da Normalidade"
+    },
+    {
+      "en": "Update Data Table",
+      "pt": "Atualizar Tabela de Dados"
+    }
+  ]
+}

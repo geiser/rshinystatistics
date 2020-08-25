@@ -1,0 +1,21 @@
+{
+  "languages": ["en", "pt"],
+  "translation": [
+    {
+      "en": "Homogeneity of variances",
+      "pt": "Homogeneidade de variâncias"
+    },
+    {
+      "en": "Homogeneity Test",
+      "pt": "Test de Homogeneidade"
+    },
+    {
+      "en": "Perform/Update Test",
+      "pt": "Executar/Atualizar Test"
+    },
+    {
+      "en": "for",
+      "pt": "para"
+    }
+  ]
+}

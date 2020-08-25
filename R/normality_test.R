@@ -1,3 +1,41 @@
+#' Symmetry test
+#'
+#' This function performs a symmetry test in a numeric vector.
+#'
+#' @param x a numeric vector of data values
+#' @return A data frame containing the value of the skewness and kurtosis values
+#' @export
+symmetry_test <- function(x) {
+  skewness <- as.numeric(timeDate::skewness(x, na.rm = T))
+  skewness.obs <- 'symmetrical (normal)'
+  if (skewness < -2) {
+    skewness.obs <- 'negative severe skew'
+  } else if (skewness >= -2 && skewness < -1) {
+    skewness.obs <- 'negative greater skew'
+  } else if (skewness >= -1 && skewness < -0.5) {
+    skewness.obs <- 'negative moderate skew'
+  } else if (skewness > 0.5 && skewness <= 1) {
+    skewness.obs <- 'positive moderate skew'
+  } else if (skewness > 1 && skewness <= 2) {
+    skewness.obs <- 'positive greater skew'
+  } else if (skewness > 2) {
+    skewness.obs <- 'positive severe skew'
+  }
+
+  kurtosis <- as.numeric(timeDate::kurtosis(x, na.rm = T))
+  kurtosis.obs <- 'mesokurtic (normal)'
+  if (kurtosis < -3) {
+    kurtosis.obs <- 'platykurtic (outliers)'
+  } else if (kurtosis > 3) {
+    kurtosis.obs <- 'leptokurtic (outliers)'
+  }
+
+  return(list(
+    skewness = skewness, skewness.obs = skewness.obs,
+    kurtosis = kurtosis, kurtosis.obs = kurtosis.obs
+  ))
+}
+
 #' Normality Test
 #'
 #' This function performs a normality test in a numeric vector.
@@ -6,6 +44,21 @@
 #' @return A data frame containing the value of the normality statistic and its corresponding p.value
 #' @export
 normality_test <- function(x) {
+  if (length(unique(x)) < 4) {
+    df <- data.frame(
+      n = length(x),
+      skewness = 0,
+      kurtosis = 0,
+      symmetry = 'few data',
+      statistic = NA,
+      method = NA,
+      p = 1,
+      p.signif = NA,
+      normality = 'NO'
+    )
+    return(df)
+  }
+
   plimit <- 0.05
   n.test <- shapiro.test(x)
   cutpoints <- c(0, 1e-04, 0.001, 0.01, 0.05, 1)
@@ -24,8 +77,13 @@ normality_test <- function(x) {
   if (length(x) > 100) normality <- 'QQ'
   if (length(x) > 200) normality <- '-'
 
-  df <- cbind(add_significance(data.frame(
+  sd <- symmetry_test(x)
+
+  df <- cbind(rstatix::add_significance(data.frame(
     n = length(x),
+    skewness = sd$skewness,
+    kurtosis = sd$kurtosis,
+    symmetry = ifelse(sd$skewness.obs == 'symmetrical (normal)' && sd$kurtosis.obs == 'mesokurtic (normal)', "YES", "NO"),
     statistic = n.test$statistic[1],
     method = strsplit(n.test$method, ' ')[[1]][1],
     p = n.test$p.value[1]
@@ -39,15 +97,15 @@ normality_test <- function(x) {
 #' This function performs a normality test in diferents columns of vector.
 #'
 #' @param dat a tibble data.frame containing the variables in which performing the normality test
-#' @param vars a list of numeric columns in which performing the normality test
+#' @param dvs a list of numeric columns in which performing the normality test
 #' @return A data frame containing the value of the normality statistic and its corresponding p.value
 #' @export
-normality_test_at <- function(dat, vars) {
-  df <- select(group_data(dat), -starts_with(".rows"))
-  do.call(rbind, lapply(vars, FUN = function(v) {
-    do.call(rbind, lapply(seq(1, nrow(group_data(dat))), FUN = function(i) {
-      n.test <- normality_test(dat[[v]][group_data(dat)[[".rows"]][[i]]])
-      cbind(variable = v, df[i,] , n.test)
+normality_test_at <- function(dat, dvs) {
+  df <- dplyr::select(dplyr::group_data(dat), -starts_with(".rows"))
+  do.call(rbind, lapply(dvs, FUN = function(dv) {
+    do.call(rbind, lapply(seq(1, nrow(dplyr::group_data(dat))), FUN = function(i) {
+      n.test <- normality_test(dat[[dv]][dplyr::group_data(dat)[[".rows"]][[i]]])
+      cbind(variable = dv, df[i,] , n.test)
     }))
   }))
 }
@@ -58,24 +116,25 @@ normality_test_at <- function(dat, vars) {
 #'
 #' @param data a data.frame containing the variables in which performing the normality test
 #' @param dvs a character vector containing the dependent variables
-#' @param between a character vector containing the independent variable used between-subject
-#' @param within a character vector containing the independent variable used within-subject
+#' @param between a character vector containing the independent variable used as between-subject
+#' @param within a character vector containing the independent variable used as within-subject
+#' @param ivs a character vector containing all the independent variables
 #' @param covar a character indicating the column of covariate variable used in the normality test
 #' @param dv.var column with the information to classify observations based on dependent variables
 #' @return A data frame containing the normality test
 #' @export
-normality_test_by_res <- function(data, dvs, between, within = c(), covar = NULL, dv.var = NULL) {
-  dat <- as.data.frame(data) 
-  non.normal <- do.call(rbind, lapply(dvs, FUN = function(dv) {
-    if (!is.null(dv.var)) dat <- data[which(data[[dv.var]] == dv),]
-    sformula <- paste0(paste0('`',between,'`'), collapse = '*')
-    if (!is.null(covar)) sformula <- paste0('`', covar, '` + ', sformula)
-    sformula <- as.formula(paste0('`', dv, '` ~ ', sformula))
-    mdl <- lm(sformula, data = dat)
-    df <- normality_test(residuals(mdl))
+normality_test_by_res <- function(data, dvs, between = c(), within = c(), covar = NULL, dv.var = NULL) {
+  ivs = c(between, within)
+  result <- do.call(rbind, lapply(dvs, FUN = function(dv) {
+    dat <- data
+    if (!is.null(dv.var))
+      dat <- data[which(data[[dv.var]] == dv),]
+
+    sformula <- as_formula(dv, between, within, covar)
+    df <- normality_test(residuals(lm(sformula, data = dat)))
     if (nrow(df) > 0) return(cbind(var = dv, df))
   }))
-  return(non.normal)
+  return(result)
 }
 
 #' Normality Test per Groups
@@ -84,18 +143,40 @@ normality_test_by_res <- function(data, dvs, between, within = c(), covar = NULL
 #'
 #' @param data a data.frame containing the variables in which performing the normality test
 #' @param dvs a character vector containing the dependent variables
-#' @param vars character vector containing the independent variable used define the groups
+#' @param ivs character vector containing the independent variable used define the groups
 #' @param dv.var column with the information to classify observations based on dependent variables
 #' @return A data frame containing the normality test
 #' @export
-normality_test_per_group <- function(data, dvs, vars, dv.var = NULL) {
+normality_test_per_group <- function(data, dvs, ivs, dv.var = NULL) {
   dat <- as.data.frame(data)
   non.normal <- do.call(rbind, lapply(dvs, FUN = function(dv) {
-    if (!is.null(dv.var)) dat <- data[which(data[[dv.var]] == dv),]
-    dat <- dplyr::group_by_at(dat, vars)
+    if (!is.null(dv.var))
+      dat <- data[which(data[[dv.var]] == dv),]
+    dat <- dplyr::group_by_at(dat, ivs)
     df <- normality_test_at(dat, dv)
-    if (nrow(df) > 0) return(cbind(var = dv, df))
+    if (nrow(df) > 0)
+      return(cbind(var = dv, df))
   }))
   return(non.normal)
 }
 
+#' @export
+getNonNormal <- function(x, x.name = paste0('', seq(1, length(x))), step = 2, plimit = 0.05) {
+  if (length(unique(x)) < 4) return(c())
+  names(x) <- x.name
+  toReturn <- c()
+  if (length(x) > 30) plimit <- 0.01
+  if (length(x) > 100) plimit <- 0.001
+  res <- tryCatch(normality_test(x), error = function(e) NULL)
+  while(!is.null(res) && (length(unique(x)) > 3) && res$p < plimit) {
+    y <- sort(x)
+    x.norm <- qqnorm(y, plot.it = F)
+    qqline <- getQQline(y)
+    y.diff <- (x.norm$y-((qqline$slope*x.norm$x)+as.numeric(qqline$intercept)))^2
+    y.diff <- sort(y.diff, decreasing = T)[1:step]
+    x <- x[!names(x) %in% names(y.diff)]
+    toReturn <- c(toReturn, names(y.diff))
+    res <- tryCatch(normality_test(x), error = function(e) NULL)
+  }
+  return(toReturn)
+}
