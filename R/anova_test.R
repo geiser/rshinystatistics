@@ -28,6 +28,7 @@ get.anova.test <- function(data, dvs, between=c(), within=c(), type, effect.size
 
 #' @export
 get.anova.pwc.table <- function(pwcs, only.sig = F) {
+  print(pwcs)
   cnames <- c("var")
   toReturn <- do.call(rbind, lapply(names(pwcs), FUN = function(dv) {
     do.call(rbind, lapply(names(pwcs[[dv]]), FUN = function(iv) {

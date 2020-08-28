@@ -24,6 +24,7 @@ Imports:
 	stats,
 	fBasics,
 	rcompanion,
+	emmeans,
 	rstatix,
 	readxl,
 	readr,

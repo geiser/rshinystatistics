@@ -16,8 +16,12 @@ loadDataSetMD <- function(id, var.params = list(), dv.vars = c(), rds.signature 
                                   label = tl("column of the obs. identifier"))), var.params)
 
   get_choices <- function(data, type = 'other', values.count = nrow(data), params = list()) {
-    if ('type' %in% names(params)) type <- params$type
-    if ('values.count' %in% names(params)) values.count <- params$values.count
+    if ('type' %in% names(params)) {
+      type <- params$type
+    }
+    if ('values.count' %in% names(params)) {
+      values.count <- params$values.count
+    }
     unlist(sapply(colnames(data), USE.NAMES = F, FUN = function(cname) {
       if (type == 'numeric') {
         if (is.numeric(data[[cname]])) return(cname)
