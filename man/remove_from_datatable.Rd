@@ -4,10 +4,10 @@
 \alias{remove_from_datatable}
 \title{Remove Elements from a Data Table for Dependent Variables}
 \usage{
-remove_from_datatable(tbl, to_remove, wid = "row.pos", dv.var = NULL)
+remove_from_datatable(data, to_remove, wid = "row.pos", dv.var = NULL)
 }
 \arguments{
-\item{tbl}{a data.frame containing the data table}
+\item{data}{a data.frame or list containing the data table}
 
 \item{to_remove}{a vector or list containing the elements to be removed from the data table}
 

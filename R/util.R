@@ -20,33 +20,61 @@ set_datatable <- function (tbl, dvs, dv.var = "var") {
 #'
 #' Removes elements from a data table previously setting based on dependent variables
 #'
-#' @param tbl a data.frame containing the data table
+#' @param data a data.frame or list containing the data table
 #' @param to_remove a vector or list containing the elements to be removed from the data table
 #' @param wid a character vector containing the unique identifier for each row
 #' @param dv.var column with the information to classify observations based on dependent variables
 #' @return A data.frame with the eliminated data table
 #' @export
-remove_from_datatable <- function(tbl, to_remove, wid = 'row.pos', dv.var = NULL) {
+remove_from_datatable <- function(data, to_remove, wid = 'row.pos', dv.var = NULL) {
   if (length(to_remove) > 1) {
-    pos <- c()
+    if (is.data.frame(data)) {
+      pos <- rep(T, nrow(data))
+    } else if (is.list(data)) {
+      ldvs <- as.list(names(data))
+      names(ldvs) <- names(data)
+      pos <- lapply(ldvs, FUN = function(dv) {
+        rep(T, nrow(data[[dv]]))
+      })
+    }
+
     if (is.list(to_remove)) {
       for (dv in names(to_remove)) {
-        if (!is.null(dv.var)) {
-          pos <- c(which((tbl[[wid]] %in% to_remove[[dv]]) & (tbl[[dv.var]] == dv)), pos)
-        } else {
-          pos <- c(which(tbl[[wid]] %in% to_remove[[dv]]), pos)
+        if (is.data.frame(data)) {
+          if (!is.null(dv.var)) {
+            pos <- (!data[[wid]] %in% to_remove[[dv]]) & (data[[dv.var]] == dv) & pos
+          } else {
+            pos <- (!data[[wid]] %in% to_remove[[dv]]) & pos
+          }
+        } else if (is.list(data)) {
+          pos[[dv]] <- (!data[[dv]][[wid]] %in% to_remove[[dv]]) & pos[[dv]]
         }
       }
-    } else if (!is.null(dv.var)) {
-      for (dv in unique(tbl[[dv.var]])) {
-        pos <- c(which((tbl[[wid]] %in% to_remove) & (tbl[[dv.var]] == dv)), pos)
+    } else if (is.data.frame(data) && !is.null(dv.var)) {
+      for (dv in unique(data[[dv.var]])) {
+        pos <- (!data[[wid]] %in% to_remove) & (data[[dv.var]] == dv) & pos
+      }
+    } else if (is.list(data)) {
+      for (dv in names(data)) {
+        pos[[dv]] <- (!data[[dv]][[wid]] %in% to_remove) & pos[[dv]]
       }
     } else {
-      pos <- c(which(tbl[[wid]] %in% to_remove), pos)
+      pos <- (!data[[wid]] %in% to_remove) & pos
     }
-    return(tbl[-c(pos),])
+
+
+    if (is.data.frame(data)) {
+      toReturn <- data[pos,]
+    } else if (is.list(data)) {
+      ldvs <- as.list(names(data))
+      names(ldvs) <- names(data)
+      toReturn <- lapply(ldvs, FUN = function(dv) {
+        return(data[[dv]][pos[[dv]],])
+      })
+    }
+    return(toReturn)
   } else {
-    return(tbl)
+    return(data)
   }
 }
 
@@ -55,6 +83,10 @@ remove_from_datatable <- function(tbl, to_remove, wid = 'row.pos', dv.var = NULL
 #' @export
 as_formula <- function(dv, between = c(), within = c(), covar = NULL, wid = 'row.pos', as.character = F) {
   ivs <- c(between, within)
+  if (length(ivs) == 0 && length(covar) == 0) {
+    return(NULL)
+  }
+
   sformula <- paste0(paste0('`',ivs,'`'), collapse = '*')
   if (!is.null(covar))
     sformula <- paste0('`', covar, '` + ', sformula)

@@ -1,7 +1,7 @@
 #' @import shiny
-ancovaExportUI <- function(id) {
+repAnovaExportUI <- function(id) {
   ns <- NS(id)
-  tl <- getTranslator('ancovaExport')
+  tl <- getTranslator('factorialAnovaExport')
 
   fchoices <- c("html", "github", "word", "pdf")
 
@@ -13,7 +13,7 @@ ancovaExportUI <- function(id) {
     checkboxGroupInput(ns("files"), tl("Export formats"), choices = fchoices, selected = "html", width = "100%", inline = T),
     fixedRow(
       column(width = 6, checkboxGroupInput(ns("dvs"), tl("Detailed reports of"), choices = c(""), inline = T, width = "100%")),
-      column(width = 2, actionButton(ns("exportAncova"), "Generate Export Files", icon = icon('file-export'))),
+      column(width = 2, actionButton(ns("exportAnova"), "Generate Export Files", icon = icon('file-export'))),
       column(width = 2, uiOutput(ns("downloadButtonUI")))
     ),
     fixedRow(
@@ -25,12 +25,12 @@ ancovaExportUI <- function(id) {
 
 
 #' @import shiny
-ancovaExportMD <- function(id, dataset, dvs = "dvs", between = "between", covar = "covar") {
+repAnovaExportMD <- function(id, dataset, dvs = "dvs", between = "between", within = "within") {
   moduleServer(
     id,
     function(input, output, session) {
       ns <- session$ns
-      tl <- getTranslator('ancovaExport')
+      tl <- getTranslator('factorialAnovaExport')
 
       rdvs <- reactiveVal(unique(unlist(dataset$variables[c(dvs)], use.names = F)))
       observeEvent(dataset$variables, {
@@ -41,10 +41,10 @@ ancovaExportMD <- function(id, dataset, dvs = "dvs", between = "between", covar 
       reportId <- reactiveVal(
         digest::digest(list(
           id = id, dataset = reactiveValuesToList(dataset, all.names = T),
-          dvs = dvs, between = between, covar = covar), algo = "xxhash64")
+          dvs = dvs, between = between), algo = "xxhash64")
       )
       path <- reactiveVal(
-        paste0(getwd(),'/report/ancova/',reportId())
+        paste0(getwd(),'/report/rep-anova/',reportId())
       )
 
       # ... generate reports
@@ -55,22 +55,22 @@ ancovaExportMD <- function(id, dataset, dvs = "dvs", between = "between", covar 
         inc <- 1/(length(input$files) * (1+length(input$dvs)))
 
         backup <- reactiveValuesToList(dataset, all.names = T)
-        backup[["rds.signature"]] <- paste0('ancova-',as.character(packageVersion("rshinystatistics")))
+        backup[["rds.signature"]] <- paste0('repAnova-',as.character(packageVersion("rshinystatistics")))
         backup[["author"]] <- input$author
         backup[["email"]] <- input$email
         saveRDS(backup, file = paste0(path(), '/backup.rds'))
 
         # ... generating markdowns and R scripts
 
-        cat(ancovaSummaryAsFile('R', backup, dvs, between, covar, path = path()), file = paste0(path(), '/ancova.R'))
-        cat(ancovaSummaryAsFile('Rmd', backup, dvs, between, covar), file = paste0(path(), '/summary.Rmd'))
-        for (dv in rdvs()) write.csv(backup$initTable[[dv]] , paste0(path(), '/data-',dv,'.csv'))
+        cat(repAnovaSummaryAsFile('R', backup, dvs, between, path = path()), file = paste0(path(), '/factorialAnova.R'))
+        cat(repAnovaSummaryAsFile('Rmd', backup, dvs, between), file = paste0(path(), '/summary.Rmd'))
+        write.csv(backup$initTable , paste0(path(), '/data.csv'))
 
         for (dv in input$dvs) {
           dir.create(paste0(path(),'/',dv), showWarnings = F, recursive = T)
-          cat(ancovaDetailAsFile('R', backup, dv, between, covar, path = paste0(path(),'/',dv)), file = paste0(path(),'/',dv,'/ancova.R'))
-          cat(ancovaDetailAsFile('Rmd', backup, dv, between, covar), file = paste0(path(),'/',dv,'/ancova.Rmd'))
-          write.csv(backup$initTable[[dv]], paste0(path(), '/', dv, '/data.csv'))
+          cat(repAnovaDetailAsFile('R', backup, dv, between, path = paste0(path(),'/',dv)), file = paste0(path(),'/',dv,'/factorialAnova.R'))
+          cat(repAnovaDetailAsFile('Rmd', backup, dv, between), file = paste0(path(),'/',dv,'/factorialAnova.Rmd'))
+          write.csv(backup$initTable, paste0(path(), '/', dv, '/data.csv'))
         }
 
         # .. generating using rmarkdown
@@ -81,19 +81,19 @@ ancovaExportMD <- function(id, dataset, dvs = "dvs", between = "between", covar 
         for (dv in input$dvs) {
           for (nfile in input$files) {
             progress$inc(inc, detail = paste('Generating',nfile,'file as detailed reported for ',dv))
-            rmarkdown::render(paste0(path(),'/',dv,'/ancova.Rmd'), paste0(nfile,'_document'))
+            rmarkdown::render(paste0(path(),'/',dv,'/factorialAnova.Rmd'), paste0(nfile,'_document'))
           }
         }
       }
 
-      observeEvent(input$exportAncova, {
+      observeEvent(input$exportAnova, {
         if (!dataset$isSetup) return(NULL)
         validate(
-          need(!is.null(dataset$ancovaParams[["hypothesis"]]),
-               tl("Please perform the ANCOVA test before to generate the files to be exported"))
+          need(!is.null(dataset$anovaParams[["hypothesis"]]),
+               tl("Please perform the ANOVA test before to generate the files to be exported"))
         )
         progress <- shiny::Progress$new()
-        progress$set(message = tl("Making files to export ANCOVA"), value = 0)
+        progress$set(message = tl("Making files to export ANOVA"), value = 0)
         updateFiles(progress)
         on.exit(progress$close())
 
@@ -103,7 +103,7 @@ ancovaExportMD <- function(id, dataset, dvs = "dvs", between = "between", covar 
       })
 
       output$downloadButtonUI <- renderUI({
-        if (!is.null(input$exportAncova) && (input$exportAncova) > 0) {
+        if (!is.null(input$exportAnova) && (input$exportAnova) > 0) {
           downloadButton(ns('downloadZIP'), tl('Download ZIP'))
         }
       })

@@ -13,18 +13,20 @@ get.scheirer.table <- function(srhs) {
 
 #' @export
 get.scheirer.test <- function(data, dvs, between, dv.var = NULL, as.table = F) {
-  #"Df" - DFn DFd
   ldvs <- as.list(dvs); names(ldvs) <- dvs
   toReturn <- lapply(ldvs, FUN = function(dv) {
-    dat <- as.data.frame(data)
-    if (!is.null(dv.var))
-      dat <- as.data.frame(data[which(data[[dv.var]] == dv),])
+    if (is.data.frame(data)) {
+      dat <- as.data.frame(data)
+      if (!is.null(dv.var))
+        dat <- as.data.frame(data[which(data[[dv.var]] == dv),])
+    } else if (is.list(data)) {
+      dat <- as.data.frame(data[[dv]])
+    }
 
     sformula <- as_formula(dv, between)
     srh <- tryCatch(rcompanion::scheirerRayHare(sformula, data = dat, verbose = F)
                     , error = function(e) return(NULL))
     if (!is.null(srh)) {
-      #attr(srh,'non.test') <- 'scheirerRayHare'
       return(srh)
     }
   })
@@ -67,9 +69,14 @@ get.scheirer.pwc <- function(data, dvs, between, pwc.method = "wilcoxon", p.adju
   livs <- as.list(as.character(c(between)))
   names(livs) <- as.character(c(between))
   toReturn <- lapply(ldvs, FUN = function(dv) {
-    dat <- as.data.frame(data)
-    if (!is.null(dv.var))
-      dat <- as.data.frame(data[which(data[[dv.var]] == dv),])
+    if (is.data.frame(data)) {
+      dat <- as.data.frame(data)
+      if (!is.null(dv.var))
+        dat <- as.data.frame(data[which(data[[dv.var]] == dv),])
+    } else if (is.list(data)) {
+      dat <- as.data.frame(data[[dv]])
+    }
+
    lapply(livs, FUN = function(iv) {
       pwc <- NULL
       gdat <-  dplyr::group_by_at(dat, dplyr::vars(setdiff(names(livs), iv)))

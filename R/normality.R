@@ -47,7 +47,7 @@ Os dados são provenientes de uma distribuição não normal.
 }
 
 #' @import shiny
-normalityMD <- function(id, dataset, dvs = "dvs", between = "between", within = "within", covar = "covar", only.residuals = F) {
+normalityMD <- function(id, dataset, dvs = "dvs", between = "between", within = "within", covar = "covar", only.residuals = F, table="dataTable") {
   moduleServer(
     id,
     function(input, output, session) {
@@ -59,6 +59,7 @@ normalityMD <- function(id, dataset, dvs = "dvs", between = "between", within = 
       rbetween <- reactiveVal(unique(unlist(dataset$variables[c(between)], use.names = F)))
       rwithin <- reactiveVal(unique(unlist(dataset$variables[c(within)], use.names = F)))
       rcovar <- reactiveVal(unique(unlist(dataset$variables[c(covar)], use.names = F)))
+      updateRadioButtons(session, "dv", choices = rdvs(), selected = rdvs()[1], inline = T)
 
       observeEvent(dataset$variables, {
         wid(dataset$variables$wid)
@@ -83,12 +84,13 @@ normalityMD <- function(id, dataset, dvs = "dvs", between = "between", within = 
       updateNormalityTables <- function() {
         if (dataset$isSetup) {
           df <- do.call(normality_test_by_res, list(
-            data = dataset$dataTable, dvs = rdvs(), between = rbetween(), within = rwithin(),
-            covar = rcovar(), dv.var = 'var'))
+            data = dataset[[table]], dvs = rdvs(), between = rbetween(), within = rwithin(),
+            covar = rcovar(), wid = wid(), dv.var = 'var'))
           df2TableMD("normalityResTbl", df, prefix = ns('residual'))
           if (!only.residuals) {
-            df.grp <- normality_test_per_group(dataset$dataTable, rdvs(), c(rbetween()), dv.var = 'var')
-            df2TableMD("normalityGroupTbl", df.grp, setdiff(colnames(df.grp), c("variable")), prefix = ns('per-groups'))
+            df.grp <- normality_test_per_group(dataset[[table]], rdvs(), c(rbetween(),rwithin()), dv.var = 'var')
+            cnames <- c('var',rbetween(),rwithin(),'n','skewness','kurtosis','symmetry','statistic','p','p.signif','normality')
+            df2TableMD("normalityGroupTbl", df.grp, cnames, prefix = ns('per-groups'))
           }
         }
       }
@@ -97,7 +99,7 @@ normalityMD <- function(id, dataset, dvs = "dvs", between = "between", within = 
         if (dataset$isSetup) updateNormalityTables()
       })
 
-      observeEvent(dataset$dataTable, {
+      observeEvent(dataset[[table]], {
         if (dataset$isSetup) updateNormalityTables()
       })
 
@@ -105,23 +107,33 @@ normalityMD <- function(id, dataset, dvs = "dvs", between = "between", within = 
 
       output$qqResidualPlotUI <- renderUI({
         if (dataset$isSetup) {
+          dat <- as.data.frame(dataset[[table]][[input$dv]])
+          within <- rwithin()[rwithin() %in% colnames(dat)]
+          between <- rbetween()[rbetween() %in% colnames(dat)]
+
+          sformula <- as_formula(input$dv, between, within, rcovar(), wid())
+          if (length(between) == 0 && length(within) == 0 && length(rcovar()) == 0) {
+            res <- dat[[input$dv]]
+            names(res) <- dat[[wid()]]
+          } else if (length(within) > 0) {
+            res <- as.data.frame(stats::proj(stats::aov(sformula, data = dat))[[3]])$Residuals
+            names(res) <- dat[[wid()]]
+          } else {
+            res <- residuals(lm(sformula, data = dat))
+            names(res) <- dat[[wid()]]
+          }
+
+          selected <- getNonNormal(res, x.name=names(res), step = 2, plimit = 0.05)
           params <- list(
-            data = dataset$dataTable, wid = wid(), dv = input$dv, between = rbetween(),
-            within = rwithin(), covar = rcovar(), dv.var = 'var',
+            data = dataset[[table]][[input$dv]], wid = wid(), dv = input$dv,
+            between = between, within = within, covar = rcovar(),
             width = input$width, height = input$height, bins = input$bins)
-
-          dat <- as.data.frame(dataset$dataTable[dataset$dataTable$var == input$dv,])
-          rownames(dat) <- dat[[wid()]]
-
-          sformula <- as_formula(input$dv, rbetween(), rwithin(), rcovar())
-          res <- stats::residuals(stats::lm(sformula, data = dat))
-
-          selected <- getNonNormal(res, x.name=names(res), step = 1, plimit = 0.05)
 
           verticalLayout(
             do.call(qqResidualPanel, params),
             span(tl("To achive normality, we suggest to remove the elements:")),
-            selectInput(ns(paste0('extremeRes',input$dv,'Input')), '', choices = rownames(dat), selected = selected, multiple = T, width = '100%'),
+            selectInput(ns(paste0('extremeRes',input$dv,'Input')), '',
+                        choices = dat[[wid()]], selected = selected, multiple = T, width = '100%'),
             actionButton(ns(paste0('removeRes',input$dv,'Button')), tl("Remove to achieve normality"))
           )
         }
@@ -136,21 +148,20 @@ normalityMD <- function(id, dataset, dvs = "dvs", between = "between", within = 
       })
 
 
-      infoGroupQQs <- reactiveValues(NULL)
-      if (!only.residuals) {
-        infoGroupQQs(
-          info_for_qq_groups(dataset$dataTable, input$dv, rbetween(), wid(), dv.var = 'var')
-        )
-      }
-
+      infoGroupQQs <- reactiveVal(NULL)
 
       output$qqGroupPlotUI <- renderUI({
         if (!dataset$isSetup) return(NULL)
         if (!input$showQQPlot || only.residuals) br()
         else if (input$showQQPlot)  {
+          if (!only.residuals) {
+            infoGroupQQs(
+              info_for_qq_groups(dataset[[table]], input$dv, c(rbetween(),rwithin()), wid(), dv.var = 'var')
+            )
+          }
           do.call(verticalLayout, lapply(infoGroupQQs(), FUN = function(info) {
             params <- list(
-              data = info$data, dv = input$dv, wid = wid(), name = info$lbl, dv.var = 'var',
+              data = info$data, dv = input$dv, wid = wid(), name = info$lbl,
               width = input$width, height = input$height, bins = input$bins
             )
             verticalLayout(
@@ -165,17 +176,18 @@ normalityMD <- function(id, dataset, dvs = "dvs", between = "between", within = 
 
 
       if (!only.residuals) {
-        lapply(rdvs(), FUN = function(dv){
-          lapply(infoGroupQQs(), FUN = function(info) {
-            observeEvent(input[[paste0('extremeGroup',input$dv,'Input',info$i)]], {
-              if (!dataset$isSetup) return(NULL)
-              ids <- isolate(dataset$addToRemoveForNormality[[input$dv]])
-              dataset$addToRemoveForNormality[[input$dv]] <- c(ids, input[[paste0('extremeGroup',input$dv,'Input',info$i)]])
+        observeEvent(infoGroupQQs(), {
+          lapply(rdvs(), FUN = function(dv){
+            lapply(infoGroupQQs(), FUN = function(info) {
+              observeEvent(input[[paste0('removeGroup',input$dv,'Button',info$i)]], {
+                if (!dataset$isSetup) return(NULL)
+                ids <- isolate(dataset$addToRemoveForNormality[[input$dv]])
+                dataset$addToRemoveForNormality[[input$dv]] <- c(ids, input[[paste0('extremeGroup',input$dv,'Input',info$i)]])
+              })
             })
           })
         })
       }
-
 
     }
   )

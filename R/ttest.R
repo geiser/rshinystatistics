@@ -14,15 +14,28 @@
 #' @return A data.frame containing the results for the independent t_test or a list with the dataframe in t.test and the t_test with their effect sizes
 #' @export
 ind_ttest <- function(data, dvs, iv, alternative = 'two.sided', var.equal = FALSE, hedges.correction = FALSE, dv.var = NULL, as.list = FALSE) {
-  dat <- data
   ldvs <- as.list(dvs); names(ldvs) <- dvs
+
   tt <- lapply(ldvs, FUN = function(dv) {
-    if (!is.null(dv.var)) dat <- as.data.frame(data[which(data[[dv.var]] == dv),])
+    if (is.data.frame(data)) {
+      dat <- as.data.frame(data)
+      if (!is.null(dv.var))
+        dat <- as.data.frame(data[which(data[[dv.var]] == dv),])
+    } else if (is.list(data)) {
+      dat <- as.data.frame(data[[dv]])
+    }
     sformula <- as.formula(paste0('`',dv,'` ~ `',iv,'`'))
     return(rstatix::t_test(dat, sformula, alternative = alternative, var.equal = var.equal, detailed = T))
   })
+
   ez <- lapply(ldvs, FUN = function(dv) {
-    if (!is.null(dv.var)) dat <- as.data.frame(data[which(data[[dv.var]] == dv),])
+    if (is.data.frame(data)) {
+      dat <- as.data.frame(data)
+      if (!is.null(dv.var))
+        dat <- as.data.frame(data[which(data[[dv.var]] == dv),])
+    } else if (is.list(data)) {
+      dat <- as.data.frame(data[[dv]])
+    }
     sformula <- as.formula(paste0('`',dv,'` ~ `',iv,'`'))
     return(rstatix::cohens_d(dat, sformula, var.equal = var.equal, hedges.correction = hedges.correction))
   })
@@ -34,5 +47,49 @@ ind_ttest <- function(data, dvs, iv, alternative = 'two.sided', var.equal = FALS
   } else return(t.test)
 }
 
+#' Paired T-Test
+#'
+#' @export
+paired_ttest <- function(data, dvs, iv, alternative = 'two.sided', var.equal = FALSE, hedges.correction = FALSE, dv.var = NULL, as.list = FALSE) {
+  ldvs <- as.list(dvs); names(ldvs) <- dvs
+
+  tt <- lapply(ldvs, FUN = function(dv) {
+    if (is.data.frame(data)) {
+      dat <- as.data.frame(data)
+      if (!is.null(dv.var))
+        dat <- as.data.frame(data[which(data[[dv.var]] == dv),])
+    } else if (is.list(data)) {
+      dat <- as.data.frame(data[[dv]])
+    }
+
+    int.iv <- intersect(iv, colnames(dat))
+    int.iv <- int.iv[1]
+
+    sformula <- as.formula(paste0('`',dv,'` ~ `',int.iv,'`'))
+    return(rstatix::t_test(dat, sformula, alternative = alternative, var.equal = var.equal, paired = T, detailed = T))
+  })
+
+  ez <- lapply(ldvs, FUN = function(dv) {
+    if (is.data.frame(data)) {
+      dat <- as.data.frame(data)
+      if (!is.null(dv.var))
+        dat <- as.data.frame(data[which(data[[dv.var]] == dv),])
+    } else if (is.list(data)) {
+      dat <- as.data.frame(data[[dv]])
+    }
+
+    int.iv <- intersect(iv, colnames(dat))
+    int.iv <- int.iv[1]
+
+    sformula <- as.formula(paste0('`',dv,'` ~ `',int.iv,'`'))
+    return(rstatix::cohens_d(dat, sformula, var.equal = var.equal, paired = T,  hedges.correction = hedges.correction))
+  })
+  t.test <- do.call(rbind, lapply(dvs, FUN = function(dv) {
+    return(rstatix::add_significance(merge(tt[[dv]], ez[[dv]])))
+  }))
+  if (as.list) {
+    return(list(t.test = t.test, tt = tt, ez = ez))
+  } else return(t.test)
+}
 
 

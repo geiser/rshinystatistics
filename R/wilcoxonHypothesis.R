@@ -130,7 +130,7 @@ wilcoxonHypothesisMD <- function(id, dataset, dvs = "dvs", iv = "iv") {
           addParam <- isolate(input$addParam)
           font.label.size <- isolate(input$font.label.size)
 
-          dat <- as.data.frame(dataset$dataTable[which(dataset$dataTable[["var"]] == dv),])
+          dat <- as.data.frame(dataset$dataTable[[dv]])
 
           # ... update dataset for independent sample wilcoxon-test parameters
           if (!'wilcoxonParams' %in% names(dataset)) dataset$wilcoxonParams <- list()

@@ -59,11 +59,11 @@ anova_plots_code <- function(backup, dataname, dvs, between, ext = 'Rmd') {
     }
 
     plot.code <- paste0(
-      'plots <- ', nfunction,'(',dataname,'[which(',dataname,'[["var"]] == "',dv,'"),], "',dv,'", between',"\n",
+      'plots <- ', nfunction,'(',dataname,'[["',dv,'"]], "',dv,'", between',
       ', aov[["',dv,'"]], pwc[["',dv,'"]], c(',paste0(paste0('"',addParam,'"'), collapse = ','),
       '), font.label.size=',font.label.size,', step.increase=',step.increase,')')
     if (ext == 'Rmd') {
-      plot.code <- paste0(c("```{r echo=FALSE}", plot.code, "```"), collapse = "\n")
+      plot.code <- paste0(c("```{r}", plot.code, "```"), collapse = "\n")
     }
     plot.code <- paste0(plot.code,'\n',display.plots.str(ext,between, width=width, height=height, dv=dv))
 
@@ -81,12 +81,12 @@ factorialAnovaSummaryAsFile <- function(ext, backup, dvs = 'dvs', between = 'bet
   rbetween <- unique(unlist(backup$variables[c(between)], use.names = F))
 
   code.skewness <- paste0(lapply(rdvs, FUN = function(dv) {
-    line.code <- skewness_code('rdat', backup$skewness[[dv]], paste0('"',dv,'"'))
+    line.code <- skewness_code(paste0('rdat[["',dv,'"]]'), backup$skewness[[dv]], paste0('"',dv,'"'))
     if (is.null(line.code)) return("")
     line.code <- paste0(c(
-      paste0('density_grp_plot(rdat,"',dv,'",wid,dv.var="var")'),
+      paste0('density_grp_plot(rdat[["',dv,'"]],"',dv,'",wid)'),
       line.code,
-      paste0('density_grp_plot(rdat,"',dv,'",wid,dv.var="var")')),
+      paste0('density_grp_plot(rdat[["',dv,'"]],"',dv,'",wid)')),
       collapse = "\n")
     if (ext == 'Rmd') {
       line.code <- paste0("\n```{r}\n",line.code,"\n```\n", "\n")
@@ -161,12 +161,12 @@ factorialAnovaDetailAsFile <- function(ext, backup, dv, between = 'between', pat
   fname <- 'oneWayAnovaPlots'
   if (length(rbetween) == 2) fname <- 'twoWayAnovaPlots'
   if (length(rbetween) == 3) fname <- 'threeWayAnovaPlots'
-  plot.code <- paste0('plots <- ',fname,'(sdat,"',dv,'",c(',paste0(paste0('"',rbetween,'"'),collapse=','),'),\n',
+  plot.code <- paste0('plots <- ',fname,'(sdat,"',dv,'",c(',paste0(paste0('"',rbetween,'"'),collapse=','),'),',
                       'aov[["',dv,'"]],pwc[["',dv,'"]],addParam=c(',paste0(paste0('"',addParam,'"'), collapse=','),'),',
                       'font.label.size=',font.label.size,',step.increase=',step.increase,')')
 
   if (ext == 'Rmd') {
-    plot.code <- paste0(c("```{r echo=FALSE}", plot.code, "```"), collapse = "\n")
+    plot.code <- paste0(c("```{r}", plot.code, "```"), collapse = "\n")
   }
   plot.code <- paste0(plot.code,'\n',display.plots.str(ext,rbetween, width=width, height=height, dv=dv))
 

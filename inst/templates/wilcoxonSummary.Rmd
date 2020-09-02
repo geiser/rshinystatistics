@@ -42,15 +42,13 @@ library(rshinystatistics)
 
 defaultW <- getOption("warn")
 options(warn = -1)
-
-data <- read.csv("data.csv")
-rownames(data) <- data[["{{ wid }}"]]
 ```
 
 ## Initial Data and Script
 
-* Initial data: [data.csv](data.csv)
 * R-script file: [wilcoxon.R](wilcoxon.R)
+{{ paste0(paste0('* Data for ', dvs, ' [data-',dvs,'.csv](data-',dvs,'.csv)'), collapse = '\n') }}
+
 
 ### Setting identificator, dependent and independent variables
 
@@ -58,7 +56,12 @@ rownames(data) <- data[["{{ wid }}"]]
 dvs <- c({{ paste0(paste0('"', dvs, '"'), collapse = ',') }})
 iv <- "{{ iv }}"
 wid <- "{{ wid }}"
-dat <- set_datatable(data, dvs, "var")
+ldvs <- as.list(dvs); names(ldvs) <- dvs
+dat <- lapply(ldvs, FUN = function(dv) {
+  data <- read.csv(paste0("data-",dv,".csv"))
+  rownames(data) <- data[["{{ wid }}"]]
+  return(data)
+})
 ```
 
 ## Removing outliers from the data

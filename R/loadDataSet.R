@@ -9,10 +9,10 @@ loadDataSetUI <- function(id) {
 }
 
 #' @import shiny
-loadDataSetMD <- function(id, var.params = list(), dv.vars = c(), rds.signature = NULL) {
+loadDataSetMD <- function(id, var.params = list(), dv.vars = c(), rds.signature = NULL, include.diffTable = F) {
 
   tl <- getTranslator('loadDataSet')
-  var.params <- c(list(wid = list(type = "unique", max = 1, include = c("row.pos"),
+  var.params <- c(list(wid = list(type = "non.numeric", min = 1, max = 1, include = c("row.pos"),
                                   label = tl("column of the obs. identifier"))), var.params)
 
   get_choices <- function(data, type = 'other', values.count = nrow(data), params = list()) {
@@ -119,7 +119,14 @@ loadDataSetMD <- function(id, var.params = list(), dv.vars = c(), rds.signature 
           lvar <- var.params[[var]]
           label <- ifelse("label" %in% names(lvar), lvar$label, var)
           multiple <- ifelse("max" %in% names(lvar) && lvar$max == 1, F, T)
-          if (lvar$type != 'convert.non.numeric') {
+          if (lvar$type == 'repeated.measures') {
+            num_max <- 20
+            if ('max' %in% names(lvar)) num_max <- lvar$max
+            verticalLayout(
+              numericInput(ns(paste0('num',var)), tl('Number of measurements'), value=lvar$min, min=lvar$min, max=num_max),
+              uiOutput(ns(paste0(var,'Options')))
+            )
+          } else if (lvar$type != 'convert.non.numeric') {
             selectInput(ns(var), label, choices = NULL, multiple = multiple)
           } else {
             verticalLayout(
@@ -132,7 +139,18 @@ loadDataSetMD <- function(id, var.params = list(), dv.vars = c(), rds.signature 
 
       lapply(names(var.params), FUN = function(var) {
         lvar <- var.params[[var]]
-        if (lvar$type == 'convert.non.numeric') {
+        if (lvar$type == 'repeated.measures') {
+          output[[paste0(var,'Options')]] <- renderUI({
+            colchoices <-   get_choices(values$fileTable, 'numeric')
+            do.call(verticalLayout, lapply(seq(1,input[[paste0('num',var)]]), FUN = function(i) {
+              verticalLayout(
+                textInput(ns(paste0(var,i,'Value')), paste0(tl('Name for the dependent variable'),' ',i), value = paste0('score',i)),
+                textInput(ns(paste0(var,i,'Key')), tl('Key name for the dependent variable'), value = paste0('time',i)),
+                selectInput(ns(paste0(var,i)),stringr::str_replace_all(lvar$label,'%i',as.character(i)), choices = colchoices, multiple = T)
+              )
+            }))
+          })
+        } else if (lvar$type == 'convert.non.numeric') {
           output[[paste0(var,'Options')]] <- renderUI({
             do.call(verticalLayout, lapply(input[[var]], FUN = function(x) {
               if (is.numeric(values$fileTable[[x]])) {
@@ -167,7 +185,11 @@ loadDataSetMD <- function(id, var.params = list(), dv.vars = c(), rds.signature 
       updateVariables <- function() {
         lapply(names(var.params), FUN = function(var) {
           lvar <- var.params[[var]]
-          if (!"removeFrom" %in% names(lvar) || length(lvar$removeFrom) == 0) {
+
+          if ("max.depend.on" %in% names(lvar) && "max" %in% names(lvar) &&
+              lvar$max - length(input[[lvar[['max.depend.on']]]]) < 1) {
+            updateSelectInput(session, var, choices = c(''), selected = c(''))
+          } else if (!"removeFrom" %in% names(lvar) || length(lvar$removeFrom) == 0) {
             choices <- get_choices(values$fileTable, params = lvar)
             if (length(lvar$include) > 0) choices <- c(choices, lvar$include)
             selected <- choices[1]
@@ -190,7 +212,10 @@ loadDataSetMD <- function(id, var.params = list(), dv.vars = c(), rds.signature 
                   choices <- setdiff(choices, toRemove)
 
                   selected <- NULL
-                  if (!is.null(files$rds) && "variables" %in% names(input$loadDataRDS)
+                  if ("max.depend.on" %in% names(lvar) && "max" %in% names(lvar) &&
+                      lvar$max - length(input[[lvar[['max.depend.on']]]]) < 1) {
+                    updateSelectInput(session, var, choices = c(''), selected = c(''))
+                  } else if (!is.null(files$rds) && "variables" %in% names(input$loadDataRDS)
                       && var %in% names(files$rds$variables)) {
                     selected <- files$rds$variables[[var]]
                   }
@@ -212,29 +237,96 @@ loadDataSetMD <- function(id, var.params = list(), dv.vars = c(), rds.signature 
       })
 
       lapply(names(var.params), FUN = function(var) {
-        observeEvent(input[[var]], {
-          if ("max" %in% names(var.params[[var]])) {
-            max <- var.params[[var]]$max
-            if (max > 1 && length(input[[var]]) > max) {
-              updateSelectInput(session, var, selected = input[[var]][1:max])
+        if (var.params[[var]]$type != 'repeated.measures') {
+          observeEvent(input[[var]], {
+            if ("max" %in% names(var.params[[var]])) {
+              max <- var.params[[var]]$max
+              if ("max.depend.on" %in% names(var.params[[var]])) {
+                max <- max - length(input[[var.params[[var]][['max.depend.on']]]])
+                if (max > 0)
+                  updateSelectInput(session, var, selected = input[[var]][1:max])
+                else {
+                  updateSelectInput(session, var, choices = c(''), selected = c(''))
+                }
+              } else if (max > 1 && length(input[[var]]) > max) {
+                updateSelectInput(session, var, selected = input[[var]][1:max])
+              }
+            }
+          })
+        }
+      })
+
+      observe({
+        lapply(names(var.params), FUN = function(var) {
+          lvar <- var.params[[var]]
+          if (lvar$type == 'repeated.measures') {
+            i <- input[[paste0('num',var)]]
+            if (!is.null(i) && i > 0) {
+              vals <- do.call(c, lapply(seq(1,input[[paste0('num',var)]]), FUN = function(i) {
+                if ("max.measures" %in% names(lvar)) {
+                  max <- lvar$max.measures
+                  if (length(input[[paste0(var,i)]]) > max) {
+                    updateSelectInput(session, paste0(var,i), selected = input[[paste0(var,i)]][1:max])
+                  }
+                }
+              }))
             }
           }
         })
       })
 
-      lapply(names(var.params), FUN = function(var) {
-        observeEvent(input[[var]], {
-          values$variables[[var]] <- input[[var]]
+      observe({
+        lapply(names(var.params), FUN = function(var) {
+          lvar <- var.params[[var]]
+          if (lvar$type == 'repeated.measures') {
+            i <- input[[paste0('num',var)]]
+            if (!is.null(i) && i > 0) {
+              vals <- do.call(c, lapply(seq(1,input[[paste0('num',var)]]), FUN = function(i) {
+                input[[paste0(var,i,'Value')]]
+              }))
+              values$variables[[var]] <- vals
+
+              lvars <- as.list(vals); names(lvars) <- vals
+              keys <- lapply(lvars, FUN = function(v) {
+                input[[paste0(var,which(vals == v),'Key')]]
+              })
+              values$variables[[paste0(var,'.within')]] <- keys
+              measurement <- lapply(lvars, FUN = function(v) {
+                input[[paste0(var,which(vals == v))]]
+              })
+              values$variables[[paste0(var,'.measurements')]] <- measurement
+            }
+          } else if ("max.depend.on" %in% names(lvar) && "max" %in% names(lvar) &&
+                     lvar$max - length(input[[lvar[['max.depend.on']]]]) < 1) {
+            values$variables[[var]] <- c()
+          } else if (var.params[[var]]$type != 'repeated.measures') {
+            values$variables[[var]] <- input[[var]]
+          }
         })
       })
+
 
       # ... dealing with load data button
 
       output$setButtonUI <- renderUI({
         if (all(do.call(c, lapply(names(var.params), FUN = function(var) {
           param <- var.params[[var]]
-          if ("min" %in% names(param)) length(input[[var]]) >= param[["min"]]
-          else length(input[[var]]) > 0
+          if (param$type == "repeated.measures") {
+            bvals <- do.call(c, lapply(seq(1,input[[paste0('num',var)]]), FUN = function(i) {
+              bmin <- 2
+              if ('min.measures' %in% names(param))
+                bmin <- param$min.measures
+
+              length(input[[paste0(var,i)]]) >= bmin &&
+                stringr::str_count(input[[paste0(var,i,'Value')]]) > 0 &&
+                stringr::str_count(input[[paste0(var,i,'Key')]]) > 0
+            }))
+          } else if ("min" %in% names(param)) {
+            bvals <- length(input[[var]]) >= param[["min"]]
+          } else{
+            bvals <- length(input[[var]]) > 0
+          }
+          return(all(bvals))
         })))) {
           actionButton(ns("setButton"), tl("Load Data Set"), icon = icon("arrow-circle-up"))
         }
@@ -244,15 +336,58 @@ loadDataSetMD <- function(id, var.params = list(), dv.vars = c(), rds.signature 
         if (input$setButton %% 2 != 0) {
 
           cnames <- setdiff(unique(unlist(values$variables, use.names = F)),'row.pos')
+          cnames <- cnames[cnames %in% colnames(values$fileTable)]
           initTable <- values$fileTable[complete.cases(values$fileTable[,cnames]),cnames]
           initTable <- df2qqs(initTable, params = get_vars_to_convert_non.numeric())
           if (input$wid == 'row.pos') {
             initTable <- cbind(row.pos = seq(1, nrow(initTable)), initTable)
           }
-          values$initTable <- initTable
+
+          ldvs <- values$variables[[dv.vars]]
+          names(ldvs) <- values$variables[[dv.vars]]
+          if (var.params[[dv.vars]][['type']] == 'repeated.measures') {
+            initTable2 <- lapply(ldvs, FUN = function(dv) {
+              cols <- values$variables[[paste0(dv.vars,'.measurements')]][[dv]]
+              cnames <- unlist(values$variables[!names(values$variables) %in%
+                                                  c(dv.vars, paste0(dv.vars, c('.measurements','.within')))]
+                               , use.names = F)
+              keys <- values$variables[[paste0(dv.vars,'.within')]][[dv]]
+              df <- tidyr::pivot_longer(initTable, cols = cols, names_to = keys, values_to = dv)
+              return(df[,c(cnames,keys,dv)])
+            })
+          } else {
+            initTable2 <- lapply(ldvs, FUN = function(dv) {
+              cnames <-  unlist(values$variables[!names(values$variables) %in% dv.vars], use.names = F)
+              initTable[,c(cnames,dv)]
+            })
+          }
+
+
+          values$initTable <- initTable2
 
           dvs <- unique(unlist(values$variables[dv.vars], use.names = F))
-          values$dataTable <- set_datatable(values$initTable, dvs)
+          values$dataTable <- initTable2
+
+          # diff table
+          if (include.diffTable &&  var.params[[dv.vars]][['type']] == "repeated.measures") {
+            measurements <- values$variables[[paste0(dv.vars,'.measurements')]]
+
+            values$diffTable <- lapply(names(measurements), FUN = function(dv) {
+              dat <- values$fileTable
+              if (input$wid == 'row.pos') {
+                dat <- cbind(row.pos = seq(1, nrow(dat)), dat)
+              }
+
+              vals <- measurements[[dv]]
+              dat[[dv]] <- dat[[vals[length(vals)]]]
+              for (i in seq(length(vals)-1, 1)) {
+                dat[[dv]] <- dat[[dv]] - dat[[vals[i]]]
+              }
+              return(dat[,c(input$wid, dv)])
+            })
+            names(values$diffTable) <- names(measurements)
+            values$variables[[paste0(dv.vars,'.diff')]] <- names(values$diffTable)
+          }
 
           updateActionButton(session, "setButton", tl("Change Data Set"), icon = icon("arrow-circle-down"))
           values$isSetup <- T
@@ -263,7 +398,6 @@ loadDataSetMD <- function(id, var.params = list(), dv.vars = c(), rds.signature 
           nlists <- names(reactiveValuesToList(values))
           for (nlist in nlists[!nlists %in% c('isSetup','variables')]) {
             if (nlist != 'isSetup' || nlist != 'variables') {
-              #print(nlist);
               values[[nlist]] <- NULL
             }
           }

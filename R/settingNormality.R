@@ -58,7 +58,7 @@ settingNormalityMD <- function(id, dataset, dvs = "dvs", updateDataTable = T) {
       output$extremeInputUI <- renderUI({
         if (!dataset$isSetup) return(NULL)
         extremeInputs <- lapply(rdvs(), FUN = function(dv) {
-          choices <- setdiff(dataset$initTable[[wid()]], c(dataset$outliers[[dv]]))
+          choices <- setdiff(dataset$initTable[[dv]][[wid()]], c(dataset$outliers[[dv]]))
           selected <- isolate(dataset$toRemoveForNormality)[[dv]]
           lbl <- paste0(tl('Removing in'),' "',dv,'" ',tl('to achieve normality'))
           selectInput(ns(paste0('extreme', dv, 'Input')), lbl, choices=choices, selected=selected, multiple=T)
@@ -94,7 +94,10 @@ settingNormalityMD <- function(id, dataset, dvs = "dvs", updateDataTable = T) {
         extremeObserve$suspend()
         skewnessObserve$suspend()
 
-        dataset$dataTable <- do.call(rbind, lapply(rdvs(), FUN = function(dv) {
+        ldvs <- as.list(rdvs())
+        names(ldvs) <- rdvs()
+
+        dataset$dataTable <- lapply(ldvs, FUN = function(dv) {
           ids <- c()
           outliers <- isolate(dataset$outliers)[[dv]]
           toRemoveForNormality <- isolate(dataset$toRemoveForNormality)[[dv]]
@@ -103,7 +106,7 @@ settingNormalityMD <- function(id, dataset, dvs = "dvs", updateDataTable = T) {
           if (length(toRemoveForNormality) > 0) ids <- c(toRemoveForNormality, ids)
           if (length(fromExtremeInputs) > 0) ids <- c(fromExtremeInputs, ids)
 
-          initTable <- isolate(dataset$initTable)
+          initTable <- isolate(dataset$initTable[[dv]])
           dat <- initTable[!initTable[[wid()]] %in% c(unique(ids)),]
 
           skew <- isolate(dataset$skewness[[dv]])
@@ -122,8 +125,8 @@ settingNormalityMD <- function(id, dataset, dvs = "dvs", updateDataTable = T) {
               dat[[dv]] <- 1/(max(dat[[dv]]+1) - dat[[dv]])
             }
           }
-          if (!is.null(dat) && nrow(dat) > 0) return(cbind(var = dv, dat))
-        }))
+          if (!is.null(dat) && nrow(dat) > 0) return(dat)
+        })
 
         skewnessObserve$resume()
         extremeObserve$resume()

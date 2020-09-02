@@ -16,11 +16,11 @@ kruskal_plots_code <- function(backup, dataname, dvs, between, ext = 'Rmd') {
     }
 
     plot.code <- paste0(
-      'plots <- oneWayNonParamFactPlots(',dataname,'[which(',dataname,'[["var"]] == "',dv,'"),], "',dv,'", between',"\n",
+      'plots <- oneWayNonParamFactPlots(',dataname,'[["',dv,'"]], "',dv,'", between',"\n",
       ', kruskal[["',dv,'"]]$kt, pwc[["',dv,'"]], c(',paste0(paste0('"',addParam,'"'), collapse = ','),
       '), font.label.size=',font.label.size,', step.increase=',step.increase,')')
     if (ext == 'Rmd') {
-      plot.code <- paste0(c("```{r echo=FALSE}", plot.code, "```"), collapse = "\n")
+      plot.code <- paste0(c("```{r}", plot.code, "```"), collapse = "\n")
     }
     plot.code <- paste0(plot.code,'\n',display.plots.str(ext, between, width=width, height=height, dv=dv))
 
@@ -89,7 +89,7 @@ kruskalDetailAsFile <- function(ext, backup, dv, between = 'between', path = get
                       'font.label.size=',font.label.size,',step.increase=',step.increase,')')
 
   if (ext == 'Rmd') {
-    plot.code <- paste0(c("```{r echo=FALSE}", plot.code, "```"), collapse = "\n")
+    plot.code <- paste0(c("```{r}", plot.code, "```"), collapse = "\n")
   }
   plot.code <- paste0(plot.code,'\n',display.plots.str(ext,rbetween, width=width, height=height, dv=dv))
 

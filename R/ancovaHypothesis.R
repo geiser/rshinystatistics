@@ -113,7 +113,7 @@ ancovaHypothesisMD <- function(id, dataset, dvs = "dvs", between = "between", co
           step.increase <- isolate(input$step.increase)
 
 
-          dat <- as.data.frame(dataset$dataTable[which(dataset$dataTable[["var"]] == dv),])
+          dat <- as.data.frame(dataset$dataTable[[dv]])
 
           # ... update dataset ancova parameters
           if (!'ancovaParams' %in% names(dataset)) dataset$ancovaParams <- list()

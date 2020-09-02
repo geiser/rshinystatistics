@@ -17,10 +17,14 @@ density_grp_plot <- function(data, dv, wid ='row.pos', ids = data[[wid]], name =
 #' @import shiny
 qqGroupPanel <- function(data, dv, wid = 'row.pos', ids = data[[wid]], name = paste0('All of ', dv),
                          dv.var = NULL, width = 500, height = 400, bins = 30) {
-  df <- as.data.frame(data)
-  if (!is.null(dv.var))
-    df <- df[df[[dv.var]] == dv,]
-  df <- df[df[[wid]] %in% ids,]
+  if (is.data.frame(data)) {
+    df <- as.data.frame(data)
+    if (!is.null(dv.var))
+      df <- df[df[[dv.var]] == dv,]
+    df <- df[df[[wid]] %in% ids,]
+  } else if (is.list(data)) {
+    df <- data[[dv]]
+  }
 
   values <- df[[dv]]
   names(values) <- df[[wid]]
@@ -64,16 +68,22 @@ qqGroupPanel <- function(data, dv, wid = 'row.pos', ids = data[[wid]], name = pa
 
 #' @export
 info_for_qq_groups <- function(data, dv, ivs, wid = 'row.pos', dv.var = NULL) {
-  dat <- as.data.frame(data)
-  if (!is.null(dv.var))
-    dat <- as.data.frame(data[data[[dv.var]] == dv,])
+  if (is.data.frame(data)) {
+    dat <- as.data.frame(data)
+    if (!is.null(dv.var))
+      dat <- as.data.frame(data[data[[dv.var]] == dv,])
+  } else if (is.list(data)) {
+    dat <- as.data.frame(data[[dv]])
+  }
+
+  sivs <- unique(ivs[ivs %in% colnames(dat)])
 
   toReturn <- list()
-  freq_df <- subset(rstatix::freq_table(dat, vars = ivs), n >= 3)
+  freq_df <- subset(rstatix::freq_table(dat, vars = sivs), n >= 3)
   for (i in seq(1,nrow(freq_df))) {
-    tbl <- freq_df[i,c(ivs)]
-    df <- subset_by_tbl(dat, tbl, group = ivs)
-    df <- dplyr::group_by_at(df, vars(ivs))
+    tbl <- freq_df[i,c(sivs)]
+    df <- subset_by_tbl(dat, tbl, group = sivs)
+    df <- dplyr::group_by_at(df, vars(sivs))
     lbl <- paste(sapply(names(tbl), FUN = function(nc) { paste0(nc,':', tbl[[nc]]) }), collapse = "-")
     non.normal <- getNonNormal(df[[dv]], df[[wid]])
     toReturn[[lbl]] <- list(lbl = lbl, data = df, non.normal = non.normal, i = i)

@@ -47,8 +47,8 @@ linearityMD <- function(id, dataset, dvs = "dvs", between = "between", covar = "
       # ... plots linear plots
 
       output$linearPlotsUI <- renderUI({
-        if (dataset$isSetup && input$dv %in% colnames(dataset$dataTable)) {
-          dat <- dataset$dataTable[dataset$dataTable[["var"]] == input$dv,]
+        if (dataset$isSetup && input$dv %in% names(dataset$dataTable)) {
+          dat <- dataset$dataTable[[input$dv]]
           gdat <-  dplyr::group_data(dplyr::group_by_at(dat, rbetween()))
           do.call(verticalLayout, lapply(seq(1, nrow(gdat)), FUN = function(i) {
             sgroup <- paste0(unlist(lapply(rbetween(), FUN = function(cname) {

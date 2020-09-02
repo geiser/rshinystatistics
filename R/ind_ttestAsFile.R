@@ -13,8 +13,7 @@ ind_ttest_plots_code <- function(backup, dataname, dvs, iv, ext = 'Rmd') {
       height <- plot.param$height
     }
 
-    plot.code <- paste0('ggPlotTTest(',dataname,'[which(',dataname,'[["var"]] == "',dv,'"),], "',iv,'", "',dv,'"',"\n",
-                        ', res$tt[["',dv,'"]], c(',paste0(paste0('"',addParam,'"'),collapse =','),'), font.label.size=',font.label.size,')')
+    plot.code <- paste0('ggPlotTTest(',dataname,'[["',dv,'"]], "',iv,'", "',dv,'", res$tt[["',dv,'"]], c(',paste0(paste0('"',addParam,'"'),collapse =','),'), font.label.size=',font.label.size,')')
     if (ext == 'Rmd') {
       plot.code <- paste0("```{r, fig.width=", ceiling(width/100),", fig.height=",ceiling(height/100), "}\n", plot.code,"\n```\n")
     }
@@ -33,7 +32,7 @@ ind.ttestSummaryAsFile <- function(ext, backup, dvs = 'dvs', iv = 'iv', path = g
   riv <- unique(unlist(backup$variables[c(iv)], use.names = F))
 
   code.skewness <- paste0(lapply(rdvs, FUN = function(dv) {
-    line.code <- skewness_code('rdat', backup$skewness[[dv]], paste0('"',dv,'"'))
+    line.code <- skewness_code(paste0('rdat[["',dv,'"]]'), backup$skewness[[dv]], paste0('"',dv,'"'))
     if (is.null(line.code)) return("")
     line.code <- paste0(c(
       paste0('density_res_plot(rdat,"',dv,'",iv,dv.var="var")'),

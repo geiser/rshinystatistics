@@ -24,11 +24,11 @@ srh_plots_code <- function(backup, dataname, dvs, between, ext = 'Rmd') {
     }
 
     plot.code <- paste0(
-      'plots <- ', nfunction,'(',dataname,'[which(',dataname,'[["var"]] == "',dv,'"),], "',dv,'", between',"\n",
+      'plots <- ', nfunction,'(',dataname,'[["',dv,'"]], "',dv,'", between',
       ', srh[["',dv,'"]], pwc[["',dv,'"]], c(',paste0(paste0('"',addParam,'"'), collapse = ','),
       '), font.label.size=',font.label.size,', step.increase=',step.increase,', type = "srh")')
     if (ext == 'Rmd') {
-      plot.code <- paste0(c("```{r echo=FALSE}", plot.code, "```"), collapse = "\n")
+      plot.code <- paste0(c("```{r}", plot.code, "```"), collapse = "\n")
     }
     plot.code <- paste0(plot.code,'\n',display.plots.str(ext, between, width=width, height=height, dv=dv))
 
@@ -100,7 +100,7 @@ srhDetailAsFile <- function(ext, backup, dv, between = 'between', path = getwd()
                       'font.label.size=',font.label.size,',step.increase=',step.increase,', type = "srh")')
 
   if (ext == 'Rmd') {
-    plot.code <- paste0(c("```{r echo=FALSE}", plot.code, "```"), collapse = "\n")
+    plot.code <- paste0(c("```{r}", plot.code, "```"), collapse = "\n")
   }
   plot.code <- paste0(plot.code,'\n',display.plots.str(ext,rbetween, width=width, height=height, dv=dv))
 

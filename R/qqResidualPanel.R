@@ -1,7 +1,12 @@
 #' @export
 density_res_plot <- function(data, dv, between = c(), within = c(), covar = NULL, dv.var = NULL, bins = 35) {
-  dat <- as.data.frame(data)
-  if (!is.null(dv.var)) dat <- data[data[[dv.var]] == dv,]
+  if (is.data.frame(data)) {
+    dat <- as.data.frame(data)
+    if (!is.null(dv.var))
+      dat <- as.data.frame(data[data[[dv.var]] == dv,])
+  } else if (is.list(data)) {
+    dat <- as.data.frame(data[[dv]])
+  }
 
   sformula <- as_formula(dv, between, within, covar)
   res <- residuals(lm(sformula, data = dat))
@@ -19,10 +24,18 @@ qqResidualPanel <- function(data, dv, wid = 'row.pos', between = c(), within = c
   ivs <- c(between, within)
   if (!is.null(dv.var))
     dat <- data[data[[dv.var]] == dv,]
-  rownames(dat) <- dat[[wid]]
 
-  sformula <- as_formula(dv, between, within, covar, as.character = T)
-  res <- residuals(lm(stats::as.formula(sformula), data = dat))
+  sformula <- as_formula(dv, between, within, covar, wid, as.character = T)
+  if (length(ivs) == 0 && length(covar) == 0) {
+    res <- dat[[dv]]
+    names(res) <- dat[[wid]]
+  } else if (length(within) > 0) {
+    res <- as.data.frame(stats::proj(stats::aov(as.formula(sformula), data = dat))[[3]])$Residuals
+    names(res) <- dat[[wid]]
+  } else {
+    res <- residuals(lm(as.formula(sformula), data = dat))
+    names(res) <- dat[[wid]]
+  }
 
   verticalLayout(
    h4(paste0("Residual Model: ", sformula))

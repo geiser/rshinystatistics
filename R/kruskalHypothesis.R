@@ -106,7 +106,7 @@ kruskalHypothesisMD <- function(id, dataset, dvs = "dvs", between = "between") {
           step.increase <- isolate(input$step.increase)
 
 
-          dat <- as.data.frame(dataset$dataTable[which(dataset$dataTable[["var"]] == dv),])
+          dat <- as.data.frame(dataset$dataTable[[dv]])
 
           # ... update dataset kruskal parameters
           if (!'kruskalParams' %in% names(dataset)) dataset$kruskalParams <- list()

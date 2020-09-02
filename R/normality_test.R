@@ -114,24 +114,39 @@ normality_test_at <- function(dat, dvs) {
 #'
 #' This function performs a normality test in a residual model.
 #'
-#' @param data a data.frame containing the variables in which performing the normality test
+#' @param data a data.frame or list of data containing the variables in which performing the normality test
 #' @param dvs a character vector containing the dependent variables
 #' @param between a character vector containing the independent variable used as between-subject
 #' @param within a character vector containing the independent variable used as within-subject
-#' @param ivs a character vector containing all the independent variables
 #' @param covar a character indicating the column of covariate variable used in the normality test
 #' @param dv.var column with the information to classify observations based on dependent variables
 #' @return A data frame containing the normality test
 #' @export
-normality_test_by_res <- function(data, dvs, between = c(), within = c(), covar = NULL, dv.var = NULL) {
-  ivs = c(between, within)
+normality_test_by_res <- function(data, dvs, between = c(), within = c(), covar = NULL, wid = 'row.pos', dv.var = NULL) {
   result <- do.call(rbind, lapply(dvs, FUN = function(dv) {
-    dat <- data
-    if (!is.null(dv.var))
-      dat <- data[which(data[[dv.var]] == dv),]
+    if (is.data.frame(data)) {
+      dat <- as.data.frame(data)
+      if (!is.null(dv.var))
+        dat <- as.data.frame(data[which(data[[dv.var]] == dv),])
+    } else if (is.list(data)) {
+      dat <- as.data.frame(data[[dv]])
+    }
 
-    sformula <- as_formula(dv, between, within, covar)
-    df <- normality_test(residuals(lm(sformula, data = dat)))
+    within <- within[within %in% colnames(dat)]
+    between <- between[between %in% colnames(dat)]
+
+    sformula <- as_formula(dv, between, within, covar, wid)
+    if (length(between) == 0 && length(within) == 0 && length(covar) == 0) {
+      res <- dat[[dv]]
+      names(res) <- dat[[wid]]
+    } else if (length(within) > 0) {
+      res <- as.data.frame(stats::proj(stats::aov(sformula, data = dat))[[3]])$Residuals
+      names(res) <- dat[[wid]]
+    } else {
+      res <- residuals(lm(sformula, data = dat))
+      names(res) <- dat[[wid]]
+    }
+    df <- normality_test(res)
     if (nrow(df) > 0) return(cbind(var = dv, df))
   }))
   return(result)
@@ -148,12 +163,23 @@ normality_test_by_res <- function(data, dvs, between = c(), within = c(), covar 
 #' @return A data frame containing the normality test
 #' @export
 normality_test_per_group <- function(data, dvs, ivs, dv.var = NULL) {
-  dat <- as.data.frame(data)
   non.normal <- do.call(rbind, lapply(dvs, FUN = function(dv) {
-    if (!is.null(dv.var))
-      dat <- data[which(data[[dv.var]] == dv),]
-    dat <- dplyr::group_by_at(dat, ivs)
+    if (is.data.frame(data)) {
+      dat <- as.data.frame(data)
+      if (!is.null(dv.var))
+        dat <- data[which(data[[dv.var]] == dv),]
+    } else if (is.list(data)) {
+      dat <- as.data.frame(data[[dv]])
+    }
+
+    givs <- unique(ivs[ivs %in% colnames(dat)])
+    dat <- dplyr::group_by_at(dat, givs)
+
     df <- normality_test_at(dat, dv)
+    for (cname in setdiff(ivs, colnames(df))) {
+      df[[cname]] <- NA
+    }
+
     if (nrow(df) > 0)
       return(cbind(var = dv, df))
   }))

@@ -29,10 +29,10 @@ ancova_plots_code <- function(backup, dataname, dvs, between, ext = 'Rmd') {
       nfunction <- 'oneWayAncovaPlots'
     }
 
-    plot.code <- paste0('plots <- ', nfunction,'(',dataname,'[which(',dataname,'[["var"]] == "',dv,'"),], "',dv,'", between',"\n",
+    plot.code <- paste0('plots <- ', nfunction,'(',dataname,'[["',dv,'"]], "',dv,'", between',"\n",
                         ', aov[["',dv,'"]], pwc[["',dv,'"]], font.label.size=',font.label.size,', step.increase=',step.increase,')')
     if (ext == 'Rmd') {
-      plot.code <- paste0(c("```{r echo=FALSE}", plot.code, "```"), collapse = "\n")
+      plot.code <- paste0(c("```{r}", plot.code, "```"), collapse = "\n")
     }
 
     plot.code <- paste0(c(plot.code, paste0(lapply(between, FUN = function(iv) {
@@ -60,12 +60,12 @@ ancovaSummaryAsFile <- function(ext, backup, dvs = 'dvs', between = 'between', c
   rcovar <- unique(unlist(backup$variables[c(covar)], use.names = F))
 
   code.skewness <- paste0(lapply(rdvs, FUN = function(dv) {
-    line.code <- skewness_code('rdat', backup$skewness[[dv]], paste0('"',dv,'"'))
+    line.code <- skewness_code(paste0('rdat[["',dv,'"]]'), backup$skewness[[dv]], paste0('"',dv,'"'))
     if (is.null(line.code)) return("")
     line.code <- paste0(c(
-      paste0('density_res_plot(rdat,"',dv,'",between,c(),covar,dv.var="var")'),
+      paste0('density_res_plot(rdat[["',dv,'"]],"',dv,'",between,c(),covar)'),
       line.code,
-      paste0('density_res_plot(rdat,"',dv,'",between,c(),covar,dv.var="var")')),
+      paste0('density_res_plot(rdat[["',dv,'"]],"',dv,'",between,c(),covar")')),
       collapse = "\n")
     if (ext == 'Rmd') {
       line.code <- paste0("\n```{r}\n",line.code,"\n```\n", "\n")
@@ -75,7 +75,7 @@ ancovaSummaryAsFile <- function(ext, backup, dvs = 'dvs', between = 'between', c
 
   ldvs <- as.list(rdvs); names(ldvs) <- rdvs
   linearity.code <- paste0(lapply(rdvs, FUN = function(dv) {
-    line.code <- linearity_code('sdat', paste0('"',dv,'"'), covar, between, ext)
+    line.code <- linearity_code(paste0('sdat[["',dv,'"]]'), paste0('"',dv,'"'), covar, between, ext)
     return(line.code)
   }), collapse = "\n")
 
@@ -143,7 +143,8 @@ ancovaDetailAsFile <- function(ext, backup, dv, between = 'between', covar = 'co
   }
 
   fname <- 'oneWayAncovaPlots'
-  if (length(rbetween) == 2) fname <- 'twoWayAncovaPlots'
+  if (length(rbetween) == 2)
+    fname <- 'twoWayAncovaPlots'
   plot.code <- paste0('plots <- ',fname,'(sdat,"',dv,'",c(',paste0(paste0('"',rbetween,'"'),collapse=','),'),\n',
                       'aov[["',dv,'"]],pwc[["',dv,'"]],font.label.size=',font.label.size,',step.increase=',step.increase,')')
   if (ext == 'Rmd') {

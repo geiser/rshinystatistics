@@ -29,15 +29,17 @@ library(rshinystatistics)
 
 ## Initial Data
 
-data <- read.csv("{{ path }}/data.csv")
-rownames(data) <- data[["{{ wid }}"]]
-
 ### Setting identificator, dependent and independent variables
 
 dvs <- c({{ paste0(paste0('"', dvs, '"'), collapse = ',') }})
 iv <- "{{ iv }}"
 wid <- "{{ wid }}"
-dat <- set_datatable(data, dvs, "var")
+ldvs <- as.list(dvs); names(ldvs) <- dvs
+dat <- lapply(ldvs, FUN = function(dv) {
+  data <- read.csv(paste0("{{ path }}/data-",dv,".csv"))
+  rownames(data) <- data[["{{ wid }}"]]
+  return(data)
+})
 
 ## Removing outliers from the data
 

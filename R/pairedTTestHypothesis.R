@@ -1,5 +1,5 @@
 #' @import shiny
-indSampleTTestHypothesisUI <- function(id) {
+pairedTTestHypothesisUI <- function(id) {
   tTestHTML <- '
 <br/>
 <p>
@@ -35,7 +35,7 @@ Observações:
 </ul>
 </p>'
   ns <- NS(id)
-  tl <- getTranslator('indSampleTTestHypothesis')
+  tl <- getTranslator('pairedTTestHypothesis')
 
   alt.choices <- list("Bicaudal" = "two.sided", "Maior que" = "greater", "Menor que" = "less")
   method.choices <- list("Welch's t-test" = FALSE, "Student's t-test" = TRUE)
@@ -61,24 +61,24 @@ Observações:
     h4(tl("Descriptive Statistics")), df2TableUI(ns("dstbl")), br(), hr(),
     radioButtons(ns("dv"), tl("Y-axis variable"), choices = c("dv"), inline = T, width = "100%"),
     fixedRow(
-      column(width = 3, radioButtons(ns("addParam"),  "point style", inline = T, choices = add.choices)),
+      column(width = 3, br()),
       column(width = 2, numericInput(ns("width"), "width", value = 800, min = 100, step = 50)),
       column(width = 2, numericInput(ns("height"), "height", value = 600, min = 100, step = 50)),
       column(width = 2, numericInput(ns("font.label.size"), tl("Font text size"), value = 10, min = 4, step = 2)),
       column(width = 1, actionButton(ns("updatePlot"), tl("Update Plot")))
     ),
-    uiOutput(ns("indSampleTTestPlotsUI"))
+    uiOutput(ns("pairedTTestPlotsUI"))
   )
 }
 
 
 #' @import shiny
-indSampleTTestHypothesisMD <- function(id, dataset, dvs = "dvs", iv = "iv") {
+pairedTTestHypothesisMD <- function(id, dataset, dvs = "dvs", iv = "iv") {
   moduleServer(
     id,
     function(input, output, session) {
       ns <- session$ns
-      tl <- getTranslator('indSampleTTestHypothesis')
+      tl <- getTranslator('pairedTTestHypothesis')
 
       wid <- reactiveVal(dataset$variables$wid)
       rdvs <- reactiveVal(unique(unlist(dataset$variables[c(dvs)], use.names = F)))
@@ -97,7 +97,7 @@ indSampleTTestHypothesisMD <- function(id, dataset, dvs = "dvs", iv = "iv") {
 
       updateResult <- function() {
         if (dataset$isSetup) {
-          list.ttest <- ind_ttest(
+          list.ttest <- paired_ttest(
             dataset$dataTable, rdvs(), riv(), input$alternative, as.logical(input$var.equal),
             as.logical(input$hedges.correction), dv.var = 'var', as.list = T)
 
@@ -119,8 +119,8 @@ indSampleTTestHypothesisMD <- function(id, dataset, dvs = "dvs", iv = "iv") {
         df2TableMD("dstbl", ttdf, cname2, prefix=ns("ds"))
 
         # ... update dataset independent sample t-test parameters
-        if (!'indSampleTTestParams' %in% names(dataset)) dataset$indSampleTTestParams <- list()
-        dataset$indSampleTTestParams[["hypothesis"]] <- list(
+        if (!'pairedTTestParams' %in% names(dataset)) dataset$pairedTTestParams <- list()
+        dataset$pairedTTestParams[["hypothesis"]] <- list(
           alternative = input$alternative,
           var.equal = as.logical(input$var.equal),
           hedges.correction = as.logical(input$hedges.correction)
@@ -132,26 +132,29 @@ indSampleTTestHypothesisMD <- function(id, dataset, dvs = "dvs", iv = "iv") {
 
       observeEvent(input$updatePlot, {
         if (!dataset$isSetup) return(NULL)
-        output$indSampleTTestPlotsUI <- renderUI({
+        output$pairedTTestPlotsUI <- renderUI({
           if (!dataset$isSetup) return(NULL)
-          iv <- isolate(riv())
           dv <- isolate(input$dv)
-          width <- isolate(input$width)
-          height <- isolate(input$height)
-          addParam <- isolate(input$addParam)
-          font.label.size <- isolate(input$font.label.size)
-
           dat <- as.data.frame(dataset$dataTable[[dv]])
 
+          id <- isolate(wid())
+          iv <- intersect(isolate(riv()), colnames(dat))
+
+          width <- isolate(input$width)
+          height <- isolate(input$height)
+          font.label.size <- isolate(input$font.label.size)
+
+
+
           # ... update dataset for independent sample t-test parameters
-          if (!'indSampleTTestParams' %in% names(dataset)) dataset$indSampleTTestParams <- list()
-          if (!'plot' %in% names(dataset$indSampleTTestParams)) dataset$indSampleTTestParams[["plot"]] <- list()
-          dataset$indSampleTTestParams[["plot"]][[dv]] <- list(
-            width = width, height = height, font.label.size = font.label.size, addParam = addParam
+          if (!'pairedTTestParams' %in% names(dataset)) dataset$pairedTTestParams <- list()
+          if (!'plot' %in% names(dataset$pairedTTestParams)) dataset$pairedTTestParams[["plot"]] <- list()
+          dataset$pairedTTestParams[["plot"]][[dv]] <- list(
+            width = width, height = height, font.label.size = font.label.size
           )
 
           # ... plots independent sample t-test
-          ttplot <- ggPlotTTest(dat, iv, dv, values$tt[[dv]], addParam, font.label.size)
+          ttplot <- ggPlotPairedTTest(dat, iv, dv, values$tt[[dv]], id, font.label.size)
           verticalLayout(
             renderPlot({ ttplot }, width = width, height = height)
           )

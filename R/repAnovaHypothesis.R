@@ -1,7 +1,7 @@
 #' @import shiny
-factorialAnovaHypothesisUI <- function(id) {
+repAnovaHypothesisUI <- function(id) {
   ns <- NS(id)
-  tl <- getTranslator('factorialAnovaHypothesis')
+  tl <- getTranslator('repAnovaHypothesis')
 
   mchoices <- list("Anova II" = 2, "Anova III" = 3, "Anova I (balanced)" = 1)
   echoices <- as.list(c("ges", "pes"))
@@ -23,7 +23,7 @@ factorialAnovaHypothesisUI <- function(id) {
     h4(tl("Pairwise Comparisons")), br(),
     radioButtons(ns("p.adjust.method"), tl("P-value ajust method"), choices = pchoices, selected = pchoices[1], inline = T, width = "100%"),
     df2TableUI(ns("pairwise")), br(),
-    h4(tl("Estimated Marginal Means")), df2TableUI(ns("emmeans")), br(), hr(),
+    h4(tl("Descriptive Statistics")), df2TableUI(ns("descr.statistics")), br(), hr(),
     radioButtons(ns("dv"), tl("Y-axis variable"), choices = c("dv"), inline = T, width = "100%"),
     fixedRow(
       column(width = 3, radioButtons(ns("addParam"),  "point style", inline = T, choices = addchoices)),
@@ -39,21 +39,24 @@ factorialAnovaHypothesisUI <- function(id) {
 
 
 #' @import shiny
-factorialAnovaHypothesisMD <- function(id, dataset, dvs = "dvs", between = "between") {
+repAnovaHypothesisMD <- function(id, dataset, dvs = "dvs", between = "between", within = "within") {
   moduleServer(
     id,
     function(input, output, session) {
       ns <- session$ns
-      tl <- getTranslator('factorialAnovaHypothesis')
+      tl <- getTranslator('repAnovaHypothesis')
 
       wid <- reactiveVal(dataset$variables$wid)
       rdvs <- reactiveVal(unique(unlist(dataset$variables[c(dvs)], use.names = F)))
       rbetween <- reactiveVal(unique(unlist(dataset$variables[c(between)], use.names = F)))
+      rwithin <- reactiveVal(unique(unlist(dataset$variables[c(within)], use.names = F)))
+      updateRadioButtons(session, "dv", choices = rdvs(), selected = rdvs()[1], inline = T)
 
       observeEvent(dataset$variables, {
         wid(dataset$variables$wid)
         rdvs(unique(unlist(dataset$variables[c(dvs)], use.names = F)))
         rbetween(unique(unlist(dataset$variables[c(between)], use.names = F)))
+        rwithin(unique(unlist(dataset$variables[c(within)], use.names = F)))
         updateRadioButtons(session, "dv", choices = rdvs(), selected = rdvs()[1], inline = T)
       })
 
@@ -63,9 +66,9 @@ factorialAnovaHypothesisMD <- function(id, dataset, dvs = "dvs", between = "betw
 
       updateResult <- function() {
         if (dataset$isSetup) {
-          values$aov <- get.anova.test(dataset$dataTable, rdvs(), rbetween(), type = input$type, effect.size = input$effect.size, dv.var = 'var')
+          values$aov <- get.anova.test(dataset$dataTable, rdvs(), rbetween(), rwithin(), wid = wid(), type = input$type, effect.size = input$effect.size, dv.var = 'var')
           values$anova.test <- get.anova.table(values$aov)
-          values$pwc <- get.anova.pwc(dataset$dataTable, rdvs(), rbetween(), p.adjust.method = input$p.adjust.method, dv.var = 'var')
+          values$pwc <- get.anova.pwc(dataset$dataTable, rdvs(), rbetween(), rwithin(), p.adjust.method = input$p.adjust.method, dv.var = 'var')
           values$pair.wise <- get.anova.pwc.table(values$pwc)
         }
       }
@@ -78,12 +81,13 @@ factorialAnovaHypothesisMD <- function(id, dataset, dvs = "dvs", between = "betw
           cname1 <- c("var", "Effect", "DFn", "DFd", "SSn", "SSd", "F", "p", input$effect.size, "p.signif")
           df2TableMD("result", values$anova.test, cname1, prefix = ns('result'))
 
-          cname2 <- c("var", rbetween(), "group1", "group2","estimate","se","df","statistic","p", "p.adj","p.adj.signif")
+          cname2 <- c("var", rbetween(), rwithin(),"group1","group2","df","statistic","p", "p.adj","p.adj.signif")
           df2TableMD("pairwise", values$pair.wise, cname2, pageLength = 50, prefix=ns('pairwise'))
 
-          df.emms <- get.anova.emmeans.with.ds(values$pwc, dataset$dataTable, rdvs(), rbetween(), dv.var = "var")
-          cname3 <- c("var",rbetween(),"n","emmean","se.emms","conf.low","conf.high","mean","median","sd","ci")
-          df2TableMD("emmeans", df.emms, cname3, prefix=ns("emmeans"))
+
+          ds.df <- descriptive_statistics(dataset$dataTable, rdvs(), c(rbetween(),rwithin()), "common", dv.var = "var")
+          cname3 <- c("var",rbetween(),rwithin(),"n","emmean","se.emms","conf.low","conf.high","mean","median","sd","ci")
+          df2TableMD("descr.statistics", ds.df, cname3, prefix=ns("descr.statistics"))
 
           # ... update dataset anova parameters
           if (!'anovaParams' %in% names(dataset)) dataset$anovaParams <- list()
@@ -103,15 +107,17 @@ factorialAnovaHypothesisMD <- function(id, dataset, dvs = "dvs", between = "betw
         if (!dataset$isSetup) return(NULL)
         output$pairwisePlotsUI <- renderUI({
           if (!dataset$isSetup) return(NULL)
+
           dv <- isolate(input$dv)
-          ivs <- isolate(rbetween())
+          dat <- as.data.frame(dataset$dataTable[[dv]])
+          ivs <- intersect(c(isolate(rbetween()), isolate(rwithin())), colnames(dat))
+
           width <- isolate(input$width)
           height <- isolate(input$height)
           addParam <- isolate(input$addParam)
           font.label.size <- isolate(input$font.label.size)
           step.increase <- isolate(input$step.increase)
 
-          dat <- as.data.frame(dataset$dataTable[[dv]])
 
           # ... update dataset anova parameters
           if (!'anovaParams' %in% names(dataset)) dataset$anovaParams <- list()
@@ -136,22 +142,29 @@ factorialAnovaHypothesisMD <- function(id, dataset, dvs = "dvs", between = "betw
           if (length(ivs) == 3) {
             do.call(verticalLayout, lapply(names(plots), FUN = function(iv) {
               do.call(verticalLayout, lapply(names(plots[[iv]]), FUN = function(grpby) {
-                verticalLayout(
-                  h4(paste0('Plot of "',dv,'" based on "',iv,'" and grouped by "',grpby,'"', paste0(' (color: ',setdiff(ivs,c(grpby,iv)),')'))),
-                  renderPlot({ plots[[iv]][[grpby]] }, width = width, height = height))
+                if (!is.null(plots[[iv]][[grpby]])) {
+                  verticalLayout(
+                    h4(paste0('Plot of "',dv,'" based on "',iv,'" and grouped by "',grpby,'"',
+                              paste0(' (color: ',setdiff(ivs,c(grpby,iv)),')'))),
+                    renderPlot({ plots[[iv]][[grpby]] }, width = width, height = height))
+                }
               }))
             }))
           } else if (length(ivs) == 2) {
             do.call(verticalLayout, lapply(names(plots), FUN = function(iv) {
-              verticalLayout(
-                h4(paste0('Plot of "',dv,'" based on "',iv,'"', paste0(' (color: ',setdiff(ivs,iv),')'))),
-                renderPlot({ plots[[iv]] }, width = width, height = height))
+              if (!is.null(plots[[iv]])) {
+                verticalLayout(
+                  h4(paste0('Plot of "',dv,'" based on "',iv,'"', paste0(' (color: ',setdiff(ivs,iv),')'))),
+                  renderPlot({ plots[[iv]] }, width = width, height = height))
+              }
             }))
           } else {
             do.call(verticalLayout, lapply(names(plots), FUN = function(iv) {
-              verticalLayout(
-                h4(paste0('Plot of "',dv,'" based on "',iv,'"')),
-                renderPlot({ plots[[iv]] }, width = width, height = height))
+              if (!is.null(plots[[iv]])) {
+                verticalLayout(
+                  h4(paste0('Plot of "',dv,'" based on "',iv,'"')),
+                  renderPlot({ plots[[iv]] }, width = width, height = height))
+              }
             }))
           }
 

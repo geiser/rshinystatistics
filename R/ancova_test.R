@@ -13,9 +13,14 @@ get.ancova.table <- function(aovs) {
 ancova.test <- function(data, dvs, between, covar, type, effect.size, dv.var = NULL, as.table = F) {
   ldvs <- as.list(dvs); names(ldvs) <- dvs
   toReturn <- lapply(ldvs, FUN = function(dv) {
-    dat <- as.data.frame(data)
-    if (!is.null(dv.var))
-      dat <- as.data.frame(data[which(data[[dv.var]] == dv),])
+    if (is.data.frame(data)) {
+      dat <- as.data.frame(data)
+      if (!is.null(dv.var))
+        dat <- as.data.frame(data[which(data[[dv.var]] == dv),])
+    } else if (is.list(data)) {
+      dat <- as.data.frame(data[[dv]])
+    }
+
     sformula <- as_formula(dv, between, c(), covar)
     aov <- tryCatch(rstatix::anova_test(dat, sformula, type = type, effect.size = effect.size, detailed = T)
                     , error = function(e) return(NULL))
@@ -79,9 +84,14 @@ ancova.pwc <- function(data, dvs, between, covar, p.adjust.method = "bonferroni"
   livs <- as.list(as.character(between))
   names(livs) <- as.character(between)
   toReturn <- lapply(ldvs, FUN = function(dv) {
-    dat <- as.data.frame(data)
-    if (!is.null(dv.var))
-      dat <- as.data.frame(data[which(data[[dv.var]] == dv),])
+    if (is.data.frame(data)) {
+      dat <- as.data.frame(data)
+      if (!is.null(dv.var))
+        dat <- as.data.frame(data[which(data[[dv.var]] == dv),])
+    } else if (is.list(data)) {
+      dat <- as.data.frame(data[[dv]])
+    }
+
     lapply(livs, FUN = function(iv) {
       gdat <-  dplyr::group_by_at(dat, dplyr::vars(setdiff(names(livs), iv)))
       emme <- tryCatch(rstatix::emmeans_test(gdat, as.formula(paste0('`',dv,'`'," ~ ",'`',iv,'`')),

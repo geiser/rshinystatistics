@@ -64,13 +64,13 @@ factorialAnovaExportMD <- function(id, dataset, dvs = "dvs", between = "between"
 
         cat(factorialAnovaSummaryAsFile('R', backup, dvs, between, path = path()), file = paste0(path(), '/factorialAnova.R'))
         cat(factorialAnovaSummaryAsFile('Rmd', backup, dvs, between), file = paste0(path(), '/summary.Rmd'))
-        write.csv(backup$initTable , paste0(path(), '/data.csv'))
+        for (dv in rdvs()) write.csv(backup$initTable[[dv]], paste0(path(), '/data-',dv,'.csv'))
 
         for (dv in input$dvs) {
           dir.create(paste0(path(),'/',dv), showWarnings = F, recursive = T)
           cat(factorialAnovaDetailAsFile('R', backup, dv, between, path = paste0(path(),'/',dv)), file = paste0(path(),'/',dv,'/factorialAnova.R'))
           cat(factorialAnovaDetailAsFile('Rmd', backup, dv, between), file = paste0(path(),'/',dv,'/factorialAnova.Rmd'))
-          write.csv(backup$initTable, paste0(path(), '/', dv, '/data.csv'))
+          write.csv(backup$initTable[[dv]], paste0(path(), '/', dv, '/data.csv'))
         }
 
         # .. generating using rmarkdown

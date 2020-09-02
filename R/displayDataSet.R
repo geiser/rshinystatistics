@@ -19,7 +19,10 @@ displayDataSetUI <- function(id) {
       ),
       tabPanel(
         tl("Generating Data"), icon = icon("table"),
-        br(), h4("dataset$initTable ..."),df2TableUI(ns("initTable")),
+        br(),
+        radioButtons(ns('dv'), tl('Dependent variable'), choices = c(''), inline = T),
+        h4("dataset$initTable ..."),
+        df2TableUI(ns("initTable")),
         br(), h4("dataset$dataTable ..."), df2TableUI(ns("dataTable"))
       ),
       type = "pills"
@@ -35,17 +38,18 @@ displayDataSetMD <- function(id, dataset) {
 
       ns <- session$ns
       tl <- getTranslator('displayDataSet')
-      values <- reactiveValues()
 
-      observeEvent(dataset$initTable, {
-        cnames <- unlist(dataset$variables, use.names = F)
-        df2TableMD("initTable", dataset$initTable, cnames, pageLength = 10, prefix = ns('initTable'))
+      observeEvent(dataset$isSetup, {
+        updateRadioButtons(session, 'dv', choices = names(dataset$initTable), selected = names(dataset$initTable)[1], inline = T)
       })
 
-      observeEvent(dataset$dataTable, {
-        cnames <- c('var', unlist(dataset$variables, use.names = F))
-        df2TableMD("dataTable", dataset$dataTable, cnames, pageLength = 10, prefix = ns('dataTable'))
+      observe({
+        if (dataset$isSetup) {
+          df2TableMD("initTable", dataset$initTable[[input$dv]], pageLength = 10, prefix = ns('initTable'))
+          df2TableMD("dataTable", dataset$dataTable[[input$dv]], pageLength = 10, prefix = ns('dataTable'))
+        }
       })
+
 
       output$fileTableTex <- renderPrint({ dataset$fileTable })
 

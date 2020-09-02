@@ -42,23 +42,25 @@ library(rshinystatistics)
 
 defaultW <- getOption("warn")
 options(warn = -1)
-
-data <- read.csv("data.csv")
-rownames(data) <- data[["{{ wid }}"]]
 ```
 
 ## Initial Data and Script
 
-Initial data: [data.csv](data.csv)
-R-script file: [ind.ttest.R](ind.ttest.R)
+* R-script file: [ind.ttest.R](ind.ttest.R)
+{{ paste0(paste0('* Data for ', dvs, ' [data-',dvs,'.csv](data-',dvs,'.csv)'), collapse = '\n') }}
 
 ### Setting identificator, dependent and independent variables
 
 ```{r}
-dvs <- c({{ paste0(paste0('"', dvs, '"'), collapse = ',') }})
 iv <- "{{ iv }}"
 wid <- "{{ wid }}"
-dat <- set_datatable(data, dvs, "var")
+dvs <- c({{ paste0(paste0('"', dvs, '"'), collapse = ',') }})
+ldvs <- as.list(dvs); names(ldvs) <- dvs
+dat <- lapply(ldvs, FUN = function(dv) {
+  data <- read.csv(paste0("data-",dv,".csv"))
+  rownames(data) <- data[["{{ wid }}"]]
+  return(data)
+})
 ```
 
 ## Check Assumptions

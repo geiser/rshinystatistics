@@ -14,9 +14,13 @@ get.kruskal.table <- function(mdls) {
 get.kruskal.test <- function(data, dvs, between, dv.var = NULL, as.table = F) {
   ldvs <- as.list(dvs); names(ldvs) <- dvs
   toReturn <- lapply(ldvs, FUN = function(dv) {
-    dat <- as.data.frame(data)
-    if (!is.null(dv.var))
-      dat <- as.data.frame(data[which(data[[dv.var]] == dv),])
+    if (is.data.frame(data)) {
+      dat <- as.data.frame(data)
+      if (!is.null(dv.var))
+        dat <- as.data.frame(data[which(data[[dv.var]] == dv),])
+    } else if (is.list(data)) {
+      dat <- as.data.frame(data[[dv]])
+    }
 
     sformula <- as_formula(dv, between)
     kruskal <- tryCatch(rstatix::kruskal_test(dat, sformula), error = function(e) return(NULL))
@@ -63,10 +67,15 @@ get.kruskal.pwc <- function(data, dvs, between, pwc.method = "wilcoxon", p.adjus
   livs <- as.list(as.character(c(between)))
   names(livs) <- as.character(c(between))
   toReturn <- lapply(ldvs, FUN = function(dv) {
-    dat <- as.data.frame(data)
-    if (!is.null(dv.var))
-      dat <- as.data.frame(data[which(data[[dv.var]] == dv),])
-   lapply(livs, FUN = function(iv) {
+    if (is.data.frame(data)) {
+      dat <- as.data.frame(data)
+      if (!is.null(dv.var))
+        dat <- as.data.frame(data[which(data[[dv.var]] == dv),])
+    } else if (is.list(data)) {
+      dat <- as.data.frame(data[[dv]])
+    }
+
+    lapply(livs, FUN = function(iv) {
       pwc <- NULL
       gdat <-  dplyr::group_by_at(dat, dplyr::vars(setdiff(names(livs), iv)))
       if (pwc.method == "wilcoxon") {

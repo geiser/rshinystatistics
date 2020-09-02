@@ -62,13 +62,13 @@ indSampleTTestExportMD <- function(id, dataset, dvs = "dvs", iv = "iv") {
 
         cat(ind.ttestSummaryAsFile('R', backup, dvs, iv, path = path), file = paste0(path, '/ind.ttest.R'))
         cat(ind.ttestSummaryAsFile('Rmd', backup, dvs, iv), file = paste0(path, '/summary.Rmd'))
-        write.csv(backup$initTable , paste0(path, '/data.csv'))
+        for (dv in rdvs()) write.csv(backup$initTable[[dv]], paste0(path, '/data-',dv,'.csv'))
 
         for (dv in input$dvs) {
           dir.create(paste0(path,'/',dv), showWarnings = F, recursive = T)
           cat(ind.ttestDetailAsFile('R', backup, dv, iv, path = paste0(path,'/',dv)), file = paste0(path,'/',dv,'/ind.ttest.R'))
           cat(ind.ttestDetailAsFile('Rmd', backup, dv, iv), file = paste0(path,'/',dv,'/ind.ttest.Rmd'))
-          write.csv(backup$initTable, paste0(path, '/', dv, '/data.csv'))
+          write.csv(backup$initTable[[dv]], paste0(path, '/', dv, '/data.csv'))
         }
 
         # .. generating using rmarkdown
@@ -102,8 +102,6 @@ indSampleTTestExportMD <- function(id, dataset, dvs = "dvs", iv = "iv") {
           })
         }
       })
-
-
 
       output$downloadButtonUI <- renderUI({
         if (!is.null(input$exportTTest) && input$exportTTest > 0) {

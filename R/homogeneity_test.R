@@ -11,11 +11,14 @@
 #' @return A data frame containing the homogeneity test (levene's test of variances and Anova slopes in ancova)
 #' @export
 homogeneity_test <- function(data, dvs, between = c(), within = c(), covar = NULL, dv.var = NULL) {
-  dat <- as.data.frame(data)
-
   do.call(rbind, lapply(dvs, FUN = function(dv) {
-    if (!is.null(dv.var))
-      dat <- as.data.frame(data[which(data[[dv.var]] == dv),])
+    if (is.data.frame(data)) {
+      dat <- as.data.frame(data)
+      if (!is.null(dv.var))
+        dat <- as.data.frame(data[which(data[[dv.var]] == dv),])
+    } else if (is.list(data)) {
+      dat <- as.data.frame(data[[dv]])
+    }
 
     sformula <- as_formula(dv, between, within, as.character = T)
     if (!is.null(covar) && length(covar) > 0) {

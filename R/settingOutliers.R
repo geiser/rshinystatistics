@@ -32,8 +32,8 @@ settingOutliersMD <- function(id, dataset, dvs = "dvs", ivs = "ivs", updateDataT
 
       observeEvent(input$identifyingOutliers, {
         if (!dataset$isSetup) return(NULL)
-        outliers <- getOutliers(dataset$initTable, rdvs(), rivs())
         for (dv in rdvs()) {
+          outliers <- getOutliers(dataset$initTable[[dv]], dv, rivs())
           selected <- outliers[[wid()]][which(outliers$var == dv)]
           updateSelectInput(session, paste0('outliers', dv, 'Input'), selected=selected)
         }
@@ -43,9 +43,9 @@ settingOutliersMD <- function(id, dataset, dvs = "dvs", ivs = "ivs", updateDataT
 
       output$outliersInputUI <- renderUI({
         if (!dataset$isSetup) return(NULL)
-        outliers <- getOutliers(dataset$initTable, rdvs(), rivs())
         outliersInputs <- lapply(rdvs(), FUN = function(dv) {
-          choices <- dataset$initTable[[wid()]]
+          choices <- dataset$initTable[[dv]][[wid()]]
+          outliers <- getOutliers(dataset$initTable[[dv]], dv, rivs())
           selected <- outliers[[wid()]][which(outliers$var == dv)]
           lbl <- paste0(tl('Outliers for'),' "',dv,'"')
           selectInput(ns(paste0('outliers', dv, 'Input')), lbl, choices=choices, selected=selected, multiple=T)
@@ -70,12 +70,14 @@ settingOutliersMD <- function(id, dataset, dvs = "dvs", ivs = "ivs", updateDataT
 
       observeEvent(dataset$outliers, {
         if (!dataset$isSetup && updateDataTable) return(NULL)
-        dataset$dataTable <- do.call(rbind, lapply(rdvs(), FUN = function(dv) {
+        ldvs <- as.list(rdvs())
+        names(ldvs) <- rdvs()
+        dataset$dataTable <- lapply(ldvs, FUN = function(dv) {
           ids <- c()
           if (length(dataset$outliers[[dv]]) > 0) ids <- dataset$outliers[[dv]]
-          dat <- dataset$initTable[!dataset$initTable[[wid()]] %in% c(ids),]
-          if (!is.null(dat) && nrow(dat) > 0) return(cbind(var = dv, dat))
-        }))
+          dat <- dataset$initTable[[dv]][!dataset$initTable[[dv]][[wid()]] %in% c(ids),]
+          if (!is.null(dat) && nrow(dat) > 0) return(dat)
+        })
       })
 
       return(list(session = session, outliersObserve = outliersObserve))

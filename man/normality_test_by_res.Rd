@@ -10,11 +10,12 @@ normality_test_by_res(
   between = c(),
   within = c(),
   covar = NULL,
+  wid = "row.pos",
   dv.var = NULL
 )
 }
 \arguments{
-\item{data}{a data.frame containing the variables in which performing the normality test}
+\item{data}{a data.frame or list of data containing the variables in which performing the normality test}
 
 \item{dvs}{a character vector containing the dependent variables}
 
@@ -25,8 +26,6 @@ normality_test_by_res(
 \item{covar}{a character indicating the column of covariate variable used in the normality test}
 
 \item{dv.var}{column with the information to classify observations based on dependent variables}
-
-\item{ivs}{a character vector containing all the independent variables}
 }
 \value{
 A data frame containing the normality test

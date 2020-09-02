@@ -12,17 +12,28 @@
 #' @return A data.frame containing the results for the independent wilcoxon_test or a list with the dataframe in wilcoxon.test and the wilcoxon_test with their effect sizes
 #' @export
 wilcoxon_test <- function(data, dvs, iv, alternative = 'two.sided', dv.var = NULL, as.list = FALSE) {
-  dat <- as.data.frame(data)
   ldvs <- as.list(dvs); names(ldvs) <- dvs
   wt <- lapply(ldvs, FUN = function(dv) {
-    if (!is.null(dv.var))
-      dat <- as.data.frame(data[which(data[[dv.var]] == dv),])
+    if (is.data.frame(data)) {
+      dat <- as.data.frame(data)
+      if (!is.null(dv.var))
+        dat <- as.data.frame(data[which(data[[dv.var]] == dv),])
+    } else if (is.list(data)) {
+      dat <- as.data.frame(data[[dv]])
+    }
+
     sformula <- as.formula(paste0('`',dv,'` ~ `',iv,'`'))
     return(rstatix::wilcox_test(dat, sformula, alternative = alternative, detailed = T))
   })
   ez <- lapply(ldvs, FUN = function(dv) {
-    if (!is.null(dv.var))
-      dat <- as.data.frame(data[which(data[[dv.var]] == dv),])
+    if (is.data.frame(data)) {
+      dat <- as.data.frame(data)
+      if (!is.null(dv.var))
+        dat <- as.data.frame(data[which(data[[dv.var]] == dv),])
+    } else if (is.list(data)) {
+      dat <- as.data.frame(data[[dv]])
+    }
+
     sformula <- as.formula(paste0('`',dv,'` ~ `',iv,'`'))
     return(rstatix::wilcox_effsize(dat, sformula, alternative = alternative))
   })

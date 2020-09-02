@@ -39,9 +39,9 @@ df2qqs <- function(data, vars = c(), qq = 3, params = NULL) {
   data <- data[stats::complete.cases(data[,vars]),]
   for (v in vars) {
     if (as.numeric(params[[v]]$qq) == 2) {
-      data[[v]] <- factor(data[[v]], levels=c("lower", "upper"))
+      data[[v]] <- factor(data[[v]], levels=c("lower", "upper"), labels=c("lower", "upper"))
     } else {
-      data[[v]] <- factor(data[[v]], levels=c("low", "medium", "high"))
+      data[[v]] <- factor(data[[v]], levels=c("low", "medium", "high"), labels=c("low", "medium", "high"))
     }
   }
 

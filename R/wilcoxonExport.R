@@ -62,13 +62,13 @@ wilcoxonExportMD <- function(id, dataset, dvs = "dvs", iv = "iv") {
 
         cat(wilcoxonSummaryAsFile('R', backup, dvs, iv, path = path), file = paste0(path, '/wilcoxon.R'))
         cat(wilcoxonSummaryAsFile('Rmd', backup, dvs, iv), file = paste0(path, '/summary.Rmd'))
-        write.csv(backup$initTable , paste0(path, '/data.csv'))
+        for (dv in rdvs()) write.csv(backup$initTable[[dv]], paste0(path, '/data-',dv,'.csv'))
 
         for (dv in input$dvs) {
           dir.create(paste0(path,'/',dv), showWarnings = F, recursive = T)
           cat(wilcoxonDetailAsFile('R', backup, dv, iv, path = paste0(path,'/',dv)), file = paste0(path,'/',dv,'/wilcoxon.R'))
           cat(wilcoxonDetailAsFile('Rmd', backup, dv, iv), file = paste0(path,'/',dv,'/wilcoxon.Rmd'))
-          write.csv(backup$initTable, paste0(path, '/', dv, '/data.csv'))
+          write.csv(backup$initTable[[dv]], paste0(path, '/', dv, '/data.csv'))
         }
 
         # .. generating using rmarkdown
