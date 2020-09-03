@@ -9,7 +9,7 @@ loadDataSetUI <- function(id) {
 }
 
 #' @import shiny
-loadDataSetMD <- function(id, var.params = list(), dv.vars = c(), rds.signature = NULL, include.diffTable = F) {
+loadDataSetMD <- function(id, var.params = list(), dv.vars = NULL, rds.signature = NULL, include.diffTable = F) {
 
   tl <- getTranslator('loadDataSet')
   var.params <- c(list(wid = list(type = "non.numeric", min = 1, max = 1, include = c("row.pos"),
@@ -46,7 +46,7 @@ loadDataSetMD <- function(id, var.params = list(), dv.vars = c(), rds.signature 
       output$paramsUI <- renderUI({
         if (!values$isSetup) {
           verticalLayout(
-            fileInput(ns("file"), tl("Choose CSV, Excel or RDS file"), multiple = F, accept= c(".csv", ".xlsx", ".rds")),
+            fileInput(ns("file"), tl("Choose CSV or Excel file"), multiple = F, accept= c(".csv", ".xlsx")),
             uiOutput(ns("fileOptionsUI")),
             uiOutput(ns("var.paramsUI"))
           )
@@ -343,50 +343,55 @@ loadDataSetMD <- function(id, var.params = list(), dv.vars = c(), rds.signature 
             initTable <- cbind(row.pos = seq(1, nrow(initTable)), initTable)
           }
 
-          ldvs <- values$variables[[dv.vars]]
-          names(ldvs) <- values$variables[[dv.vars]]
-          if (var.params[[dv.vars]][['type']] == 'repeated.measures') {
-            initTable2 <- lapply(ldvs, FUN = function(dv) {
-              cols <- values$variables[[paste0(dv.vars,'.measurements')]][[dv]]
-              cnames <- unlist(values$variables[!names(values$variables) %in%
-                                                  c(dv.vars, paste0(dv.vars, c('.measurements','.within')))]
-                               , use.names = F)
-              keys <- values$variables[[paste0(dv.vars,'.within')]][[dv]]
-              df <- tidyr::pivot_longer(initTable, cols = cols, names_to = keys, values_to = dv)
-              return(df[,c(cnames,keys,dv)])
-            })
-          } else {
-            initTable2 <- lapply(ldvs, FUN = function(dv) {
-              cnames <-  unlist(values$variables[!names(values$variables) %in% dv.vars], use.names = F)
-              initTable[,c(cnames,dv)]
-            })
-          }
+          # ... generate data table
+          values$initTable <- initTable
+          values$dataTable <- initTable
 
+          if (!is.null(dv.vars)) {
+            ldvs <- values$variables[[dv.vars]]
+            names(ldvs) <- values$variables[[dv.vars]]
+            if (var.params[[dv.vars]][['type']] == 'repeated.measures') {
+              # ... generate repeated measurement variables
+              initTable2 <- lapply(ldvs, FUN = function(dv) {
+                cols <- values$variables[[paste0(dv.vars,'.measurements')]][[dv]]
+                cnames <- unlist(values$variables[!names(values$variables) %in%
+                                                    c(dv.vars, paste0(dv.vars, c('.measurements','.within')))]
+                                 , use.names = F)
+                keys <- values$variables[[paste0(dv.vars,'.within')]][[dv]]
+                df <- tidyr::pivot_longer(initTable, cols = cols, names_to = keys, values_to = dv)
+                return(df[,c(cnames,keys,dv)])
+              })
+            } else {
+              # ... without repeated measurement variables
+              initTable2 <- lapply(ldvs, FUN = function(dv) {
+                cnames <-  unlist(values$variables[!names(values$variables) %in% dv.vars], use.names = F)
+                initTable[,c(cnames,dv)]
+              })
+            }
 
-          values$initTable <- initTable2
+            values$initTable <- initTable2
+            values$dataTable <- initTable2
 
-          dvs <- unique(unlist(values$variables[dv.vars], use.names = F))
-          values$dataTable <- initTable2
+            # ... generate diff table
+            if (include.diffTable &&  var.params[[dv.vars]][['type']] == "repeated.measures") {
+              measurements <- values$variables[[paste0(dv.vars,'.measurements')]]
 
-          # diff table
-          if (include.diffTable &&  var.params[[dv.vars]][['type']] == "repeated.measures") {
-            measurements <- values$variables[[paste0(dv.vars,'.measurements')]]
+              values$diffTable <- lapply(names(measurements), FUN = function(dv) {
+                dat <- values$fileTable
+                if (input$wid == 'row.pos') {
+                  dat <- cbind(row.pos = seq(1, nrow(dat)), dat)
+                }
 
-            values$diffTable <- lapply(names(measurements), FUN = function(dv) {
-              dat <- values$fileTable
-              if (input$wid == 'row.pos') {
-                dat <- cbind(row.pos = seq(1, nrow(dat)), dat)
-              }
-
-              vals <- measurements[[dv]]
-              dat[[dv]] <- dat[[vals[length(vals)]]]
-              for (i in seq(length(vals)-1, 1)) {
-                dat[[dv]] <- dat[[dv]] - dat[[vals[i]]]
-              }
-              return(dat[,c(input$wid, dv)])
-            })
-            names(values$diffTable) <- names(measurements)
-            values$variables[[paste0(dv.vars,'.diff')]] <- names(values$diffTable)
+                vals <- measurements[[dv]]
+                dat[[dv]] <- dat[[vals[length(vals)]]]
+                for (i in seq(length(vals)-1, 1)) {
+                  dat[[dv]] <- dat[[dv]] - dat[[vals[i]]]
+                }
+                return(dat[,c(input$wid, dv)])
+              })
+              names(values$diffTable) <- names(measurements)
+              values$variables[[paste0(dv.vars,'.diff')]] <- names(values$diffTable)
+            }
           }
 
           updateActionButton(session, "setButton", tl("Change Data Set"), icon = icon("arrow-circle-down"))

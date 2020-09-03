@@ -35,6 +35,7 @@ Imports:
 	plotly,
 	zip,
 	tools,
+	careless,
 	digest,
 	templates,
 	stringr,
