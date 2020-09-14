@@ -3,10 +3,11 @@
 #'
 #' @export
 factorial.anova.as.text <- function(aovs, data, between, effect.size = "ges") {
-  ivs.str <- paste0(lapply(between, function(iv)
-    paste0('"',iv,'" (', paste(as.character(unique(data[[iv]])),collapse=', '),')')
-  ), collapse = " and ")
   dvs <- names(aovs)
+  ivs.str <- paste0(lapply(between, function(iv) {
+    vivs <- do.call(c, lapply(dvs, FUN = function(dv) unique(data[[dv]][iv])))
+    paste0('"',iv,'" (', paste(as.character(vivs),collapse=', '),')')
+  }), collapse = " and ")
 
   sig.aov.str <- c()
   for (dv in dvs) {
@@ -31,7 +32,9 @@ factorial.anova.pwc.as.text <- function(pwcs, between, p.adjust.method = "bonfer
     pwc.str <- c()
     for (i in seq(1,nrow(pwc.df))) {
       dv <- pwc.df$var[i]
-      iv <- names(pwc.df[i,between])[is.na(pwc.df[i,between])]
+      iv <- between
+      if (length(between) > 1)
+        iv <- names(pwc.df[i,between])[is.na(pwc.df[i,between])]
 
       idx <- emms[["var"]] == dv
       lapply(setdiff(between, iv), FUN = function(iv2) {
