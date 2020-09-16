@@ -43,7 +43,7 @@ get.scheirer.pwc.table <- function(pwcs, only.sig = F) {
       cnames <<- c(cnames, iv)
       pwc <- pwcs[[dv]][[iv]]
       pdat <- rstatix::add_significance(pwc)
-      if (nrow(pdat) > 0) {
+      if (!is.null(pdat) && nrow(pdat) > 0) {
         pdat[[iv]] <- NA
         return(cbind(var = dv, pdat))
       }

@@ -187,7 +187,7 @@ normality_test_per_group <- function(data, dvs, ivs, dv.var = NULL) {
 }
 
 #' @export
-getNonNormal <- function(x, x.name = paste0('', seq(1, length(x))), step = 2, plimit = 0.05) {
+getNonNormal <- function(x, x.name = paste0('', seq(1, length(x))), step = 1, plimit = 0.05) {
   if (length(unique(x)) < 4) return(c())
   names(x) <- x.name
   toReturn <- c()

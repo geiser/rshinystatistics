@@ -172,7 +172,9 @@ loadDataSetMD <- function(id, var.params = list(), dv.vars = NULL, rds.signature
           if (lvar$type == 'convert.non.numeric') {
             for (x in input[[var]]) {
               if (is.numeric(values$fileTable[[x]])) {
-                toReturn[[x]] <- list(var = x, qq = input[[paste0('quantileFor',var,'In',x)]])
+                toReturn[[x]] <- list(is.numeric = T, var = x, qq = input[[paste0('quantileFor',var,'In',x)]])
+              } else {
+                toReturn[[x]] <- list(is.numeric = F, var = x)
               }
             }
           }
