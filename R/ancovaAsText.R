@@ -1,7 +1,3 @@
-p.val.as.text <- function(p.val) {
-  if (p.val < 0.0001) return("< 0.0001") else return(paste0('= ',round(p.val,4)))
-}
-
 
 non.aov.as.text <- function(aov, effect.size = "ges", sdv = NULL) {
   non.aov.str <- c()

@@ -126,6 +126,7 @@ indSampleTTestHypothesisMD <- function(id, dataset, dvs = "dvs", iv = "iv") {
           hedges.correction = as.logical(input$hedges.correction)
         )
         dataset$t.test <- values$t.test
+        dataset$t.test.ds <- ttdf
       })
 
       # ... displays plots

@@ -1,3 +1,6 @@
+p.val.as.text <- function(p.val) {
+  if (p.val < 0.001) return("< 0.001") else return(paste0('= ',round(p.val,3)))
+}
 
 #' Settings Data Table for Dependent Variables
 #'

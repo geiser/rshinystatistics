@@ -25,7 +25,7 @@ ind_ttest_plots_code <- function(backup, dataname, dvs, iv, ext = 'Rmd') {
 
 
 #' @export
-ind.ttestSummaryAsFile <- function(ext, backup, dvs = 'dvs', iv = 'iv', path = getwd()) {
+ind.ttestSummaryAsFile <- function(ext, backup, dvs = 'dvs', iv = 'iv', path = getwd(), lang = 'en') {
 
   wid <- backup$variables$wid
   rdvs <- unique(unlist(backup$variables[c(dvs)], use.names = F))
@@ -42,11 +42,14 @@ ind.ttestSummaryAsFile <- function(ext, backup, dvs = 'dvs', iv = 'iv', path = g
     if (ext == 'Rmd') {
       line.code <- paste0("\n```{r}\n",line.code,"\n```\n", "\n")
     }
-    return(paste0('\n##### Applying normality in ',dv,' to reduce skewness\n',line.code))
+    if (lang == 'pt')
+      return(paste0('\n##### Aplicando transformação na ',dv,' para reduzir a distorção\n',line.code))
+    else
+      return(paste0('\n##### Applying transformation in ',dv,' to reduce skewness\n',line.code))
   }), collapse = "\n")
 
   ttest.params <- backup$indSampleTTestParams$hypothesis
-  tfile <- system.file("templates", paste0("ind.ttestSummary.",ext), package="rshinystatistics")
+  tfile <- system.file("templates", paste0("ind.ttestSummary",ifelse(lang!='en',paste0('-',lang),''),".",ext), package="rshinystatistics")
   params <- list(
     rshinystatistics.version = as.character(packageVersion("rshinystatistics")),
     author = backup$author, email = backup$email,
@@ -61,7 +64,7 @@ ind.ttestSummaryAsFile <- function(ext, backup, dvs = 'dvs', iv = 'iv', path = g
   if (ext != "Rmd") {
     params[["path"]] <- path
   } else {
-    ttest.text <- ttest.as.text(backup$t.test, riv, ttest.params$var.equal, ttest.params$hedges.correction)
+    ttest.text <- ttest.as.text(backup$t.test, backup$t.test.ds, riv, ttest.params$var.equal, ttest.params$hedges.correction, lang = lang)
     params[["ttest.text"]] <- ttest.text
   }
   return(as.character(

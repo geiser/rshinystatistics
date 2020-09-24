@@ -62,6 +62,7 @@ indSampleTTestExportMD <- function(id, dataset, dvs = "dvs", iv = "iv") {
 
         cat(ind.ttestSummaryAsFile('R', backup, dvs, iv, path = path), file = paste0(path, '/ind.ttest.R'))
         cat(ind.ttestSummaryAsFile('Rmd', backup, dvs, iv), file = paste0(path, '/summary.Rmd'))
+        cat(ind.ttestSummaryAsFile('Rmd', backup, dvs, iv, lang='pt'), file = paste0(path, '/summary-pt.Rmd'))
         for (dv in rdvs()) write.csv(backup$initTable[[dv]], paste0(path, '/data-',dv,'.csv'))
 
         for (dv in input$dvs) {
@@ -75,6 +76,7 @@ indSampleTTestExportMD <- function(id, dataset, dvs = "dvs", iv = "iv") {
         for (nfile in input$files) {
           progress$inc(inc, detail = paste('Generating', nfile,'file of summary'))
           rmarkdown::render(paste0(path, '/summary.Rmd'), paste0(nfile,'_document'))
+          rmarkdown::render(paste0(path, '/summary-pt.Rmd'), paste0(nfile,'_document'))
         }
         for (dv in input$dvs) {
           for (nfile in input$files) {
