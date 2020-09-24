@@ -340,7 +340,9 @@ loadDataSetMD <- function(id, var.params = list(), dv.vars = NULL, rds.signature
           cnames <- setdiff(unique(unlist(values$variables, use.names = F)),'row.pos')
           cnames <- cnames[cnames %in% colnames(values$fileTable)]
           initTable <- values$fileTable[complete.cases(values$fileTable[,cnames]),cnames]
-          initTable <- df2qqs(initTable, params = get_vars_to_convert_non.numeric())
+          qqparams <- get_vars_to_convert_non.numeric()
+          if (!is.null(qqparams) && length(qqparams) > 0)
+            initTable <- df2qqs(initTable, params = qqparams)
           if (input$wid == 'row.pos') {
             initTable <- cbind(row.pos = seq(1, nrow(initTable)), initTable)
           }
