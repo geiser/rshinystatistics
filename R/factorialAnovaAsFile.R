@@ -74,7 +74,7 @@ anova_plots_code <- function(backup, dataname, dvs, between, ext = 'Rmd') {
 
 
 #' @export
-factorialAnovaSummaryAsFile <- function(ext, backup, dvs = 'dvs', between = 'between', path = getwd()) {
+factorialAnovaSummaryAsFile <- function(ext, backup, dvs = 'dvs', between = 'between', path = getwd(), lang = 'en') {
 
   wid <- backup$variables$wid
   rdvs <- unique(unlist(backup$variables[c(dvs)], use.names = F))
@@ -91,12 +91,15 @@ factorialAnovaSummaryAsFile <- function(ext, backup, dvs = 'dvs', between = 'bet
     if (ext == 'Rmd') {
       line.code <- paste0("\n```{r}\n",line.code,"\n```\n", "\n")
     }
-    return(paste0('\n##### Applying normality in ',dv,' to reduce skewness\n',line.code))
+    if (lang == 'pt')
+      return(paste0('\n##### Aplicando transformação de normalidade no ',dv,' para reduzir distorsão\n',line.code))
+    else
+      return(paste0('\n##### Applying normality tranformation in ',dv,' to reduce skewness\n',line.code))
   }), collapse = "\n")
 
 
   aov.params <- backup$anovaParams$hypothesis
-  tfile <- system.file("templates", paste0("factorialAnovaSummary.",ext), package="rshinystatistics")
+  tfile <- system.file("templates", paste0("factorialAnovaSummary",ifelse(lang!='en',paste0('-',lang),''),".",ext), package="rshinystatistics")
 
   params <- list(
     rshinystatistics.version = as.character(packageVersion("rshinystatistics")),
@@ -113,8 +116,8 @@ factorialAnovaSummaryAsFile <- function(ext, backup, dvs = 'dvs', between = 'bet
   if (ext != "Rmd") {
     params[["path"]] <- path
   } else {
-    anova.text <- factorial.anova.as.text(backup$aov, backup$dataTable, rbetween, aov.params$effect.size)
-    anova.pwc.text <- factorial.anova.pwc.as.text(backup$pwc, rbetween, p.adjust.method = aov.params$p.adjust.method)
+    anova.text <- factorial.anova.as.text(backup$aov, backup$dataTable, rbetween, aov.params$effect.size, lang=lang)
+    anova.pwc.text <- aov.pwc.as.text(backup$pwc, backup$ds, rbetween, p.adjust.method = aov.params$p.adjust.method, lang=lang)
     params[["anova.text"]] <- anova.text
     params[["anova.pwc.text"]] <- anova.pwc.text
   }

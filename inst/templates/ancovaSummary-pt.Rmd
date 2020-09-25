@@ -132,7 +132,7 @@ kdf$p[which(kdf$p < 0.001)] <- '<0.001'
 kable(kdf, digits = 3)
 ```
 
-Homogeneity may be ignored employing Wilcox's method (not jet available in rshiny-statistics).
+Homogeneidade pode ser ignorada empregado Wilcox's método (ainda não disponível no rshiny-statistics).
 
 ## Computação do ANCOVA e Comparação Parelhada
 

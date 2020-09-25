@@ -4,7 +4,7 @@
 \alias{factorial.anova.as.text}
 \title{Factorial ANCOVA test as text}
 \usage{
-factorial.anova.as.text(aovs, data, between, effect.size = "ges")
+factorial.anova.as.text(aovs, data, between, effect.size = "ges", lang = "en")
 }
 \description{
 Factorial ANCOVA test as text

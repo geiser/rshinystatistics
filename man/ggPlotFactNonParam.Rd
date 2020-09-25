@@ -14,8 +14,8 @@ ggPlotFactNonParam(
   linetype = color,
   by = c(),
   addParam = c(),
-  font.label.size = 10,
-  step.increase = 0.005,
+  font.label.size = 12,
+  step.increase = 0.1,
   type = NULL
 )
 }

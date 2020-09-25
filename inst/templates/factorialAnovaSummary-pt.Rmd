@@ -1,5 +1,5 @@
 ---
-title: "Summary of factorial ANOVA for {{ paste0(paste0('`', dvs, '`'), collapse = ',') }}"
+title: "Resumo do ANOVA fatorial para {{ paste0(paste0('`', dvs, '`'), collapse = ',') }}"
 author: {{ author }} <{{ email }}>
 comment: This file is automatically generate by Shiny-Statistic app (https://statistic.geiser.tech/)
          Author - Geiser C. Challco <geiser@usp.br>
@@ -44,12 +44,12 @@ defaultW <- getOption("warn")
 options(warn = -1)
 ```
 
-## Initial Data and Script
+## Dados Inicias e R-Scripts
 
 * R-script file: [factorialAnova.R](factorialAnova.R)
 {{ paste0(paste0('* Data for ', dvs, ' [data-',dvs,'.csv](data-',dvs,'.csv)'), collapse = '\n') }}
 
-### Setting identificator, dependent and independent variables
+### Definindo identificador e variáveis dependentes e independentes
 
 ```{r}
 wid <- "{{ wid }}"
@@ -63,44 +63,45 @@ dat <- lapply(ldvs, FUN = function(dv) {
 })
 ```
 
-## Check Assumptions
+## Validação das Premissas
 
-### Removing outliers from the data
+### Tirando ouliers dos dados
 
 ```{r}
 outliers <- {{ code.outliers }}
 rdat <- remove_from_datatable(dat, outliers, wid, "var")
 ```
 
-### Normality assumption
+### Premissa da Normalidade
 
-**Observation**:
+**Observações**:
 
-As sample sizes increase, parametric tests remain valid even with the violation of normality <sup>[[1](#references)]</sup>.
-According to the central limit theorem, the sampling distribution tends to be normal if the sample is large, more than (`n > 30`) observations. Therefore, we performed parametric tests with large samples as described as follows: 
+Conforme o tamanho da amostra aumenta, os testes paramétricos permanecem válidos mesmo com a violação da premissa de normalidade <sup>[[1](# referências)]</sup>.
+De acordo com o teorema central do limite, a distribuição amostral tende a ser normal se a amostra for grande, a partir de (`n > 30`) observações. Portanto, quando realizamos testes paramétricos com grandes amostras, efetuamos a valiação da premissa da normalidade conforme a descrito a seguir:
 
-- In cases with the sample size greater than 30 (`n > 30`), we adopted a significance level of `p < 0.01` instead a significance level of `p < 0.05`.
+- Nos casos com tamanho de amostra superior a 30 (`n > 30`), se adotou como nível de significância `p < 0,01` ao invés do classico `p < 0,05`.
 
-- In cases with the sample size greater than 100 (`n > 100`), we adopted a significance level of `p < 0.001`
+- Nos casos com o tamanho maior do que 100 (`n > 100`), o nível de significância foi de `p < 0,001`
 
-- For samples with `n > 50` observation, we adopted D'Agostino-Pearson test that offers better accuracy for larger samples <sup>[[2](#references)]</sup>.
+- Para amostras com observação `n > 50`, adotamos o teste D'Agostino-Pearson que oferece melhor precisão para amostras maiores <sup>[[2](#referências)]</sup>.
 
-- For samples' size between `n > 100` and `n <= 200`, we ignored both tests (Shapiro and D'Agostino-Persons), and our decision of normality were based only in the interpretation of QQ-plots and histograms because these tests tend to be too sensitive with values greater than 200 <sup>[[3](#references)]</sup>.
+- Para amostras de 'tamanho entre `n > 100` e ` n <= 200`, ignoramos ambos testes (Shapiro e D'Agostino-Pessoas), e nossa validação de normalidade foi baseada apenas na interpretação de gráficos QQ e histogramas porque esses testes tendem a ser muito sensíveis com valores maiores que 200 <sup>[[3](#referências)]</sup>.
 
-- For samples with `n > 200` observation, we ignore the normality assumption based on the central theorem limit.
+- Para amostras com observação maiores de `n> 200` observações, ignoramos a suposição de normalidade com base no teorema central do limite.
 
-#### Applying transformation for skewness data when normality is not achieved
+
+#### Aplicando transformação para lidar com distorsão quando normalidade não é alcançada
 
 {{ code.skewness }}
 
-#### Removing data that affect normality (extreme values)
+#### Tirando dados que afeta normalidade (valores extremos)
 
 ```{r}
 non.normal <- {{ code.non.normal }}
 sdat <- remove_from_datatable(rdat, non.normal, wid, "var")
 ```
 
-#### Checking normality assumption in the residual model
+#### Validando premissa de normalidade nos resíduos
 
 ```r
 normality_test_by_res(sdat, dvs, between, dv.var='var')
@@ -113,7 +114,7 @@ kdf$p[which(kdf$p < 0.001)] <- '<0.001'
 kable(kdf, digits = 3)
 ```
 
-#### Checking normality assumption in the groups
+### Premissa de Homogeneidade
 
 ```r
 normality_test_per_group(sdat, dvs, between, dv.var = 'var')
@@ -139,11 +140,11 @@ kdf$p[which(kdf$p < 0.001)] <- '<0.001'
 kable(kdf, digits = 3)
 ```
 
-Homogeneity may be ignored in one-way ANOVA or employing Wilcox's method (not jet available in rshiny-statistics).
+Homogeneidade pode ser ignorada empregado Wilcox's método (ainda não disponível no rshiny-statistics).
 
-## Computation ANOVA and Pairwise comparison
+## Computação do ANCOVA e Comparação Parelhada
 
-### ANOVA test
+### teste ANCOVA
 
 ```r
 aov <- get.anova.test(sdat, dvs, between, type = {{ type }}, effect.size = "{{ effect.size }}", dv.var = "var")
@@ -159,7 +160,7 @@ kdf$p[which(kdf$p < 0.001)] <- '<0.001'
 kable(kdf, digits = 3)
 ```
 
-### Pairwise comparison showing only significant differences
+### Resultado da comparação parelhada que apresenta diferenças significativas
 
 ```r
 pwc <- get.anova.pwc(sdat, dvs, between, p.adjust.method = "{{ p.adjust.method }}", dv.var = "var")
@@ -177,7 +178,8 @@ kdf$p.adj[which(kdf$p.adj < 0.001)] <- '<0.001'
 kable(kdf, digits = 3)
 ```
 
-## Estimated Marginal Means and ANOVA Plots 
+## Médias marginais estimadas e gráficos de ANOVA
+
 
 ```r
 get.anova.emmeans.with.ds(pwc, sdat, dvs, between, "common", "var")
@@ -192,13 +194,13 @@ kable(kdf, digits = 3)
 
 {{ anova.plots  }}
 
-## Textual Report
+## Relátorio Textual
 
 {{ anova.text }}
 
 {{ anova.pwc.text }}
 
-## References
+## Referências
 
 <sup>[1]</sup>: Ghasemi, A., & Zahediasl, S. (2012). Normality tests for statistical analysis: a guide for non-statisticians. International journal of endocrinology and metabolism, 10(2), 486.
 

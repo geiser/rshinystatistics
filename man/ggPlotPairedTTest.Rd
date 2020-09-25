@@ -4,7 +4,7 @@
 \alias{ggPlotPairedTTest}
 \title{Paired T-Test Plot}
 \usage{
-ggPlotPairedTTest(data, x, y, tt, id, font.label.size = 10)
+ggPlotPairedTTest(data, x, y, tt, id, font.label.size = 12)
 }
 \description{
 This function create ggpubr box-plot to report result from a paired t-test.
