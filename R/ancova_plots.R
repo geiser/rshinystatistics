@@ -1,12 +1,13 @@
 #' @export
-ggPlotAoC <- function(data, x, color = c(), aov, pwc, linetype = color, font.label.size = 10, step.increase = 0.1) {
+ggPlotAoC <- function(data, y, x, color = c(), aov, pwc, linetype = color, font.label.size = 12, step.increase = 0.1) {
   data[[x]] <- factor(data[[x]])
   pwc2 <- tryCatch(rstatix::add_xy_position(pwc, x=x, fun="mean_se", step.increase=step.increase), error = function(e) NULL)
 
   if (is.null(pwc2)) return(ggplot2::ggplot())
   if (length(color) < 1) color <- "black"; linetype <- 1
 
-  lp <- ggpubr::ggline(rstatix::get_emmeans(pwc2), size = 0.6, x=x, y="emmean", color=color, palette = "jco")
+  lp <- ggpubr::ggline(rstatix::get_emmeans(pwc2), size = 0.6, x=x, y="emmean", color=color, palette = "jco", plot_type='b')
+  lp <- lp + ggplot2::geom_jitter(data = data, ggplot2::aes_string(x=x,color=color,y=y),width=0.05,height=0.05,size=0.5)
 
   if (color != "black")
     lp <- lp + ggplot2::geom_errorbar(ggplot2::aes_string(ymin="conf.low", ymax="conf.high", color=color), width=0.1)
@@ -33,12 +34,12 @@ ggPlotAoC <- function(data, x, color = c(), aov, pwc, linetype = color, font.lab
 #' @param step.increase the numeric vector to be used to minimize the overlap
 #' @return A list of ggplot objects with the Two-Way ANOVA plots
 #' @export
-oneWayAncovaPlots <- function(data, dv, ivs, aov, pwcs, font.label.size = 10, step.increase = 0.1) {
+oneWayAncovaPlots <- function(data, dv, ivs, aov, pwcs, font.label.size = 12, step.increase = 0.1) {
   livs <- as.list(ivs); names(livs) <- ivs
   return(lapply(livs, FUN = function(iv) {
     pwc <- pwcs[[iv]]
     color <- iv
-    lp <- ggPlotAoC(data, iv, c(), aov, pwc, 1, font.label.size, step.increase)
+    lp <- ggPlotAoC(data, dv, iv, c(), aov, pwc, 1, font.label.size, step.increase)
     return(lp)
   }))
 }
@@ -57,12 +58,12 @@ oneWayAncovaPlots <- function(data, dv, ivs, aov, pwcs, font.label.size = 10, st
 #' @param step.increase the numeric vector to be used to minimize the overlap
 #' @return A list of ggplot objects with the Two-Way ANOVA plots
 #' @export
-twoWayAncovaPlots <- function(data, dv, ivs, aov, pwcs, font.label.size = 10, step.increase = 0.1) {
+twoWayAncovaPlots <- function(data, dv, ivs, aov, pwcs, font.label.size = 12, step.increase = 0.1) {
   livs <- as.list(ivs); names(livs) <- ivs
   return(lapply(livs, FUN = function(iv) {
     pwc <- pwcs[[iv]]
     color <- setdiff(ivs, iv)
-    lp <- ggPlotAoC(data, iv, color, aov, pwc, color, font.label.size, step.increase)
+    lp <- ggPlotAoC(data, dv, iv, color, aov, pwc, color, font.label.size, step.increase)
     return(lp)
   }))
 }
