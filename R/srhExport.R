@@ -64,6 +64,7 @@ srhExportMD <- function(id, dataset, dvs = "dvs", between = "between") {
 
         cat(srhSummaryAsFile('R', backup, dvs, between, path = path()), file = paste0(path(), '/srh.R'))
         cat(srhSummaryAsFile('Rmd', backup, dvs, between), file = paste0(path(), '/summary.Rmd'))
+        cat(srhSummaryAsFile('Rmd', backup, dvs, between, lang='pt'), file = paste0(path(), '/summary-pt.Rmd'))
         for (dv in rdvs()) write.csv(backup$initTable[[dv]], paste0(path(), '/data-',dv,'.csv'))
 
         for (dv in input$dvs) {
@@ -77,6 +78,7 @@ srhExportMD <- function(id, dataset, dvs = "dvs", between = "between") {
         for (nfile in input$files) {
           progress$inc(inc, detail = paste('Generating', nfile,'file of summary'))
           rmarkdown::render(paste0(path(), '/summary.Rmd'), paste0(nfile,'_document'))
+          rmarkdown::render(paste0(path(), '/summary-pt.Rmd'), paste0(nfile,'_document'))
         }
         for (dv in input$dvs) {
           for (nfile in input$files) {

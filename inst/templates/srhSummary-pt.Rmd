@@ -1,5 +1,5 @@
 ---
-title: "Summary of Scheirer-Ray-Hare for {{ paste0(paste0('`', dvs, '`'), collapse = ',') }}"
+title: "Resumdo do teste Scheirer-Ray-Hare para {{ paste0(paste0('`', dvs, '`'), collapse = ',') }}"
 author: {{ author }} <{{ email }}>
 comment: This file is automatically generate by Shiny-Statistic app (https://statistic.geiser.tech/)
          Author - Geiser C. Challco <geiser@usp.br>
@@ -44,12 +44,12 @@ defaultW <- getOption("warn")
 options(warn = -1)
 ```
 
-## Initial Data and R-Script
+## Dados iniciais e R-Script
 
 * R-script file: [srh.R](srh.R)
 {{ paste0(paste0('* Data for ', dvs, ' [data-',dvs,'.csv](data-',dvs,'.csv)'), collapse = '\n') }}
 
-### Setting identificator, dependent and independent variables
+### Definição do identificador, variáveis dependentes e variáveis independentes
 
 ```{r}
 wid <- "{{ wid }}"
@@ -63,16 +63,16 @@ dat <- lapply(ldvs, FUN = function(dv) {
 })
 ```
 
-## Removing outliers from the data (optional)
+## Tirando outliers dos dados (não obrigatório)
 
 ```{r}
 outliers <- {{ code.outliers }}
 sdat <- remove_from_datatable(dat, outliers, wid, "var")
 ```
 
-## Computation Scheirer-Ray-Hare and Pairwise comparison
+## Computação do Scheirer-Ray-Hare e Comparações Emparelhadas
 
-### Scheirer-Ray-Hare test
+### teste Scheirer-Ray-Hare
 
 ```r
 srh <- get.scheirer.test(sdat, dvs, between, dv.var = "var")
@@ -88,7 +88,7 @@ kdf$p.value[which(kdf$p.value < 0.001)] <- '<0.001'
 kable(kdf, digits = 3)
 ```
 
-### Pairwise comparison showing only significant differences
+### Resultado da comparação emparelhada com diferenças significativas
 
 ```r
 pwc <- get.scheirer.pwc(sdat, dvs, between, pwc.method = "{{ pwc.method }}", p.adjust.method = "{{ p.adjust.method }}", dv.var = "var")
@@ -106,7 +106,7 @@ kdf$p.adj[which(kdf$p.adj < 0.001)] <- '<0.001'
 kable(kdf, digits = 3)
 ```
 
-## Descriptive Statistics and Plots 
+## Estatística Descritiva e Gráficos 
 
 ```r
 descriptive_statistics(sdat, dvs, between, "common", "var")
@@ -121,7 +121,7 @@ kable(kdf, digits = 3)
 
 {{ srh.plots  }}
 
-## Textual Report
+## Relatório Textual
 
 {{ srh.text }}
 

@@ -50,15 +50,14 @@ ggPlotFactNonParam <- function(data, x, y, color = c(), non, pwc, linetype = col
   if (!is.null(type) && 'srh' == type) {
     dnon <- data.frame(non)
     idx <- which(rownames(dnon) == x)
-    statistic <- round(as.double(dnon$H[idx]), 4)
-    dof <- round(as.double(dnon[['Df']][idx]), 4)
-    x2 <- round(as.double(dnon[['Sum.Sq']][idx]), 4)
-    p <- round(as.double(dnon[['p.value']][idx]), 4)
-    pval <- ifelse(p < 0.0001, paste0(' , p  < 0.0001'), paste0(' , p  = ', p))
+    statistic <- round(as.double(dnon$H[idx]), 3)
+    dof <- floor(as.double(dnon[['Df']][idx]))
+    dof.res <- floor(as.double(dnon[['Df']][which(rownames(dnon) == 'Residuals')]))
+    p <- round(as.double(dnon[['p.value']][idx]), 3)
+    pval <- ifelse(p < 0.001, paste0(' , p<0.001'), paste0(' , p=', p))
 
     bxp <- bxp + ggplot2::labs(
-      subtitle = paste0('Scheirer-Ray-Hare X(',dof,') = ', x2,
-                        ',  H = ', statistic, pval), caption = rstatix::get_pwc_label(pwc2))
+      subtitle = paste0('Scheirer-Ray-Hare H(',dof,',',dof.res,')=', statistic, pval), caption = rstatix::get_pwc_label(pwc2))
   } else {
     bxp <- bxp + ggplot2::labs(subtitle = rstatix::get_test_label(non, detailed = T), caption = rstatix::get_pwc_label(pwc2))
   }

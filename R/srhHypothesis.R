@@ -3,7 +3,7 @@ srhHypothesisUI <- function(id) {
   ns <- NS(id)
   tl <- getTranslator('srhHypothesis')
 
-  mchoices <- list("Wilcoxon's test"="wilcoxon", "Dunn's test"="dunn")
+  mchoices <- list("Wilcoxon's test"="wilcoxon")#, "Dunn's test"="dunn")
   pchoices <- c("bonferroni", "hommel", "holm", "hochberg")
   addchoices <- list("todos" = "jitter", "média" = "mean", "não" = "none")
 
@@ -88,6 +88,7 @@ srhHypothesisMD <- function(id, dataset, dvs = "dvs", between = "between") {
           )
           dataset$srh <- values$srh
           dataset$pwc <- values$pwc
+          dataset$ds <- df.srh
         }
       })
 

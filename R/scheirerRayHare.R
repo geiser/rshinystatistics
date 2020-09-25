@@ -17,7 +17,7 @@ scheirerRayHareUI <- function(id) {
         tabsetPanel(
           id = ns("srhPanel"), type = "tabs", selected = "none"
           , tabPanel("DataSet", icon = icon("caret-right"), value = "none", displayDataSetUI(ns("dataSet")))
-          , tabPanel(tl("Assumption: Outliers"), value = "outliers", outliersUI(ns("outliers")))
+          , tabPanel(tl("Assumption: Outliers (optional)"), value = "outliers", outliersUI(ns("outliers")))
           , tabPanel(tl("SRH Test"), value = "hypothesis", srhHypothesisUI(ns("hypothesis")))
           , tabPanel(tl("Export"), value = "export-result", srhExportUI(ns("export-result")))
         )
