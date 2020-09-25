@@ -11,7 +11,7 @@ settingOutliersUI <- function(id) {
 }
 
 #' @import shiny
-settingOutliersMD <- function(id, dataset, dvs = "dvs", ivs = "ivs", updateDataTable = T) {
+settingOutliersMD <- function(id, dataset, dvs = "dvs", ivs = "ivs", updateDataTable = T, identify.outliers = T) {
   moduleServer(
     id,
     function(input, output, session) {
@@ -47,6 +47,7 @@ settingOutliersMD <- function(id, dataset, dvs = "dvs", ivs = "ivs", updateDataT
           choices <- dataset$initTable[[dv]][[wid()]]
           outliers <- getOutliers(dataset$initTable[[dv]], dv, rivs())
           selected <- outliers[[wid()]][which(outliers$var == dv)]
+          if (!identify.outliers) selected <- c()
           lbl <- paste0(tl('Outliers for'),' "',dv,'"')
           selectInput(ns(paste0('outliers', dv, 'Input')), lbl, choices=choices, selected=selected, multiple=T)
         })

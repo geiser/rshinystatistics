@@ -17,7 +17,7 @@ kruskalWallisUI <- function(id) {
         tabsetPanel(
           id = ns("kruskalPanel"), type = "tabs", selected = "none"
           , tabPanel("DataSet", icon = icon("caret-right"), value = "none", displayDataSetUI(ns("dataSet")))
-          , tabPanel(tl("Assumption: Outliers"), value = "outliers", outliersUI(ns("outliers")))
+          , tabPanel(tl("Assumption: Outliers (optional)"), value = "outliers", outliersUI(ns("outliers")))
           , tabPanel(tl("Kruskal Test"), value = "hypothesis", kruskalHypothesisUI(ns("hypothesis")))
           , tabPanel(tl("Export"), value = "export-result", kruskalExportUI(ns("export-result")))
         )
@@ -55,7 +55,7 @@ kruskalWallisMD <- function(id) {
 
       observeEvent(dataset$isSetup, {
         if (dataset$isSetup) {
-          settingOutliers(settingOutliersMD("settingOutliers", dataset, "dvs", "between", updateDataTable = T))
+          settingOutliers(settingOutliersMD("settingOutliers", dataset, "dvs", "between", updateDataTable = T, identify.outliers = F))
         } else {
           updateTabsetPanel(session, "kruskalPanel", selected = "none")
           if (!is.null(settingOutliers())) {

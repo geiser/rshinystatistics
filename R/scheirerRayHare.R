@@ -55,7 +55,7 @@ scheirerRayHareMD <- function(id) {
 
       observeEvent(dataset$isSetup, {
         if (dataset$isSetup) {
-          settingOutliers(settingOutliersMD("settingOutliers", dataset, "dvs", "between", updateDataTable = T))
+          settingOutliers(settingOutliersMD("settingOutliers", dataset, "dvs", "between", updateDataTable = T, identify.outliers = F))
         } else {
           updateTabsetPanel(session, "srhPanel", selected = "none")
           if (!is.null(settingOutliers())) {

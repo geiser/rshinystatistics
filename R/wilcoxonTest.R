@@ -17,7 +17,7 @@ wilcoxonTestUI <- function(id) {
         tabsetPanel(
           id = ns("wilcoxonPanel"), type = "tabs", selected = "none"
           , tabPanel("DataSet", icon = icon("caret-right"), value = "none", displayDataSetUI(ns("dataSet")))
-          , tabPanel(tl("Assumption: Outliers"), value = "outliers", outliersUI(ns("outliers")))
+          , tabPanel(tl("Assumption: Outliers (optional)"), value = "outliers", outliersUI(ns("outliers")))
           , tabPanel(tl("Wilcoxon Test"), value = "hypothesis", wilcoxonHypothesisUI(ns("hypothesis")))
           , tabPanel(tl("Export"), value = "export-result", wilcoxonExportUI(ns("export-result")))
         )
@@ -55,7 +55,7 @@ wilcoxonTestMD <- function(id) {
 
       observeEvent(dataset$isSetup, {
         if (dataset$isSetup) {
-          settingOutliers(settingOutliersMD("settingOutliers", dataset, "dvs", "iv", updateDataTable = T))
+          settingOutliers(settingOutliersMD("settingOutliers", dataset, "dvs", "iv", updateDataTable = T, identify.outliers = F))
         } else {
           updateTabsetPanel(session, "wilcoxonPanel", selected = "none")
           if (!is.null(settingOutliers())) settingOutliers()$outliersObserve$suspend()
