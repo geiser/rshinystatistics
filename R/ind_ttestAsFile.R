@@ -3,7 +3,7 @@ ind_ttest_plots_code <- function(backup, dataname, dvs, iv, ext = 'Rmd') {
   ttest.plots <- paste0(lapply(dvs, FUN = function(dv) {
     width <- 800
     height <- 600
-    font.label.size <- 10
+    font.label.size <- 12
     addParam <- "jitter"
     plot.param <- backup$indSampleTTestParams$plot[[dv]]
     if (!is.null(plot.param)) {
@@ -93,9 +93,9 @@ ind.ttestDetailAsFile <- function(ext, backup, dv, iv = 'iv', path = getwd()) {
     code.skewness <- paste0('\n##### Applying normality in ',dv,' to reduce skewness\n',line.code)
   }
 
-  width <- 800
-  height <- 600
-  font.label.size <- 10
+  width <- 700
+  height <- 700
+  font.label.size <- 12
   addParam <- c("jitter")
   plot.param <- backup$indSampleTTestParams$plot[[dv]]
   if (!is.null(plot.param)) {

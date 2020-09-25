@@ -11,10 +11,10 @@ linearity_code <- function(dataname, dvname, covarname, ivsnames, ext = "Rmd") {
 
 ancova_plots_code <- function(backup, dataname, dvs, between, ext = 'Rmd') {
   ancova.plots <- paste0(lapply(dvs, FUN = function(dv) {
-    width <- 800
-    height <- 600
-    font.label.size <- 10
-    step.increase <- 0.005
+    width <- 700
+    height <- 700
+    font.label.size <- 12
+    step.increase <- 0.1
     plot.param <- backup$ancovaParams$plot[[dv]]
     if (!is.null(plot.param)) {
       step.increase <- plot.param$step.increase
@@ -133,10 +133,10 @@ ancovaDetailAsFile <- function(ext, backup, dv, between = 'between', covar = 'co
     code.skewness <- paste0('\n##### Applying normality in ',dv,' to reduce skewness\n',line.code)
   }
 
-  width <- 800
-  height <- 600
-  font.label.size <- 10
-  step.increase <- 0.005
+  width <- 700
+  height <- 700
+  font.label.size <- 12
+  step.increase <- 0.1
   plot.param <- backup$ancovaParams$plot[[dv]]
   if (!is.null(plot.param)) {
     step.increase <- plot.param$step.increase

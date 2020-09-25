@@ -1,9 +1,9 @@
 
 wilcoxon_plots_code <- function(backup, dataname, dvs, iv, ext = 'Rmd') {
   wtest.plots <- paste0(lapply(dvs, FUN = function(dv) {
-    width <- 800
-    height <- 600
-    font.label.size <- 10
+    width <- 700
+    height <- 700
+    font.label.size <- 12
     addParam <- "jitter"
     plot.param <- backup$wilcoxonParams$plot[[dv]]
     if (!is.null(plot.param)) {
@@ -59,9 +59,9 @@ wilcoxonDetailAsFile <- function(ext, backup, dv, iv = 'iv', path = getwd()) {
   wid <- backup$variables$wid
   riv <- unique(unlist(backup$variables[c(iv)], use.names = F))
 
-  width <- 800
-  height <- 600
-  font.label.size <- 10
+  width <- 700
+  height <- 700
+  font.label.size <- 12
   addParam <- c("jitter")
   plot.param <- backup$wilcoxonParams$plot[[dv]]
   if (!is.null(plot.param)) {

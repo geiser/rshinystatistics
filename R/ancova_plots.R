@@ -1,5 +1,5 @@
 #' @export
-ggPlotAoC <- function(data, x, color = c(), aov, pwc, linetype = color, font.label.size = 10, step.increase = 0.005) {
+ggPlotAoC <- function(data, x, color = c(), aov, pwc, linetype = color, font.label.size = 10, step.increase = 0.1) {
   data[[x]] <- factor(data[[x]])
   pwc2 <- tryCatch(rstatix::add_xy_position(pwc, x=x, fun="mean_se", step.increase=step.increase), error = function(e) NULL)
 
@@ -33,7 +33,7 @@ ggPlotAoC <- function(data, x, color = c(), aov, pwc, linetype = color, font.lab
 #' @param step.increase the numeric vector to be used to minimize the overlap
 #' @return A list of ggplot objects with the Two-Way ANOVA plots
 #' @export
-oneWayAncovaPlots <- function(data, dv, ivs, aov, pwcs, font.label.size = 10, step.increase = 0.005) {
+oneWayAncovaPlots <- function(data, dv, ivs, aov, pwcs, font.label.size = 10, step.increase = 0.1) {
   livs <- as.list(ivs); names(livs) <- ivs
   return(lapply(livs, FUN = function(iv) {
     pwc <- pwcs[[iv]]
@@ -57,7 +57,7 @@ oneWayAncovaPlots <- function(data, dv, ivs, aov, pwcs, font.label.size = 10, st
 #' @param step.increase the numeric vector to be used to minimize the overlap
 #' @return A list of ggplot objects with the Two-Way ANOVA plots
 #' @export
-twoWayAncovaPlots <- function(data, dv, ivs, aov, pwcs, font.label.size = 10, step.increase = 0.005) {
+twoWayAncovaPlots <- function(data, dv, ivs, aov, pwcs, font.label.size = 10, step.increase = 0.1) {
   livs <- as.list(ivs); names(livs) <- ivs
   return(lapply(livs, FUN = function(iv) {
     pwc <- pwcs[[iv]]

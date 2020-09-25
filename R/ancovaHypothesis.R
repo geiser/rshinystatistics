@@ -26,10 +26,10 @@ ancovaHypothesisUI <- function(id) {
     h4(tl("Estimated Marginal Means")), df2TableUI(ns("emmeans")), br(), hr(),
     radioButtons(ns("dv"), tl("Y-axis variable"), choices = c("dv"), inline = T, width = "100%"),
     fixedRow(
-      column(width = 2, numericInput(ns("width"), "width", value = 800, min = 100, step = 50)),
-      column(width = 2, numericInput(ns("height"), "height", value = 600, min = 100, step = 50)),
-      column(width = 2, numericInput(ns("font.label.size"), tl("Font text size"), value = 10, min = 4, step = 2)),
-      column(width = 2, numericInput(ns("step.increase"), tl("Step of signif."), value = 0.005, min = 0.0001, max = 0.1, step = 0.005)),
+      column(width = 2, numericInput(ns("width"), "width", value = 700, min = 100, step = 50)),
+      column(width = 2, numericInput(ns("height"), "height", value = 700, min = 100, step = 50)),
+      column(width = 2, numericInput(ns("font.label.size"), tl("Font text size"), value = 12, min = 4, step = 2)),
+      column(width = 2, numericInput(ns("step.increase"), tl("Step of signif."), value = 0.1, min = 0.0001, max = 0.5, step = 0.005)),
       column(width = 1, actionButton(ns("updatePlot"), tl("Update plot")))
     ),
     uiOutput(ns("pairwisePlotsUI"))

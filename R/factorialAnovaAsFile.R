@@ -1,5 +1,5 @@
 
-display.plots.str <- function(ext, ivs, width=800, height=600, dv='dependent variable') {
+display.plots.str <- function(ext, ivs, width=700, height=700, dv='dependent variable') {
   plot.code <- ''
   if (length(ivs) == 3) {
     plot.code <- paste0(c(plot.code, paste0(lapply(ivs, FUN = function(iv) {
@@ -36,10 +36,10 @@ display.plots.str <- function(ext, ivs, width=800, height=600, dv='dependent var
 
 anova_plots_code <- function(backup, dataname, dvs, between, ext = 'Rmd') {
   anova.plots <- paste0(lapply(dvs, FUN = function(dv) {
-    width <- 800
-    height <- 600
-    font.label.size <- 10
-    step.increase <- 0.005
+    width <- 700
+    height <- 700
+    font.label.size <- 12
+    step.increase <- 0.1
     addParam <- c("jitter")
     plot.param <- backup$anovaParams$plot[[dv]]
     if (!is.null(plot.param)) {
@@ -144,10 +144,10 @@ factorialAnovaDetailAsFile <- function(ext, backup, dv, between = 'between', pat
     code.skewness <- paste0('\n##### Applying normality in ',dv,' to reduce skewness\n',line.code)
   }
 
-  width <- 800
-  height <- 600
-  font.label.size <- 10
-  step.increase <- 0.005
+  width <- 700
+  height <- 700
+  font.label.size <- 12
+  step.increase <- 0.1
   addParam <- c("jitter")
   plot.param <- backup$anovaParams$plot[[dv]]
   if (!is.null(plot.param)) {
