@@ -25,14 +25,14 @@ wilcoxon_plots_code <- function(backup, dataname, dvs, iv, ext = 'Rmd') {
 
 
 #' @export
-wilcoxonSummaryAsFile <- function(ext, backup, dvs = 'dvs', iv = 'iv', path = getwd()) {
+wilcoxonSummaryAsFile <- function(ext, backup, dvs = 'dvs', iv = 'iv', path = getwd(), lang='en') {
 
   wid <- backup$variables$wid
   rdvs <- unique(unlist(backup$variables[c(dvs)], use.names = F))
   riv <- unique(unlist(backup$variables[c(iv)], use.names = F))
 
   wtest.params <- backup$wilcoxonParams$hypothesis
-  tfile <- system.file("templates", paste0("wilcoxonSummary.",ext), package="rshinystatistics")
+  tfile <- system.file("templates", paste0("wilcoxonSummary",ifelse(lang!='en',paste0('-',lang),''),".",ext), package="rshinystatistics")
   params <- list(
     rshinystatistics.version = as.character(packageVersion("rshinystatistics")),
     author = backup$author, email = backup$email,
@@ -44,8 +44,8 @@ wilcoxonSummaryAsFile <- function(ext, backup, dvs = 'dvs', iv = 'iv', path = ge
   if (ext != "Rmd") {
     params[["path"]] <- path
   } else {
-    #wtest.text <- ttest.as.text(backup$t.test, riv, ttest.params$var.equal, ttest.params$hedges.correction)
-    #params[["wtest.text"]] <- wtest.text
+    wilcoxon.text <- wilcoxon.as.text(backup$wilcoxon.test, backup$ds, riv, lang=lang)
+    params[["wilcoxon.text"]] <- wilcoxon.text
   }
   return(as.character(
     do.call(templates::tmpl, c(list(".t" = paste(readLines(tfile), collapse="\n")), params))

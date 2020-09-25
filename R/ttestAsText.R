@@ -7,10 +7,6 @@ sig.tt.as.text <- function(t.test, ds, iv, hedges.correction = F, lang = 'en') {
       dv <- sig.tt[[".y."]][i]
       cond1 <- sig.tt[["group1"]][i]
       cond2 <- sig.tt[["group2"]][i]
-      print(ds)
-      print(dv)
-      print(iv)
-      print(cond1)
       m1 <- ds$mean[which(ds$variable == dv & ds[[iv]] == cond1)]
       m2 <- ds$mean[which(ds$variable == dv & ds[[iv]] == cond2)]
       sd1 <- ds$sd[which(ds$variable == dv & ds[[iv]] == cond1)]

@@ -115,6 +115,7 @@ wilcoxonHypothesisMD <- function(id, dataset, dvs = "dvs", iv = "iv") {
           alternative = input$alternative
         )
         dataset$wilcoxon.test <- values$wilcoxon.test
+        dataset$ds <- df.wlx
       })
 
       # ... displays plots
