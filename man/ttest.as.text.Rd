@@ -4,7 +4,14 @@
 \alias{ttest.as.text}
 \title{T-Test as text}
 \usage{
-ttest.as.text(t.test, iv, var.equal = F, hedges.correction = F)
+ttest.as.text(
+  t.test,
+  ds,
+  iv,
+  var.equal = F,
+  hedges.correction = F,
+  lang = "en"
+)
 }
 \description{
 T-Test as text

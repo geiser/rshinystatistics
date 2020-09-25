@@ -76,7 +76,7 @@ homogeneity_test(sdat, dvs, between, c(), covar, dv.var='var')
 
 ### ANCOVA test
 
-aov <- ancova.test(sdat, dvs, between, covar, "{{ type }}", "{{ effect.size }}", "var")
+aov <- ancova.test(sdat, dvs, between, covar, {{ type }}, "{{ effect.size }}", "var")
 (get.ancova.table(aov))
 
 ### Pairwise comparison showing only significant differences

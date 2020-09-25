@@ -13,7 +13,7 @@ ancovaExportUI <- function(id) {
     checkboxGroupInput(ns("files"), tl("Export formats"), choices = fchoices, selected = "html", width = "100%", inline = T),
     fixedRow(
       column(width = 6, checkboxGroupInput(ns("dvs"), tl("Detailed reports of"), choices = c(""), inline = T, width = "100%")),
-      column(width = 2, actionButton(ns("exportAncova"), "Generate Export Files", icon = icon('file-export'))),
+      column(width = 2, uiOutput(ns("exportButtonUI"))),
       column(width = 2, uiOutput(ns("downloadButtonUI")))
     ),
     fixedRow(
@@ -64,6 +64,7 @@ ancovaExportMD <- function(id, dataset, dvs = "dvs", between = "between", covar 
 
         cat(ancovaSummaryAsFile('R', backup, dvs, between, covar, path = path()), file = paste0(path(), '/ancova.R'))
         cat(ancovaSummaryAsFile('Rmd', backup, dvs, between, covar), file = paste0(path(), '/summary.Rmd'))
+        cat(ancovaSummaryAsFile('Rmd', backup, dvs, between, covar, lang='pt'), file = paste0(path(), '/summary-pt.Rmd'))
         for (dv in rdvs()) write.csv(backup$initTable[[dv]] , paste0(path(), '/data-',dv,'.csv'))
 
         for (dv in input$dvs) {
@@ -77,6 +78,7 @@ ancovaExportMD <- function(id, dataset, dvs = "dvs", between = "between", covar 
         for (nfile in input$files) {
           progress$inc(inc, detail = paste('Generating', nfile,'file of summary'))
           rmarkdown::render(paste0(path(), '/summary.Rmd'), paste0(nfile,'_document'))
+          rmarkdown::render(paste0(path(), '/summary-pt.Rmd'), paste0(nfile,'_document'))
         }
         for (dv in input$dvs) {
           for (nfile in input$files) {
@@ -86,7 +88,7 @@ ancovaExportMD <- function(id, dataset, dvs = "dvs", between = "between", covar 
         }
       }
 
-      observeEvent(input$exportAncova, {
+      observeEvent(input[[paste0("exportAncova",reportId())]], {
         if (!dataset$isSetup) return(NULL)
         validate(
           need(!is.null(dataset$ancovaParams[["hypothesis"]]),
@@ -102,8 +104,12 @@ ancovaExportMD <- function(id, dataset, dvs = "dvs", between = "between", covar 
         })
       })
 
+      output$exportButtonUI <- renderUI({
+        actionButton(ns(paste0("exportAncova",reportId())), "Generate Export Files", icon = icon('file-export'))
+      })
+
       output$downloadButtonUI <- renderUI({
-        if (!is.null(input$exportAncova) && (input$exportAncova) > 0) {
+        if (!is.null(input[[paste0("exportAncova",reportId())]]) && (input[[paste0("exportAncova",reportId())]]) > 0) {
           downloadButton(ns('downloadZIP'), tl('Download ZIP'))
         }
       })

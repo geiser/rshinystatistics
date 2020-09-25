@@ -97,6 +97,7 @@ ancovaHypothesisMD <- function(id, dataset, dvs = "dvs", between = "between", co
         )
         dataset$aov <- values$aov
         dataset$pwc <- values$pwc
+        dataset$ds <- df.emms
       })
 
       # ... displays plots

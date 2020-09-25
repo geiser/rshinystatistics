@@ -52,7 +52,7 @@ ancova_plots_code <- function(backup, dataname, dvs, between, ext = 'Rmd') {
 
 
 #' @export
-ancovaSummaryAsFile <- function(ext, backup, dvs = 'dvs', between = 'between', covar = 'covar', path = getwd()) {
+ancovaSummaryAsFile <- function(ext, backup, dvs = 'dvs', between = 'between', covar = 'covar', path = getwd(), lang = 'en') {
 
   wid <- backup$variables$wid
   rdvs <- unique(unlist(backup$variables[c(dvs)], use.names = F))
@@ -70,7 +70,10 @@ ancovaSummaryAsFile <- function(ext, backup, dvs = 'dvs', between = 'between', c
     if (ext == 'Rmd') {
       line.code <- paste0("\n```{r}\n",line.code,"\n```\n", "\n")
     }
-    return(paste0('\n##### Applying normality in ',dv,' to reduce skewness\n',line.code))
+    if (lang=='pt')
+      return(paste0('\n##### Aplicando transformação in "',dv,'" para reduzir distorsão\n',line.code))
+    else
+      return(paste0('\n##### Applying transformation in "',dv,'" to reduce skewness\n',line.code))
   }), collapse = "\n")
 
   ldvs <- as.list(rdvs); names(ldvs) <- rdvs
@@ -80,7 +83,7 @@ ancovaSummaryAsFile <- function(ext, backup, dvs = 'dvs', between = 'between', c
   }), collapse = "\n")
 
   aov.params <- backup$ancovaParams$hypothesis
-  tfile <- system.file("templates", paste0("ancovaSummary.",ext), package="rshinystatistics")
+  tfile <- system.file("templates", paste0("ancovaSummary",ifelse(lang!='en',paste0('-',lang),''),".",ext), package="rshinystatistics")
 
   params <- list(
     rshinystatistics.version = as.character(packageVersion("rshinystatistics")),
@@ -98,8 +101,8 @@ ancovaSummaryAsFile <- function(ext, backup, dvs = 'dvs', between = 'between', c
   if (ext != "Rmd") {
     params[["path"]] <- path
   } else {
-    ancova.text <- ancova.as.text(backup$aov, backup$dataTable, rbetween, rcovar, aov.params$effect.size)
-    ancova.pwc.text <- ancova.pwc.as.text(backup$pwc, rbetween, p.adjust.method = aov.params$p.adjust.method)
+    ancova.text <- ancova.as.text(backup$aov, backup$dataTable, rbetween, rcovar, aov.params$effect.size, lang=lang)
+    ancova.pwc.text <- aov.pwc.as.text(backup$pwc, backup$ds, rbetween, p.adjust.method = aov.params$p.adjust.method, lang=lang)
     params[["ancova.text"]] <- ancova.text
     params[["ancova.pwc.text"]] <- ancova.pwc.text
   }

@@ -4,7 +4,7 @@
 \alias{ancova.as.text}
 \title{ANCOVA test as text}
 \usage{
-ancova.as.text(aovs, data, between, covar, effect.size = "ges")
+ancova.as.text(aovs, data, between, covar, effect.size = "ges", lang = "en")
 }
 \description{
 ANCOVA test as text
