@@ -1,5 +1,5 @@
 p.val.as.text <- function(p.val) {
-  if (p.val < 0.001) return("< 0.001") else return(paste0('= ',round(p.val,3)))
+  if (p.val < 0.001) return("<0.001") else return(paste0('=',round(p.val,3)))
 }
 
 #' Settings Data Table for Dependent Variables
@@ -30,7 +30,7 @@ set_datatable <- function (tbl, dvs, dv.var = "var") {
 #' @return A data.frame with the eliminated data table
 #' @export
 remove_from_datatable <- function(data, to_remove, wid = 'row.pos', dv.var = NULL) {
-  if (length(to_remove) > 1) {
+  if (length(to_remove) >= 1) {
     if (is.data.frame(data)) {
       pos <- rep(T, nrow(data))
     } else if (is.list(data)) {
