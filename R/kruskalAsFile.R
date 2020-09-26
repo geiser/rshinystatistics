@@ -31,14 +31,14 @@ kruskal_plots_code <- function(backup, dataname, dvs, between, ext = 'Rmd') {
 
 
 #' @export
-kruskalSummaryAsFile <- function(ext, backup, dvs = 'dvs', between = 'between', path = getwd()) {
+kruskalSummaryAsFile <- function(ext, backup, dvs = 'dvs', between = 'between', path = getwd(), lang='en') {
 
   wid <- backup$variables$wid
   rdvs <- unique(unlist(backup$variables[c(dvs)], use.names = F))
   rbetween <- unique(unlist(backup$variables[c(between)], use.names = F))
 
   kruskal.params <- backup$kruskalParams$hypothesis
-  tfile <- system.file("templates", paste0("kruskalSummary.",ext), package="rshinystatistics")
+  tfile <- system.file("templates", paste0("kruskalSummary",ifelse(lang!='en',paste0('-',lang),''),".",ext), package="rshinystatistics")
 
   params <- list(
     rshinystatistics.version = as.character(packageVersion("rshinystatistics")),
@@ -53,10 +53,10 @@ kruskalSummaryAsFile <- function(ext, backup, dvs = 'dvs', between = 'between', 
   if (ext != "Rmd") {
     params[["path"]] <- path
   } else {
-    #anova.text <- factorial.anova.as.text(backup$aov, backup$dataTable, rbetween, aov.params$effect.size)
-    #anova.pwc.text <- factorial.anova.pwc.as.text(backup$pwc, rbetween, p.adjust.method = aov.params$p.adjust.method)
-    #params[["anova.text"]] <- anova.text
-    #params[["anova.pwc.text"]] <- anova.pwc.text
+    kruskal.text <- kruskal.as.text(backup$kruskal, backup$dataTable, rbetween, lang=lang)
+    kruskal.pwc.text <- wilcoxon.pwc.as.text(backup$pwc, backup$ds, rbetween, p.adjust.method = kruskal.params$p.adjust.method, lang=lang)
+    params[["kruskal.text"]] <- kruskal.text
+    params[["kruskal.pwc.text"]] <- kruskal.pwc.text
   }
   return(as.character(
     do.call(templates::tmpl, c(list(".t" = paste(readLines(tfile), collapse="\n")), params))
