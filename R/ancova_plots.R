@@ -5,13 +5,21 @@ ggPlotAoC <- function(data, y, x, color = c(), aov, pwc, linetype = color, font.
 
   if (is.null(pwc2)) return(ggplot2::ggplot())
 
-  lp <- ggpubr::ggline(rstatix::get_emmeans(pwc2), size = 0.6, x=x, y="emmean", color=color, palette = "jco", plot_type='b')
-  lp <- lp + ggplot2::geom_jitter(data = data, ggplot2::aes_string(x=x,color=color,y=y),width=0.075,height=0.075,size=1)
-  lp <- lp + ggplot2::geom_errorbar(ggplot2::aes_string(ymin="conf.low", ymax="conf.high", color=color), width=0.1)
+  emms <- rstatix::get_emmeans(pwc2)
+  if (nrow(emms) > 2) {
+    lp <- ggpubr::ggline(emms, size = 1, x=x, y="emmean", color=color, palette = "jco", plot_type='b')
+    lp <- lp + ggplot2::geom_errorbar(ggplot2::aes_string(ymin="conf.low", ymax="conf.high", color=color), width=0.1, size = 1)
+    lp <- lp + ggpubr::stat_pvalue_manual(pwc2, hide.ns=T, tip.length=0.005, bracket.size=0.3, color=color)
+  } else {
+    lp <- ggpubr::ggline(emms, size = 1, x=x, y="emmean", palette = "jco", plot_type='b')
+    lp <- lp + ggplot2::geom_errorbar(ggplot2::aes_string(ymin="conf.low", ymax="conf.high"), width=0.1, size = 1)
+    lp <- lp + ggpubr::stat_pvalue_manual(pwc2, hide.ns=T, tip.length=0.005, bracket.size=0.3)
+  }
 
-  lp <- lp + ggpubr::stat_pvalue_manual(pwc2, hide.ns=T, tip.length=0.005, bracket.size=0.3, color=color)
   lp <- lp + ggplot2::labs(subtitle = rstatix::get_test_label(aov, detailed=T), caption=rstatix::get_pwc_label(pwc))
   lp <- lp + ggplot2::theme(text = ggplot2::element_text(size=font.label.size))
+
+  lp <- lp + ggplot2::geom_jitter(data = data, ggplot2::aes_(x=as.name(x),y=as.name(y),colour=factor(data[[color]])),width=0.075,height=0.075,size=0.75)
   return(lp)
 }
 
