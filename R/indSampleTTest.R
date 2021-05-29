@@ -50,55 +50,55 @@ indSampleTTestMD <- function(id) {
 
       # ... setting outliers and setting normality panels
 
-#      output$settingOutliersUI <- renderUI({
-#        if (dataset$isSetup) settingOutliersUI(ns("settingOutliers"))
-#      })
+      output$settingOutliersUI <- renderUI({
+        if (dataset$isSetup) settingOutliersUI(ns("settingOutliers"))
+      })
 
-#      output$settingNormalityUI <- renderUI({
-#        if (dataset$isSetup) settingNormalityUI(ns("settingNormality"))
-#      })
-#
-#      settingOutliers <- reactiveVal(NULL)
-#      settingNormality <- reactiveVal(NULL)
-#
-#      observeEvent(dataset$isSetup, {
-#        if (dataset$isSetup) {
-#          settingOutliers(settingOutliersMD("settingOutliers", dataset, "dvs", "iv", updateDataTable = F))
-#          settingNormality(settingNormalityMD("settingNormality", dataset, "dvs", updateDataTable = T))
-#        } else {
-#          updateTabsetPanel(session, "indSampleTTestPanel", selected = "none")
-#          if (!is.null(settingOutliers())) settingOutliers()$outliersObserve$suspend()
-#          if (!is.null(settingNormality())) {
-#            settingNormality()$skewnessObserve$suspend()
-#            settingNormality()$extremeObserve$suspend()
-#          }
-#        }
-#      })
+      output$settingNormalityUI <- renderUI({
+        if (dataset$isSetup) settingNormalityUI(ns("settingNormality"))
+      })
+
+      settingOutliers <- reactiveVal(NULL)
+      settingNormality <- reactiveVal(NULL)
+
+      observeEvent(dataset$isSetup, {
+        if (dataset$isSetup) {
+          settingOutliers(settingOutliersMD("settingOutliers", dataset, "dvs", "iv", updateDataTable = F))
+          settingNormality(settingNormalityMD("settingNormality", dataset, "dvs", updateDataTable = T))
+        } else {
+          updateTabsetPanel(session, "indSampleTTestPanel", selected = "none")
+          if (!is.null(settingOutliers())) settingOutliers()$outliersObserve$suspend()
+          if (!is.null(settingNormality())) {
+            settingNormality()$skewnessObserve$suspend()
+            settingNormality()$extremeObserve$suspend()
+          }
+        }
+      })
 
       # ... update dataTable
 
-#      observeEvent(input$indSampleTTestPanel, {
-#        if (input$indSampleTTestPanel == 'none') {
-#          displayDataSetMD("dataSet", dataset)
-#        } else if (dataset$isSetup) {
-#          if (input$indSampleTTestPanel == 'outliers') {
-#            outliersMD("outliers", dataset, "dvs", "iv")
-#          } else if (input$indSampleTTestPanel == 'normality') {
-#            normalityMD("normality", dataset, "dvs", "iv")
-#          } else if (input$indSampleTTestPanel == 'homogeneity') {
-#            homogeneityMD("homogeneity", dataset, "dvs", "iv")
-#          } else if (input$indSampleTTestPanel == 'hypothesis') {
-#            indSampleTTestHypothesisMD("hypothesis", dataset)
-#          } else if (input$indSampleTTestPanel == 'export-result' && !is.null(dataset$indSampleTTestParams[["hypothesis"]])) {
-#            indSampleTTestExportMD("export-result", dataset)
-#          } else if (input$indSampleTTestPanel == 'export-result') {
-#            showNotification(tl("Before export results, you need to perform T-test"), type = "error")
-#             updateTabsetPanel(session, "indSampleTTestPanel", selected = "hypothesis")
-#          }
-#        } else {
-#          updateTabsetPanel(session, "indSampleTTestPanel", selected = "none")
-#        }
-#      })
+      observeEvent(input$indSampleTTestPanel, {
+        if (input$indSampleTTestPanel == 'none') {
+          displayDataSetMD("dataSet", dataset)
+        } else if (dataset$isSetup) {
+          if (input$indSampleTTestPanel == 'outliers') {
+            outliersMD("outliers", dataset, "dvs", "iv")
+          } else if (input$indSampleTTestPanel == 'normality') {
+            normalityMD("normality", dataset, "dvs", "iv")
+          } else if (input$indSampleTTestPanel == 'homogeneity') {
+            homogeneityMD("homogeneity", dataset, "dvs", "iv")
+          } else if (input$indSampleTTestPanel == 'hypothesis') {
+            indSampleTTestHypothesisMD("hypothesis", dataset)
+          } else if (input$indSampleTTestPanel == 'export-result' && !is.null(dataset$indSampleTTestParams[["hypothesis"]])) {
+            indSampleTTestExportMD("export-result", dataset)
+          } else if (input$indSampleTTestPanel == 'export-result') {
+            showNotification(tl("Before export results, you need to perform T-test"), type = "error")
+             updateTabsetPanel(session, "indSampleTTestPanel", selected = "hypothesis")
+          }
+        } else {
+          updateTabsetPanel(session, "indSampleTTestPanel", selected = "none")
+        }
+      })
 
     }
   )

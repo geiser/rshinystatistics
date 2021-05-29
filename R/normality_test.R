@@ -162,7 +162,7 @@ normality_test_by_res <- function(data, dvs, between = c(), within = c(), covar 
 #' @param dv.var column with the information to classify observations based on dependent variables
 #' @return A data frame containing the normality test
 #' @export
-normality_test_per_group <- function(data, dvs, ivs, dv.var = NULL) {
+normality_test_per_group <- function(data, dvs, ivs, dv.var = NULL, include.global = F) {
   non.normal <- do.call(rbind, lapply(dvs, FUN = function(dv) {
     if (is.data.frame(data)) {
       dat <- as.data.frame(data)
@@ -180,8 +180,11 @@ normality_test_per_group <- function(data, dvs, ivs, dv.var = NULL) {
       df[[cname]] <- NA
     }
 
-    if (nrow(df) > 0)
+    if (nrow(df) > 0) {
+      if (include.global)
+        df <- plyr::rbind.fill(df, normality_test_at(as.data.frame(dat), dv))
       return(cbind(var = dv, df))
+    }
   }))
   return(non.normal)
 }

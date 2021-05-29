@@ -31,7 +31,7 @@ ggPlotAoV <- function(data, x, y, color = c(), aov, pwc, linetype = color, by = 
     ggtest <- tryCatch(ggplot2::ggplot_build(bxp1), error = function(e) NULL)
     if (!is.null(ggtest)) bxp <- bxp1
   }
-  bxp <- bxp + labs(subtitle = rstatix::get_test_label(aov, detailed = T), caption = rstatix::get_pwc_label(pwc2))
+  bxp <- bxp + ggplot2::labs(subtitle = rstatix::get_test_label(aov, detailed = T), caption = rstatix::get_pwc_label(pwc2))
   bxp <- bxp + ggplot2::theme(text = ggplot2::element_text(size=font.label.size))
   #attr(bxp,"lbl") <- paste0(
   #  'Plot of "',y,'" based on "',x,'"',

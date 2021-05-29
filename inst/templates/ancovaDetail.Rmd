@@ -87,7 +87,7 @@ According to the central limit theorem, the sampling distribution tends to be no
 
 - In cases with the sample size greater than 30 (`n > 30`), we adopted a significance level of `p < 0.01` instead a significance level of `p < 0.05`.
 
-- In cases with the sample size greater than 100 (`n > 100`), we adopted a significance level of `p < 0.001`
+- In cases with the sample size greater than 100 (`n > 100`), we adopted a significance level of `p < 0.001` instead a significance level of `p < 0.05`.
 
 - For samples with `n > 50` observation, we adopted D'Agostino-Pearson test that offers better accuracy for larger samples <sup>[[2](#references)]</sup>.
 

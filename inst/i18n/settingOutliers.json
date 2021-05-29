@@ -2,6 +2,14 @@
   "languages": ["en", "pt"],
   "translation": [
     {
+      "en": "How to deal with outliers?",
+      "pt": "Como lidar com outliers?"
+    },
+    {
+      "en": "Remove",
+      "pt": "Apagar"
+    },
+    {
       "en": "Automatic identification of outliers",
       "pt": "Identificação automática de outliers"
     },

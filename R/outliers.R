@@ -1,24 +1,23 @@
 
-getOutliersBoxPlotly <- function(tbl, dv, ivs, wid = 'row.pos', boxpoints = "none", outliers = list()) {
+getOutliersBoxPlotly <- function(tbl, tbl2, dv, ivs, wid = 'row.pos', boxpoints = "none") {
   tl <- getTranslator('outliers')
 
   ivs <- intersect(ivs, colnames(tbl))
   if (length(ivs) == 0) {
     ivs <- c('iv')
     tbl[['iv']] <- rep('iv', nrow(tbl))
+    tbl2[['iv']] <- tbl[['iv']]
   }
   livs <- as.list(ivs); names(livs) <- ivs
 
   lapply(livs, FUN = function(iv) {
-    dat <- tbl
-
     title <- paste0(tl('With outliers'),': ', dv, ' ~ ', iv)
-    bxp <- boxPlotly(dat, dv, iv, wid, boxpoints, title = title)
+    print(tbl[[dv]])
+    bxp <- boxPlotly(tbl, dv, iv, wid, boxpoints, title = title)
 
-    dat <- tbl[!tbl[[wid]] %in% c(outliers[[dv]]),]
     title <- paste0(tl('Without outliers'),': ', dv, ' ~ ', iv)
-    bxp_wo <- boxPlotly(dat, dv, iv, wid, boxpoints, title = title)
-
+    print(tbl2[[dv]])
+    bxp_wo <- boxPlotly(tbl2, dv, iv, wid, boxpoints, title = title)
     return(list(plot = bxp, plot.wo = bxp_wo))
   })
 }
@@ -42,7 +41,7 @@ outliersUI <- function(id) {
 }
 
 #' @import shiny
-outliersMD <- function(id, dataset, dvs = 'dvs', ivs = 'ivs', table="initTable") {
+outliersMD <- function(id, dataset, dvs = 'dvs', ivs = 'ivs', table="initTable", table.wo="dataTable") {
   moduleServer(
     id,
     function(input, output, session) {
@@ -58,7 +57,6 @@ outliersMD <- function(id, dataset, dvs = 'dvs', ivs = 'ivs', table="initTable")
         wid(dataset$variables$wid)
         rdvs(unique(unlist(dataset$variables[c(dvs)], use.names = F)))
         rivs(unique(unlist(dataset$variables[c(ivs)], use.names = F)))
-        print(rdvs())
         updateRadioButtons(session,'dv',choices = rdvs(), inline = T)
       })
 
@@ -67,8 +65,9 @@ outliersMD <- function(id, dataset, dvs = 'dvs', ivs = 'ivs', table="initTable")
       output$dataBoxPlotsUI <- renderUI({
         if (dataset$isSetup) {
           do.call(verticalLayout, lapply(rdvs(), FUN = function(dv) {
-            plots <- getOutliersBoxPlotly(dataset[[table]][[dv]], dv, rivs(),
-                                          wid(), input$boxpoints, dataset$outliers)
+            plots <- getOutliersBoxPlotly(dataset[[table]][[dv]], dataset[[table.wo]][[dv]]
+                                          , dv, rivs(), wid(), input$boxpoints)
+
             verticalLayout(
               br(), p(strong(paste(tl("Boxplot for variable"), dv))),
               do.call(verticalLayout, lapply(names(plots), FUN = function(iv) {

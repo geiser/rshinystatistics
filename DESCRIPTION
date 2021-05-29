@@ -28,6 +28,7 @@ Imports:
 	rstatix,
 	readxl,
 	readr,
+	plyr,
 	dplyr,
 	tidyr,
 	ggplot2,
@@ -38,6 +39,7 @@ Imports:
 	careless,
 	digest,
 	templates,
+	DescTools,
 	stringr,
 	stringi
 RoxygenNote: 7.1.1
