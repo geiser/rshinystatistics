@@ -39,7 +39,7 @@ anova_plots_code <- function(backup, dataname, dvs, between, ext = 'Rmd') {
     width <- 700
     height <- 700
     font.label.size <- 12
-    step.increase <- 0.1
+    step.increase <- 0.25
     addParam <- c("jitter")
     plot.param <- backup$anovaParams$plot[[dv]]
     if (!is.null(plot.param)) {
@@ -150,7 +150,7 @@ factorialAnovaDetailAsFile <- function(ext, backup, dv, between = 'between', pat
   width <- 700
   height <- 700
   font.label.size <- 12
-  step.increase <- 0.1
+  step.increase <- 0.25
   addParam <- c("jitter")
   plot.param <- backup$anovaParams$plot[[dv]]
   if (!is.null(plot.param)) {

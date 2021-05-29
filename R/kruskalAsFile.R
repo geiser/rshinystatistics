@@ -4,7 +4,7 @@ kruskal_plots_code <- function(backup, dataname, dvs, between, ext = 'Rmd') {
     width <- 700
     height <- 700
     font.label.size <- 12
-    step.increase <- 0.1
+    step.increase <- 0.25
     addParam <- c("jitter")
     plot.param <- backup$kruskalParams$plot[[dv]]
     if (!is.null(plot.param)) {
@@ -73,7 +73,7 @@ kruskalDetailAsFile <- function(ext, backup, dv, between = 'between', path = get
   width <- 700
   height <- 700
   font.label.size <- 12
-  step.increase <- 0.1
+  step.increase <- 0.25
   addParam <- c("jitter")
   plot.param <- backup$kruskalParams$plot[[dv]]
   if (!is.null(plot.param)) {

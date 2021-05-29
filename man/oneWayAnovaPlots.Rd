@@ -12,7 +12,7 @@ oneWayAnovaPlots(
   pwcs,
   addParam = c(),
   font.label.size = 12,
-  step.increase = 0.1
+  step.increase = 0.25
 )
 }
 \arguments{

@@ -27,7 +27,7 @@ kruskalHypothesisUI <- function(id) {
       column(width = 2, numericInput(ns("width"), "width", value = 700, min = 100, step = 50)),
       column(width = 2, numericInput(ns("height"), "height", value = 700, min = 100, step = 50)),
       column(width = 2, numericInput(ns("font.label.size"), tl("Font text size"), value = 12, min = 4, step = 2)),
-      column(width = 2, numericInput(ns("step.increase"), tl("Step of signif."), value = 0.1, min = 0.0001, max = 0.5, step = 0.005)),
+      column(width = 2, numericInput(ns("step.increase"), tl("Step of signif."), value = 0.25, min = 0.05, max = 0.95, step = 0.05)),
       column(width = 1, actionButton(ns("updatePlot"), tl("Update Plot")))
     ),
     uiOutput(ns("pairwisePlotsUI"))

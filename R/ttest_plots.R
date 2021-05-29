@@ -11,7 +11,7 @@
 #' @return A ggplot object with the t-test plot
 #' @export
 ggPlotTTest <- function(data, x, y, tt, addParam = c(), font.label.size = 12) {
-  stat.test <- rstatix::add_xy_position(rstatix::add_significance(tt), x=x, step.increase = 0.1)
+  stat.test <- rstatix::add_xy_position(rstatix::add_significance(tt), x=x, step.increase = 0.25)
   bxp <- ggpubr::ggboxplot(
     data, x=x, y=y, color=x, width=0.5, add=addParam, palette="jco"
   )

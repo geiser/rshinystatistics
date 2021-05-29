@@ -14,7 +14,7 @@ ancova_plots_code <- function(backup, dataname, dvs, between, ext = 'Rmd') {
     width <- 700
     height <- 700
     font.label.size <- 12
-    step.increase <- 0.1
+    step.increase <- 0.25
     plot.param <- backup$ancovaParams$plot[[dv]]
     if (!is.null(plot.param)) {
       step.increase <- plot.param$step.increase
@@ -136,7 +136,7 @@ ancovaDetailAsFile <- function(ext, backup, dv, between = 'between', covar = 'co
   width <- 700
   height <- 700
   font.label.size <- 12
-  step.increase <- 0.1
+  step.increase <- 0.25
   plot.param <- backup$ancovaParams$plot[[dv]]
   if (!is.null(plot.param)) {
     step.increase <- plot.param$step.increase

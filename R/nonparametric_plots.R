@@ -30,7 +30,7 @@ ggPlotWilcoxon <- function(data, x, y, wt, addParam = c(), font.label.size = 12)
 #' @param step.increase the numeric vector to be used to minimize the overlap
 #' @return A ggplot object with the non.parametric plot
 #' @export
-ggPlotFactNonParam <- function(data, x, y, color = c(), non, pwc, linetype = color, by = c(), addParam = c(), font.label.size = 12, step.increase = 0.1, type = NULL) {
+ggPlotFactNonParam <- function(data, x, y, color = c(), non, pwc, linetype = color, by = c(), addParam = c(), font.label.size = 12, step.increase = 0.25, type = NULL) {
 
   data[[x]] <- factor(data[[x]])
   pwc2 <- tryCatch(rstatix::add_xy_position(pwc, x = x, step.increase = step.increase), error = function(e) NULL)
@@ -86,7 +86,7 @@ ggPlotFactNonParam <- function(data, x, y, color = c(), non, pwc, linetype = col
 #' @param step.increase the numeric vector to be used to minimize the overlap
 #' @return A list of ggplot objects with the Three-Way Non Parametric plots
 #' @export
-threeWayNonParamFactPlots <- function(data, dv, ivs, non, pwcs, addParam=c(), font.label.size = 12, step.increase = 0.1, type = NULL) {
+threeWayNonParamFactPlots <- function(data, dv, ivs, non, pwcs, addParam=c(), font.label.size = 12, step.increase = 0.25, type = NULL) {
   livs <- as.list(ivs); names(livs) <- ivs
   toReturn <- lapply(livs, FUN = function(iv) {
     pwc <- pwcs[[iv]]
@@ -116,7 +116,7 @@ threeWayNonParamFactPlots <- function(data, dv, ivs, non, pwcs, addParam=c(), fo
 #' @param step.increase the numeric vector to be used to minimize the overlap
 #' @return A list of ggplot objects with the Two-Way  plots
 #' @export
-twoWayNonParamFactPlots <- function(data, dv, ivs, non, pwcs, addParam=c(), font.label.size = 12, step.increase = 0.1, type = NULL) {
+twoWayNonParamFactPlots <- function(data, dv, ivs, non, pwcs, addParam=c(), font.label.size = 12, step.increase = 0.25, type = NULL) {
   livs <- as.list(ivs); names(livs) <- ivs
   return(lapply(livs, FUN = function(iv) {
     pwc <- pwcs[[iv]]
@@ -140,7 +140,7 @@ twoWayNonParamFactPlots <- function(data, dv, ivs, non, pwcs, addParam=c(), font
 #' @param step.increase the numeric vector to be used to minimize the overlap
 #' @return A list of ggplot objects with the One-Way  plots
 #' @export
-oneWayNonParamFactPlots <- function(data, dv, ivs, non, pwcs, addParam=c(), font.label.size = 12, step.increase = 0.1, type = NULL) {
+oneWayNonParamFactPlots <- function(data, dv, ivs, non, pwcs, addParam=c(), font.label.size = 12, step.increase = 0.25, type = NULL) {
   livs <- as.list(ivs); names(livs) <- ivs
   return(lapply(livs, FUN = function(iv) {
     ggPlotFactNonParam(data, iv, dv, non=non, pwc=pwcs[[iv]], addParam=addParam,

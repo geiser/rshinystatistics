@@ -1,14 +1,14 @@
 version =  3.7
-services_dev_image =  geiser/r-studio:latest
+services_dev_image =  geiser/r-dev:latest
 services_dev_container_name =  rshinystatistic_dev
 services_dev_restart =  unless-stopped
 services_dev_tty =  true
 
-PREFIX = /home/rstudio/rshinystatistics
+PREFIX = /Users/gcc/rshinystatistics
 APP_NAME = rshinystatistics
 
-DD = ""
-DC = ""
+DD = "/usr/local/bin/docker"
+DC = "/usr/local/bin/docker-compose"
 
 
 # HELP: This will output the help for each task

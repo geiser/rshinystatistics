@@ -21,6 +21,9 @@
 .Rproj.user/
 .rstudio/
 
+.config/
+.local/
+
 # produced vignettes
 vignettes/*.html
 vignettes/*.pdf

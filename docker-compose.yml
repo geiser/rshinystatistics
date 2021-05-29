@@ -1,12 +1,12 @@
 version: '3.7'
 services:
   dev:
-    image: geiser/r-studio:latest
+    image: geiser/r-dev:latest
     container_name: rshinystatistic_dev
     restart: unless-stopped
     tty: true
     volumes:
-      - ./:/home/gcc 
+      - ./:/home/rstudio 
     ports:
-      - "8686:8787"
+      - "8787:8787"
   

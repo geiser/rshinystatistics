@@ -3,16 +3,16 @@ Description=%i service of rshinystatistics with docker-compose
 
 [Service]
 Restart=always
-WorkingDirectory=/home/rstudio/rshinystatistics
+WorkingDirectory=/Users/gcc/rshinystatistics
 # Remove old containers, pull images and build containers
-ExecStartPre= -p rshinystatistics down -v
-ExecStartPre= -p rshinystatistics pull %i
-ExecStartPre= -p rshinystatistics build --force-rm %i
+ExecStartPre=/usr/local/bin/docker-compose -p rshinystatistics down -v
+ExecStartPre=/usr/local/bin/docker-compose -p rshinystatistics pull %i
+ExecStartPre=/usr/local/bin/docker-compose -p rshinystatistics build --force-rm %i
 # Compose up
-ExecStart= -p rshinystatistics up --no-build %i
+ExecStart=/usr/local/bin/docker-compose -p rshinystatistics up --no-build %i
 # Compose down and restart
-ExecStop= -p rshinystatistics down -v
-ExecReload= -p rshinystatistics restart %i
+ExecStop=/usr/local/bin/docker-compose -p rshinystatistics down -v
+ExecReload=/usr/local/bin/docker-compose -p rshinystatistics restart %i
 
 [Install]
 WantedBy=multi-user.target

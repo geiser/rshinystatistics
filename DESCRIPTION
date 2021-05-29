@@ -1,11 +1,11 @@
 Package: rshinystatistics
 Title: Shiny Statistics
-Version: 0.0.0.9031
+Version: 0.0.0.9035
 Authors@R: 
     person(given = "Geiser",
            family = "Chalco Challco",
            role = c("aut", "cre"),
-           email = "geiser@usp.br",
+           email = "geiser@alumni.usp.br",
            comment = c(ORCID = "0000-0003-4163-4803"))
 Description: What the package does (one paragraph).
 Depends:
