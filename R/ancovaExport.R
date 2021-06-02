@@ -8,11 +8,15 @@ ancovaExportUI <- function(id) {
   verticalLayout(
     fixedRow(
       column(width = 3, textInput(ns("author"), tl("Author:"), "Geiser C. Challco")),
-      column(width = 3, textInput(ns("email"), tl("Email:"), "geiser@usp.br")),
+      column(width = 3, textInput(ns("email"), tl("Email:"), "geiser@alumni.usp.br")),
     ),
+    helpText(paste0(tl("The author and email values are only used to generate the report."),
+                    tl("You won't receive a email of the report. Push the button "),
+                    '"',tl('Generate Export Files'),'"',tl(' and the button '),'"',tl('Download ZIP'),'" ',
+                    tl("to obtain the report in ZIP format"))),
     checkboxGroupInput(ns("files"), tl("Export formats"), choices = fchoices, selected = "html", width = "100%", inline = T),
     fixedRow(
-      column(width = 6, checkboxGroupInput(ns("dvs"), tl("Detailed reports of"), choices = c(""), inline = T, width = "100%")),
+      #column(width = 6, checkboxGroupInput(ns("dvs"), tl("Detailed reports of"), choices = c(""), inline = T, width = "100%")),
       column(width = 2, uiOutput(ns("exportButtonUI"))),
       column(width = 2, uiOutput(ns("downloadButtonUI")))
     ),
@@ -25,7 +29,7 @@ ancovaExportUI <- function(id) {
 
 
 #' @import shiny
-ancovaExportMD <- function(id, dataset, dvs = "dvs", between = "between", covar = "covar") {
+ancovaExportMD <- function(id, dataset, dvs = "dvs", between = "between", covar = "covar", dataTable = 'dataTable') {
   moduleServer(
     id,
     function(input, output, session) {
@@ -55,35 +59,41 @@ ancovaExportMD <- function(id, dataset, dvs = "dvs", between = "between", covar 
         inc <- 1/(length(input$files) * (1+length(input$dvs)))
 
         backup <- reactiveValuesToList(dataset, all.names = T)
-        backup[["rds.signature"]] <- paste0('ancova-',as.character(packageVersion("rshinystatistics")))
+        backup[["rds.signature"]] <- paste0('ancova-', as.character(packageVersion("rshinystatistics")))
         backup[["author"]] <- input$author
         backup[["email"]] <- input$email
         saveRDS(backup, file = paste0(path(), '/backup.rds'))
 
         # ... generating markdowns and R scripts
 
-        cat(ancovaSummaryAsFile('R', backup, dvs, between, covar, path = path()), file = paste0(path(), '/ancova.R'))
+        #cat(ancovaSummaryAsFile('R', backup, dvs, between, covar, path = path()), file = paste0(path(), '/ancova.R'))
         cat(ancovaSummaryAsFile('Rmd', backup, dvs, between, covar), file = paste0(path(), '/summary.Rmd'))
-        cat(ancovaSummaryAsFile('Rmd', backup, dvs, between, covar, lang='pt'), file = paste0(path(), '/summary-pt.Rmd'))
+        #cat(ancovaSummaryAsFile('Rmd', backup, dvs, between, covar, lang='pt'), file = paste0(path(), '/summary-pt.Rmd'))
         for (dv in rdvs()) write.csv(backup$initTable[[dv]] , paste0(path(), '/data-',dv,'.csv'))
 
-        for (dv in input$dvs) {
-          dir.create(paste0(path(),'/',dv), showWarnings = F, recursive = T)
-          cat(ancovaDetailAsFile('R', backup, dv, between, covar, path = paste0(path(),'/',dv)), file = paste0(path(),'/',dv,'/ancova.R'))
-          cat(ancovaDetailAsFile('Rmd', backup, dv, between, covar), file = paste0(path(),'/',dv,'/ancova.Rmd'))
-          write.csv(backup$initTable[[dv]], paste0(path(), '/', dv, '/data.csv'))
-        }
+        #for (dv in input$dvs) {
+        #  dir.create(paste0(path(),'/',dv), showWarnings = F, recursive = T)
+        #  cat(ancovaDetailAsFile('R', backup, dv, between, covar, path = paste0(path(),'/',dv)), file = paste0(path(),'/',dv,'/ancova.R'))
+        #  cat(ancovaDetailAsFile('Rmd', backup, dv, between, covar), file = paste0(path(),'/',dv,'/ancova.Rmd'))
+        #  write.csv(backup$initTable[[dv]], paste0(path(), '/', dv, '/data.csv'))
+        #}
 
         # .. generating using rmarkdown
         for (nfile in input$files) {
           progress$inc(inc, detail = paste('Generating', nfile,'file of summary'))
           rmarkdown::render(paste0(path(), '/summary.Rmd'), paste0(nfile,'_document'))
-          rmarkdown::render(paste0(path(), '/summary-pt.Rmd'), paste0(nfile,'_document'))
+          #rmarkdown::render(paste0(path(), '/summary-pt.Rmd'), paste0(nfile,'_document'))
         }
+
+        knitr::purl(paste0(path(),'/summary.Rmd'), paste0(path(),'/ancova.R'))
+
+        #cat(ancovaSummaryAsFile('R', backup, dvs, between, covar, path = path()), file = paste0(path(), '/ancova.R'))
+
+
         for (dv in input$dvs) {
           for (nfile in input$files) {
-            progress$inc(inc, detail = paste('Generating',nfile,'file as detailed reported for ',dv))
-            rmarkdown::render(paste0(path(),'/',dv,'/ancova.Rmd'), paste0(nfile,'_document'))
+          #  progress$inc(inc, detail = paste('Generating',nfile,'file as detailed reported for ',dv))
+          #  rmarkdown::render(paste0(path(),'/',dv,'/ancova.Rmd'), paste0(nfile,'_document'))
           }
         }
       }
@@ -105,7 +115,7 @@ ancovaExportMD <- function(id, dataset, dvs = "dvs", between = "between", covar 
       })
 
       output$exportButtonUI <- renderUI({
-        actionButton(ns(paste0("exportAncova",reportId())), "Generate Export Files", icon = icon('file-export'))
+        actionButton(ns(paste0("exportAncova",reportId())), tl("Generate Export Files"), icon = icon('file-export'))
       })
 
       output$downloadButtonUI <- renderUI({

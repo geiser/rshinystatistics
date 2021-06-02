@@ -8,8 +8,7 @@ density_grp_plot <- function(data, dv, wid ='row.pos', ids = data[[wid]], name =
   res <- df[[dv]]
   names(res) <- df[[wid]]
 
-  gplot <- ggpubr::gghistogram(df, x = dv, y = "..density..", add = "mean",
-    bins = bins, palette = "jco", rug = T, add_density = T)
+  gplot <- ggpubr::gghistogram(df, x = dv, y = "..density..", add = "mean", bins = bins, palette = "jco", rug = T, add_density = T)
   gplot <- gplot + ggpubr::stat_overlay_normal_density(color = "red", linetype = "dashed")
   return(gplot)
 }
@@ -31,7 +30,7 @@ qqGroupPanel <- function(data, dv, wid = 'row.pos', ids = data[[wid]], name = pa
 
   verticalLayout(
    h4(paste0("Group: ", name))
-  ,splitLayout(
+  , splitLayout(
     cellWidths = width,
     tabsetPanel(
       type = "pills",
@@ -84,7 +83,9 @@ info_for_qq_groups <- function(data, dv, ivs, wid = 'row.pos', dv.var = NULL) {
     tbl <- freq_df[i,c(sivs)]
     df <- subset_by_tbl(dat, tbl, group = sivs)
     df <- dplyr::group_by_at(df, dplyr::vars(sivs))
-    lbl <- paste(sapply(names(tbl), FUN = function(nc) { paste0(nc,':', tbl[[nc]]) }), collapse = "-")
+
+    lbl <- paste0(paste0(tbl,collapse=':'),' (',paste0(names(tbl), collapse=':'),')')
+
     non.normal <- getNonNormal(df[[dv]], df[[wid]])
     toReturn[[lbl]] <- list(lbl = lbl, data = df, non.normal = non.normal, i = i)
   }

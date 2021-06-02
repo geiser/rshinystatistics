@@ -10,7 +10,7 @@ tTestPlots(
   iv,
   tts,
   addParam = c(),
-  font.label.size = 12,
+  font.label.size = 14,
   dv.var = NULL
 )
 }

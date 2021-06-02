@@ -51,13 +51,9 @@ homogeneity_test <- function(data, dvs, between = c(), within = c(), covar = NUL
     # ... add significance
     plimit <- 0.05
     cutpoints <- c(0, 1e-04, 0.001, 0.01, 0.05, 1)
-    if (length(dat[[dv]]) > 30) {
+    if (length(dat[[dv]]) > 100) {
       plimit <- 0.01
       cutpoints <- c(0, 1e-05, 1e-04, 0.001, 0.01, 1)
-    }
-    if (length(dat[[dv]]) > 100) {
-      plimit <- 0.001
-      cutpoints <- c(0, 1e-06, 1e-05, 1e-04, 0.001, 1)
     }
 
     rstatix::add_significance(cbind(

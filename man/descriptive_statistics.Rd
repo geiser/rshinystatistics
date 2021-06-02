@@ -4,18 +4,34 @@
 \alias{descriptive_statistics}
 \title{Descriptive Statistics}
 \usage{
-descriptive_statistics(data, dvs, ivs = c(), type = "common", dv.var = NULL)
+descriptive_statistics(
+  data,
+  dvs,
+  ivs,
+  type = "common",
+  dv.var = NULL,
+  include.global = F,
+  symmetry.test = F,
+  normality.test = F,
+  hide.details = F
+)
 }
 \arguments{
 \item{data}{a data.frame in which we will perform the descriptive statistics}
 
 \item{dvs}{numeric columns with the dependent variables}
 
-\item{ivs}{columns with the independent variables}
+\item{ivs}{columns with the independent variables (split groups)}
 
 \item{type}{a character string specifying type of summary statistics}
 
 \item{dv.var}{column with the information to classify observations}
+
+\item{include.global}{a boolean value to indicate if descriptive statistics for global data is included}
+
+\item{symmetry.test}{a boolean value to indicate if symmetry test is included}
+
+\item{normality.test}{a boolean value to indicate if normality test is included}
 }
 \value{
 A data.frame containing the results for the descriptive statistics

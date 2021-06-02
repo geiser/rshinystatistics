@@ -16,7 +16,7 @@
 #' @return A data.frame containing the results for the descriptive statistics
 #' @export
 descriptive_statistics <- function(data, dvs, ivs, type = "common", dv.var = NULL
-                                   , include.global = F, normality.test = F) {
+                                   , include.global = F, symmetry.test = F, normality.test = F, hide.details = F) {
   tbls <- lapply(dvs, FUN = function(dv) {
     if (is.data.frame(data)) {
       dat <- as.data.frame(data)
@@ -41,15 +41,19 @@ descriptive_statistics <- function(data, dvs, ivs, type = "common", dv.var = NUL
 
       if (include.global)
         df <- plyr::rbind.fill(df, rstatix::get_summary_stats(as.data.frame(dat), dv, type = type))
-
       return(as.data.frame(df))
     }
   })
 
   df <- do.call(rbind, tbls)
 
-  if (normality.test) {
-    df <- merge(df, normality_test_per_group(data, dvs, ivs, dv.var, include.global), all.x = T, sort =F)
+  if (symmetry.test || normality.test) {
+    normality.df <- normality_test_per_group(data, dvs, ivs, dv.var, include.global, hide.details)
+    if (!symmetry.test)
+      normality.df <- normality.df[,!colnames(normality.df) %in% c("symmetry","skewness","kurtosis")]
+    if (!normality.test)
+      normality.df <- normality.df[,!colnames(normality.df) %in% c("normality","method","statistic","p","p.signif")]
+    df <- merge(df, normality.df, all.x = T, sort =F)
     df <- df[,!colnames(df) %in% 'var']
   }
 

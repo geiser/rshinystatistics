@@ -1,0 +1,13 @@
+{
+  "languages": ["en", "pt"],
+  "translation": [
+    {
+      "en": "Suggestion to accomplish symmetry",
+      "pt": "Dicas para alcançar simetria"
+    },
+    {
+      "en": "Descriptive Statistic",
+      "pt": "Estatistica Descritiva"
+    }
+  ]
+}

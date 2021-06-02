@@ -10,7 +10,7 @@
 #' @param font.label.size the integer value with the font label size
 #' @return A ggplot object with the t-test plot
 #' @export
-ggPlotTTest <- function(data, x, y, tt, addParam = c(), font.label.size = 12) {
+ggPlotTTest <- function(data, x, y, tt, addParam = c(), font.label.size = 14) {
   stat.test <- rstatix::add_xy_position(rstatix::add_significance(tt), x=x, step.increase = 0.25)
   bxp <- ggpubr::ggboxplot(
     data, x=x, y=y, color=x, width=0.5, add=addParam, palette="jco"
@@ -26,7 +26,7 @@ ggPlotTTest <- function(data, x, y, tt, addParam = c(), font.label.size = 12) {
 #' This function create ggpubr box-plot to report result from a paired t-test.
 #'
 #' @export
-ggPlotPairedTTest <- function(data, x, y, tt, id, font.label.size = 12) {
+ggPlotPairedTTest <- function(data, x, y, tt, id, font.label.size = 14) {
   stat.test <- rstatix::add_xy_position(rstatix::add_significance(tt), x=x)
   bxp <- ggpubr::ggpaired(
     data, x=x, y=y, color=x, width=0.5, id=id, palette="jco",line.size=0.1, line.color = "gray"
@@ -51,7 +51,7 @@ ggPlotPairedTTest <- function(data, x, y, tt, id, font.label.size = 12) {
 #' @param dv.var column with the information to classify observations based on dependent variables
 #' @return A list of ggplot objects with the T-Test plots
 #' @export
-tTestPlots <- function(data, dvs, iv, tts, addParam=c(), font.label.size = 12, dv.var = NULL) {
+tTestPlots <- function(data, dvs, iv, tts, addParam=c(), font.label.size = 14, dv.var = NULL) {
   dat <- data
   ldvs <- as.list(dvs); names(ldvs) <- dvs
   return(lapply(ldvs, FUN = function(dv) {

@@ -63,13 +63,9 @@ normality_test <- function(x) {
   n.test <- shapiro.test(x)
   cutpoints <- c(0, 1e-04, 0.001, 0.01, 0.05, 1)
 
-  if (length(x) > 30) {
+  if (length(x) > 100) {
     plimit <- 0.01
     cutpoints <- c(0, 1e-05, 1e-04, 0.001, 0.01, 1)
-  }
-  if (length(x) > 100) {
-    plimit <- 0.001
-    cutpoints <- c(0, 1e-06, 1e-05, 1e-04, 0.001, 1)
   }
   if (length(x) > 50) n.test <- fBasics::dagoTest(x)@test
 
@@ -160,9 +156,11 @@ normality_test_by_res <- function(data, dvs, between = c(), within = c(), covar 
 #' @param dvs a character vector containing the dependent variables
 #' @param ivs character vector containing the independent variable used define the groups
 #' @param dv.var column with the information to classify observations based on dependent variables
+#' @param include.global a boolean value indicating if a summarization is presented of all items
+#' @param hide.details a boolean value indicating if details should be presented
 #' @return A data frame containing the normality test
 #' @export
-normality_test_per_group <- function(data, dvs, ivs, dv.var = NULL, include.global = F) {
+normality_test_per_group <- function(data, dvs, ivs, dv.var = NULL, include.global = F, hide.details = F) {
   non.normal <- do.call(rbind, lapply(dvs, FUN = function(dv) {
     if (is.data.frame(data)) {
       dat <- as.data.frame(data)
@@ -181,8 +179,10 @@ normality_test_per_group <- function(data, dvs, ivs, dv.var = NULL, include.glob
     }
 
     if (nrow(df) > 0) {
-      if (include.global)
+      if (include.global) {
+        if (hide.details) df$symmetry <- rep(NA, nrow(df))
         df <- plyr::rbind.fill(df, normality_test_at(as.data.frame(dat), dv))
+      }
       return(cbind(var = dv, df))
     }
   }))
@@ -194,8 +194,7 @@ getNonNormal <- function(x, x.name = paste0('', seq(1, length(x))), step = 1, pl
   if (length(unique(x)) < 4) return(c())
   names(x) <- x.name
   toReturn <- c()
-  if (length(x) > 30) plimit <- 0.01
-  if (length(x) > 100) plimit <- 0.001
+  if (length(x) > 100) plimit <- 0.01
   res <- tryCatch(normality_test(x), error = function(e) NULL)
   while(!is.null(res) && (length(unique(x)) > 3) && res$p < plimit) {
     y <- sort(x)

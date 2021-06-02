@@ -15,7 +15,7 @@
 #' @param step.increase the numeric vector to be used to minimize the overlap
 #' @return A ggplot object with the ANOVA plot
 #' @export
-ggPlotAoV <- function(data, x, y, color = c(), aov, pwc, linetype = color, by = c(), addParam = c(), font.label.size = 12, step.increase = 0.25) {
+ggPlotAoV <- function(data, x, y, color = c(), aov, pwc, linetype = color, by = c(), addParam = c(), font.label.size = 14, step.increase = 0.25) {
   if (is.null(aov) || is.null(pwc)) return(NULL)
   data[[x]] <- factor(data[[x]])
   pwc2 <- tryCatch(rstatix::add_xy_position(pwc, x = x, step.increase = step.increase), error = function(e) NULL)
@@ -56,7 +56,7 @@ ggPlotAoV <- function(data, x, y, color = c(), aov, pwc, linetype = color, by = 
 #' @param step.increase the numeric vector to be used to minimize the overlap
 #' @return A list of ggplot objects with the Three-Way ANOVA plots
 #' @export
-threeWayAnovaPlots <- function(data, dv, ivs, aov, pwcs, addParam=c(), font.label.size = 12, step.increase = 0.25) {
+threeWayAnovaPlots <- function(data, dv, ivs, aov, pwcs, addParam=c(), font.label.size = 14, step.increase = 0.25) {
   livs <- as.list(ivs); names(livs) <- ivs
   toReturn <- lapply(livs, FUN = function(iv) {
     pwc <- pwcs[[iv]]
@@ -86,7 +86,7 @@ threeWayAnovaPlots <- function(data, dv, ivs, aov, pwcs, addParam=c(), font.labe
 #' @param step.increase the numeric vector to be used to minimize the overlap
 #' @return A list of ggplot objects with the Two-Way ANOVA plots
 #' @export
-twoWayAnovaPlots <- function(data, dv, ivs, aov, pwcs, addParam=c(), font.label.size = 12, step.increase = 0.25) {
+twoWayAnovaPlots <- function(data, dv, ivs, aov, pwcs, addParam=c(), font.label.size = 14, step.increase = 0.25) {
   livs <- as.list(ivs); names(livs) <- ivs
   return(lapply(livs, FUN = function(iv) {
     pwc <- pwcs[[iv]]
@@ -110,7 +110,7 @@ twoWayAnovaPlots <- function(data, dv, ivs, aov, pwcs, addParam=c(), font.label.
 #' @param step.increase the numeric vector to be used to minimize the overlap
 #' @return A list of ggplot objects with the One-Way ANOVA plots
 #' @export
-oneWayAnovaPlots <- function(data, dv, ivs, aov, pwcs, addParam=c(), font.label.size = 12, step.increase = 0.25) {
+oneWayAnovaPlots <- function(data, dv, ivs, aov, pwcs, addParam=c(), font.label.size = 14, step.increase = 0.25) {
   livs <- as.list(ivs); names(livs) <- ivs
   return(lapply(livs, FUN = function(iv) {
     ggPlotAoV(data, iv, dv, aov=aov, pwc=pwcs[[iv]], addParam=addParam,

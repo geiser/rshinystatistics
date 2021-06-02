@@ -1,58 +1,28 @@
 #' @import shiny
 homogeneityUI <- function(id) {
-  homogeHTML <- "
-<p>O teste de Levene é utilizado para avaliar a igualdade de variâncias em dois ou mais grupos.
-Assim o Levene's test, avalia a homogeidade das varianças empregando:
-</p>
-<ul>
-<li> Hipótese nula
-(<img src=\"https://latex.codecogs.com/png.latex?\\dpi{75}&space;H_{null}\" title=\"H_{null}\" />):
-As varianças das amostras dos diferentes grupos são iguais.
-</li>
-<li> Hipótese alternativa
-(<img src=\"https://latex.codecogs.com/png.latex?\\dpi{75}&space;H_{alt}\" title=\"H_{alt}\" />):
-As varianças das amostras dos diferentes grupos são diferentes.
-</li>
-</ul>
-<br/>
-<p>
-Procedimentos estatísticos parâmetricos precissam de igualdade de variações das amostras. Rejeição, da hipótese nula
-<i>p.value</i> com valores menores do que <i>0.05</i> (0 **** 0.0001 *** 0.001 ** 0.01 * 0.05) indicam que os dados
-das amotras provêm de grupos de populações não idênticas (grupos de individuos diferentes).
-</p>
-<br/>
-<p>
-Para <i>n maior do que 30</i> adoptamos o nível de significance <i>p = 0.01</i>, e para <i>n maior do que 100</i>
-adoptamos o nível de signif. de <i>p = 0.001</i>
-</p>
-<br/>
-<p>
-Se considera que as amostras provêm de grupos idênticos, você pode efetuar o teste paramêtrico.
-<ul>
-<li>Se está conduzindo um teste t (t-test), você deverá usar sempre o método Welch's test.</li>
-<li>Se está conduzindo ANCOVA é melhor empregar ANOVA considerando a covariante como variavel between-subject</li>
-<li>Se está conduzindo ANOVA, você pode utilizar o método robusto baseado em Wilcox's (ainda não disponivel no rshiny-statistics).</li>
-</ul>
-<i>Caso nemhuma das condições sejam satisfeitas, e as amostras são dos mesmos grupos é melhor usar testes não parâmetrico</i>
-</p>"
-
+  homogeHelp <- paste(
+    'Na tabela de avaliação da homogeneidade das variâncias, empregamos testes de Levene,',
+    'e  os resultados de significância são apresentados na columna "p.signif" com os valores:<ul>',
+    '<li><b>ns</b> para indicar que a a hipótese nula (as varianças das observações provêm de um mesmo grupo amostral) não é rejeitada</li>',
+    '<li><b>*</b>, <b>**</b> e <b>***</b> quando a significância é menor do 0.05 indicando que a homogeneidade de variâncias é rejeitada</li>','</ul>',
+    'Se a amostra é suficientemente grande (maiores de 100 observações), o nivel de sig. para rejeitar a hipótese nula foi reduzida',
+    'para p = 0.01. Se a hipótesis é rejeitada, indicando que as amostras não apresentam homogeneidade nas variânças,',
+    'você deve seguir as seguintes recomendações:<ul>',
+    '<li>Se está conduzindo um teste t (t-test), você deve empregar o método Welch</li>',
+    '<li>Se está conduzindo ANCOVA é melhor empregar ANOVA considerando a covariante como uma variavel between-subject</li>',
+    '<li>Se está conduzindo ANOVA, você deve utilizar o método não parametrico equivalente</li></ul>')
   ns <- NS(id)
   tl <- getTranslator('homogeneity')
 
   verticalLayout(
     h4(tl("Homogeneity Test")),
-    HTML(homogeHTML),
-    br(),
-    fixedRow(
-      column(width = 2, actionButton(ns("performTest"), tl("Perform/Update Test"), icon = icon("running"))),
-      column(width = 6, h4(tl("Asessing homogeneity")))
-    ),
-    df2TableUI(ns("homogeneityTable"))
+    df2TableUI(ns("homogeneityTable")),
+    helpText(HTML(homogeHelp))
   )
 }
 
 #' @import shiny
-homogeneityMD <- function(id, dataset, dvs = "dvs", between = "between", within = "within", covar = "covar") {
+homogeneityMD <- function(id, dataset, dvs = "dvs", between = "between", within = "within", covar = "covar", dataTable = 'dataTable') {
   moduleServer(
     id,
     function(input, output, session) {
@@ -74,12 +44,13 @@ homogeneityMD <- function(id, dataset, dvs = "dvs", between = "between", within 
       })
 
       # Homogeneity test
-
-      observeEvent(input$performTest, {
-        if (!dataset$isSetup) return(NULL)
-        h.test <- homogeneity_test(dataset$dataTable, rdvs(), rbetween(), rwithin(), rcovar(), dv.var = 'var')
+      updateHomogTbl <- function() {
+        h.test <- homogeneity_test(dataset[[dataTable]], rdvs(), rbetween(), rwithin(), rcovar(), dv.var = 'var')
         df2TableMD("homogeneityTable", h.test, prefix = ns(''))
-      })
+      }
+
+      observeEvent(dataset$isSetup, { if (dataset$isSetup) updateHomogTbl() })
+      observeEvent(dataset[[dataTable]], { if (dataset$isSetup) updateHomogTbl() })
 
     }
   )

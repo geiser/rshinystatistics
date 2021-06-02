@@ -4,7 +4,14 @@
 \alias{normality_test_per_group}
 \title{Normality Test per Groups}
 \usage{
-normality_test_per_group(data, dvs, ivs, dv.var = NULL)
+normality_test_per_group(
+  data,
+  dvs,
+  ivs,
+  dv.var = NULL,
+  include.global = F,
+  hide.details = F
+)
 }
 \arguments{
 \item{data}{a data.frame containing the variables in which performing the normality test}
@@ -14,6 +21,10 @@ normality_test_per_group(data, dvs, ivs, dv.var = NULL)
 \item{ivs}{character vector containing the independent variable used define the groups}
 
 \item{dv.var}{column with the information to classify observations based on dependent variables}
+
+\item{include.global}{a boolean value indicating if a summarization is presented of all items}
+
+\item{hide.details}{a boolean value indicating if details should be presented}
 }
 \value{
 A data frame containing the normality test

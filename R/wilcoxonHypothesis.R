@@ -54,7 +54,7 @@ A mediana do grupo 1 é significativamente menor do que a mediana do grupo 2.
       column(width = 3, radioButtons(ns("addParam"),  "point style", inline = T, choices = add.choices)),
       column(width = 2, numericInput(ns("width"), "width", value = 700, min = 100, step = 50)),
       column(width = 2, numericInput(ns("height"), "height", value = 700, min = 100, step = 50)),
-      column(width = 2, numericInput(ns("font.label.size"), tl("Font text size"), value = 12, min = 4, step = 2)),
+      column(width = 2, numericInput(ns("font.label.size"), tl("Font text size"), value = 14, min = 4, step = 2)),
       column(width = 1, actionButton(ns("updatePlot"), tl("Update Plot")))
     ),
     uiOutput(ns("wilcoxonPlotsUI"))

@@ -12,11 +12,9 @@ getOutliersBoxPlotly <- function(tbl, tbl2, dv, ivs, wid = 'row.pos', boxpoints 
 
   lapply(livs, FUN = function(iv) {
     title <- paste0(tl('With outliers'),': ', dv, ' ~ ', iv)
-    print(tbl[[dv]])
     bxp <- boxPlotly(tbl, dv, iv, wid, boxpoints, title = title)
 
     title <- paste0(tl('Without outliers'),': ', dv, ' ~ ', iv)
-    print(tbl2[[dv]])
     bxp_wo <- boxPlotly(tbl2, dv, iv, wid, boxpoints, title = title)
     return(list(plot = bxp, plot.wo = bxp_wo))
   })

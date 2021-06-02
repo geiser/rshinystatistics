@@ -10,19 +10,21 @@ ancovaUI <- function(id) {
       sidebarPanel(
         width = 3
         , loadDataSetUI(ns("loadData"))
+        , uiOutput(ns("settingSymmetryUI"))
         , uiOutput(ns("settingOutliersUI"))
         , uiOutput(ns("settingNormalityUI"))
+        , uiOutput(ns("settingOthersUI"))
       ),
       mainPanel(
         width = 9,
         tabsetPanel(
           id = ns("ancovaPanel"), type = "tabs", selected = "none"
           , tabPanel("DataSet", icon = icon("caret-right"), value = "none", displayDataSetUI(ns("dataSet")))
-          , tabPanel(tl("Assumption: Outliers"), value = "outliers", outliersUI(ns("outliers")))
-          , tabPanel(tl("Assumption: Normality"), value = "normality", normalityUI(ns("normality")))
-          , tabPanel(tl("Assumption: Linearity"), value = "linearity", linearityUI(ns("linearity")))
-          , tabPanel(tl("Assumption: Homogeneity"), value = "homogeneity", homogeneityUI(ns("homogeneity")))
-          , tabPanel(tl("ANCOVA Test"), value = "hypothesis", ancovaHypothesisUI(ns("hypothesis")))
+          , tabPanel(paste('(1)', tl("Assumption: Symmetry and Without Outliers")), value = "symmetry-outliers", symmetryOutliersUI(ns("symmetryOutliers")))
+          , tabPanel(paste('(2)', tl("Assumption: Normality")), value = "normality", normalityUI(ns("normality")))
+          , tabPanel(paste('(3)', tl("Assumption: Linearity")), value = "linearity", linearityUI(ns("linearity")))
+          , tabPanel(paste('(4)', tl("Assumption: Homogeneity")), value = "homogeneity", homogeneityUI(ns("homogeneity")))
+          , tabPanel(paste(tl("ANCOVA Test")), value = "hypothesis", ancovaHypothesisUI(ns("hypothesis")))
           , tabPanel(tl("Export"), value = "export-result", ancovaExportUI(ns("export-result")))
         )
       )
@@ -50,7 +52,19 @@ ancovaMD <- function(id) {
         rds.signature = paste0('ancova-',as.character(packageVersion("rshinystatistics")))
       )
 
-      # ... setting outliers and setting normality panels
+      output$settingOthersUI <- renderUI({
+        if (!dataset$isSetup) return(NULL)
+        verticalLayout(
+          checkboxInput(ns('checkLinearity'), tl('Linearity of data was checked')),
+          checkboxInput(ns('checkHomogeneity'), tl('Homogeneity of data was checked'))
+        )
+      })
+
+      # ... setting symmetry and dealing with outliers
+
+      output$settingSymmetryUI <- renderUI({
+        if (dataset$isSetup) settingSymmetryUI(ns("settingSymmetry"))
+      })
 
       output$settingOutliersUI <- renderUI({
         if (dataset$isSetup) settingOutliersUI(ns("settingOutliers"))
@@ -60,47 +74,71 @@ ancovaMD <- function(id) {
         if (dataset$isSetup) settingNormalityUI(ns("settingNormality"))
       })
 
+      settingSymmetry <- reactiveVal(NULL)
       settingOutliers <- reactiveVal(NULL)
       settingNormality <- reactiveVal(NULL)
 
       observeEvent(dataset$isSetup, {
         if (dataset$isSetup) {
-          settingOutliers(settingOutliersMD("settingOutliers", dataset, "dvs", "between", updateDataTable = F))
-          settingNormality(settingNormalityMD("settingNormality", dataset, "dvs", updateDataTable = T))
+          settingSymmetry(settingSymmetryMD("settingSymmetry", dataset, "dvs", "covar", initTable = 'initTable', dataTable = 'symmetryTable'))
+          settingOutliers(settingOutliersMD("settingOutliers", dataset, "dvs", "between", "covar", initTable = 'symmetryTable', dataTable = 'woutlierTable'))
+          settingNormality(settingNormalityMD("settingNormality", dataset, "dvs", initTable = 'woutlierTable', dataTable = 'dataTable'))
         } else {
           updateTabsetPanel(session, "ancovaPanel", selected = "none")
+          if (!is.null(settingNormality())) settingNormality()$normalityObserve$suspend()
           if (!is.null(settingOutliers())) settingOutliers()$outliersObserve$suspend()
-          if (!is.null(settingNormality())) {
-            settingNormality()$skewnessObserve$suspend()
-            settingNormality()$extremeObserve$suspend()
-          }
+          if (!is.null(settingSymmetry())) settingSymmetry()$skewnessObserve$suspend()
         }
       })
 
-      # ... update dataTabl
+      observeEvent(input$checkLinearity, {
+        if (dataset$isSetup) dataset$checkLinearity <- input$checkLinearity
+      })
+
+      observeEvent(input$checkHomogeneity, {
+        if (dataset$isSetup) dataset$checkHomogeneity <- input$checkHomogeneity
+      })
+
+      # ... update dataTable
 
       observeEvent(input$ancovaPanel, {
-        if (input$ancovaPanel == 'none') {
-          displayDataSetMD("dataSet", dataset)
-        } else if (dataset$isSetup) {
-          if (input$ancovaPanel == 'outliers') {
-            outliersMD("outliers", dataset, "dvs", "between")
-          } else if (input$ancovaPanel == 'normality') {
-            normalityMD("normality", dataset, only.residuals = T)
-          } else if (input$ancovaPanel == 'linearity') {
-            linearityMD("linearity", dataset)
-          } else if (input$ancovaPanel == 'homogeneity') {
-            homogeneityMD("homogeneity", dataset)
-          } else if (input$ancovaPanel == 'hypothesis') {
-            ancovaHypothesisMD("hypothesis", dataset)
-          } else if (input$ancovaPanel == 'export-result' && !is.null(dataset$ancovaParams[["hypothesis"]])) {
-            ancovaExportMD("export-result", dataset)
-          } else if (input$ancovaPanel == 'export-result') {
+        if (!dataset$isSetup) {
+          updateTabsetPanel(session, "ancovaPanel", selected = "none")
+          return(NULL)
+        }
+        tab <- isolate(input$ancovaPanel)
+
+        if (tab == 'none') {
+          displayDataSetMD("dataSet", dataset, exclude.from.others = c("fileTable","initTable","variables","symmetryTable","woutlierTable"))
+        } else if (tab == 'symmetry-outliers' && dataset$isSetup) {
+          symmetryOutliersMD("symmetryOutliers", dataset, 'dvs', 'between', initTable = 'symmetryTable', dataTable = 'woutlierTable')
+        } else if (tab == 'normality' && dataset$checkSymmetry && dataset$checkOutliers) {
+          normalityMD("normality", dataset, 'dvs', 'between', show.residuals = T)
+        } else if (tab == 'linearity' && dataset$checkSymmetry && dataset$checkOutliers && dataset$checkNormality) {
+          linearityMD("linearity", dataset)
+        } else if (tab == 'homogeneity' && dataset$checkSymmetry && dataset$checkOutliers && dataset$checkNormality && dataset$checkLinearity) {
+          homogeneityMD("homogeneity", dataset)
+        } else if (tab == 'hypothesis' && dataset$checkSymmetry && dataset$checkOutliers && dataset$checkNormality && dataset$checkLinearity && dataset$checkHomogeneity) {
+          ancovaHypothesisMD("hypothesis", dataset)
+        } else if (tab == 'export-result' && !is.null(dataset$ancovaParams[["hypothesis"]])) {
+          ancovaExportMD("export-result", dataset)
+        } else {
+          if (tab == 'normality') {
+            showNotification(tl("Before checking the normality distribution, you need to assess the symmetry of data distribution and to perform a treatment of outliers"), type = "error")
+            updateTabsetPanel(session, "ancovaPanel", selected = "symmetry-outliers")
+          }else if (tab == 'linearity') {
+            showNotification(tl("Before checking the linearity of covariance with dependent variable, you need to perform the normality distribution analysis"), type = "error")
+            updateTabsetPanel(session, "ancovaPanel", selected = "normality")
+          }else if (tab == 'homogeneity') {
+            showNotification(tl("Before export results, you need to perform ANCOVA test"), type = "error")
+            updateTabsetPanel(session, "ancovaPanel", selected = "linearity")
+          }else if (tab == 'hypothesis') {
+            showNotification(tl("Before export results, you need to perform ANCOVA test"), type = "error")
+            updateTabsetPanel(session, "ancovaPanel", selected = "homogeneity")
+          } else if (tab == 'export-result') {
             showNotification(tl("Before export results, you need to perform ANCOVA test"), type = "error")
             updateTabsetPanel(session, "ancovaPanel", selected = "hypothesis")
           }
-        } else {
-          updateTabsetPanel(session, "ancovaPanel", selected = "none")
         }
       })
 

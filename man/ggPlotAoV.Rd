@@ -14,7 +14,7 @@ ggPlotAoV(
   linetype = color,
   by = c(),
   addParam = c(),
-  font.label.size = 12,
+  font.label.size = 14,
   step.increase = 0.25
 )
 }

@@ -22,8 +22,7 @@ displayDataSetUI <- function(id) {
         br(),
         radioButtons(ns('dv'), tl('Dependent variable'), choices = c(''), inline = T),
         h4("dataset$initTable ..."),
-        df2TableUI(ns("initTable")),
-        br(), h4("dataset$dataTable ..."), df2TableUI(ns("dataTable"))
+        df2TableUI(ns("initTable"))
       ),
       type = "pills"
     )
@@ -31,7 +30,7 @@ displayDataSetUI <- function(id) {
 }
 
 #' @import shiny
-displayDataSetMD <- function(id, dataset) {
+displayDataSetMD <- function(id, dataset, exclude.from.others = c("fileTable", "initTable", "variables")) {
   moduleServer(
     id,
     function(input, output, session) {
@@ -46,19 +45,15 @@ displayDataSetMD <- function(id, dataset) {
       observe({
         if (dataset$isSetup) {
           df2TableMD("initTable", dataset$initTable[[input$dv]], pageLength = 10, prefix = ns('initTable'))
-          df2TableMD("dataTable", dataset$dataTable[[input$dv]], pageLength = 10, prefix = ns('dataTable'))
         }
       })
 
-
       output$fileTableTex <- renderPrint({ dataset$fileTable })
-
       output$variablesTex <- renderPrint({ dataset$variables })
 
       output$otherDataTex <- renderPrint({
         others <- list()
-        cnames <- c("fileTable", "initTable", "variables", "dataTable")
-        for (var in names(dataset)[!names(dataset) %in% cnames]) {
+        for (var in names(dataset)[!names(dataset) %in% exclude.from.others]) {
           others[[var]] <- dataset[[var]]
         }
         others

@@ -4,7 +4,7 @@
 \alias{getOutliers}
 \title{Identifying Outliers Using BoxPlot Methods}
 \usage{
-getOutliers(data, dvs, ivs = c())
+getOutliers(data, dvs, ivs = c(), covar = c(), is.extreme = T)
 }
 \arguments{
 \item{data}{a data.frame in which we will perform the identification of outliers}
@@ -12,6 +12,8 @@ getOutliers(data, dvs, ivs = c())
 \item{dvs}{numeric columns with the dependent variables}
 
 \item{ivs}{columns to be used as independent variable in which perform the identification of outliers}
+
+\item{covar}{column with the covariant variable in which perform the outlier identification}
 }
 \value{
 A data.frame containing the results rstatix::identify_outliers with column var in which is indicating each dependent variable

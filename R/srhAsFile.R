@@ -3,7 +3,7 @@ srh_plots_code <- function(backup, dataname, dvs, between, ext = 'Rmd') {
   srh.plots <- paste0(lapply(dvs, FUN = function(dv) {
     width <- 700
     height <- 700
-    font.label.size <- 12
+    font.label.size <- 14
     step.increase <- 0.25
     addParam <- c("jitter")
     plot.param <- backup$srhParams$plot[[dv]]
@@ -80,7 +80,7 @@ srhDetailAsFile <- function(ext, backup, dv, between = 'between', path = getwd()
 
   width <- 700
   height <- 700
-  font.label.size <- 12
+  font.label.size <- 14
   step.increase <- 0.25
   addParam <- c("jitter")
   plot.param <- backup$srhParams$plot[[dv]]

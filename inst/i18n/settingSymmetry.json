@@ -1,0 +1,17 @@
+{
+  "languages": ["en", "pt"],
+  "translation": [
+    {
+      "en": "None",
+      "pt": "Nenhuma"
+    },
+    {
+      "en": "apply",
+      "pt": "aplicar"
+    },
+    {
+      "en": "For symmetry in",
+      "pt": "Para alcaçar simetria em"
+    }
+  ]
+}

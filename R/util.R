@@ -72,6 +72,7 @@ remove_from_datatable <- function(data, to_remove, wid = 'row.pos', dv.var = NUL
       ldvs <- as.list(names(data))
       names(ldvs) <- names(data)
       toReturn <- lapply(ldvs, FUN = function(dv) {
+        print(dv)
         return(data[[dv]][pos[[dv]],])
       })
     }

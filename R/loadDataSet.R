@@ -12,6 +12,7 @@ loadDataSetUI <- function(id) {
 loadDataSetMD <- function(id, var.params = list(), dv.vars = NULL, rds.signature = NULL, include.diffTable = F) {
 
   tl <- getTranslator('loadDataSet')
+
   var.params <- c(list(wid = list(type = "non.numeric", min = 1, max = 1, include = c("row.pos"),
                                   label = tl("column of the obs. identifier"))), var.params)
 
@@ -38,6 +39,7 @@ loadDataSetMD <- function(id, var.params = list(), dv.vars = NULL, rds.signature
   moduleServer(
     id,
     function(input, output, session) {
+
       ns <- session$ns
 
       files <- reactiveValues()
@@ -341,6 +343,7 @@ loadDataSetMD <- function(id, var.params = list(), dv.vars = NULL, rds.signature
           cnames <- cnames[cnames %in% colnames(values$fileTable)]
           initTable <- values$fileTable[complete.cases(values$fileTable[,cnames]),cnames]
           qqparams <- get_vars_to_convert_non.numeric()
+
           if (!is.null(qqparams) && length(qqparams) > 0)
             initTable <- df2qqs(initTable, params = qqparams)
           if (input$wid == 'row.pos') {
@@ -354,6 +357,7 @@ loadDataSetMD <- function(id, var.params = list(), dv.vars = NULL, rds.signature
           if (!is.null(dv.vars)) {
             ldvs <- values$variables[[dv.vars]]
             names(ldvs) <- values$variables[[dv.vars]]
+
             if (var.params[[dv.vars]][['type']] == 'repeated.measures') {
               # ... generate repeated measurement variables
               initTable2 <- lapply(ldvs, FUN = function(dv) {

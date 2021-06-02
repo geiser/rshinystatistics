@@ -4,7 +4,7 @@
 \alias{ggPlotTTest}
 \title{T-Test Plot}
 \usage{
-ggPlotTTest(data, x, y, tt, addParam = c(), font.label.size = 12)
+ggPlotTTest(data, x, y, tt, addParam = c(), font.label.size = 14)
 }
 \arguments{
 \item{data}{a data.frame containing the data in which performing the t-test}

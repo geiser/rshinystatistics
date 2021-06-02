@@ -28,7 +28,7 @@ ancovaHypothesisUI <- function(id) {
     fixedRow(
       column(width = 2, numericInput(ns("width"), "width", value = 700, min = 100, step = 50)),
       column(width = 2, numericInput(ns("height"), "height", value = 700, min = 100, step = 50)),
-      column(width = 2, numericInput(ns("font.label.size"), tl("Font text size"), value = 12, min = 4, step = 2)),
+      column(width = 2, numericInput(ns("font.label.size"), tl("Font text size"), value = 14, min = 4, step = 2)),
       column(width = 2, numericInput(ns("step.increase"), tl("Step of signif."), value = 0.25, min = 0.05, max = 0.95, step = 0.05)),
       column(width = 1, actionButton(ns("updatePlot"), tl("Update plot")))
     ),
@@ -38,7 +38,7 @@ ancovaHypothesisUI <- function(id) {
 
 
 #' @import shiny
-ancovaHypothesisMD <- function(id, dataset, dvs = "dvs", between = "between", covar = "covar") {
+ancovaHypothesisMD <- function(id, dataset, dvs = "dvs", between = "between", covar = "covar", dataTable = "dataTable") {
   moduleServer(
     id,
     function(input, output, session) {
@@ -64,11 +64,9 @@ ancovaHypothesisMD <- function(id, dataset, dvs = "dvs", between = "between", co
 
       updateResult <- function() {
         if (dataset$isSetup) {
-          values$aov <- ancova.test(dataset$dataTable, rdvs(), rbetween(), rcovar(),
-                                    input$type, input$effect.size, dv.var = 'var')
+          values$aov <- ancova.test(dataset[[dataTable]], rdvs(), rbetween(), rcovar(), input$type, input$effect.size, dv.var = 'var')
           values$anova.test <- get.ancova.table(values$aov)
-          values$pwc <- ancova.pwc(dataset$dataTable, rdvs(), rbetween(), rcovar(),
-                                   input$p.adjust.method, dv.var = 'var')
+          values$pwc <- ancova.pwc(dataset[[dataTable]], rdvs(), rbetween(), rcovar(), input$p.adjust.method, dv.var = 'var')
           values$pair.wise <- get.ancova.pwc.table(values$pwc)
         }
       }
@@ -83,7 +81,7 @@ ancovaHypothesisMD <- function(id, dataset, dvs = "dvs", between = "between", co
         cname2 <- c("var", rbetween(), "group1", "group2","estimate","se","df","statistic","p", "p.adj","p.adj.signif")
         df2TableMD("pairwise", values$pair.wise, cname2, pageLength = 50, prefix=ns('pairwise'))
 
-        df.emms <- get.ancova.emmeans.with.ds(values$pwc, dataset$dataTable, rdvs(), rbetween(), dv.var = "var")
+        df.emms <- get.ancova.emmeans.with.ds(values$pwc, dataset[[dataTable]], rdvs(), rbetween(), dv.var = "var")
         cname3 <- c("var",rbetween(),rcovar(),"n","emmean","se.emms","conf.low","conf.high","mean","median","sd","ci")
         df2TableMD("emmeans", df.emms, cname3, prefix=ns("emmeans"))
 
@@ -114,7 +112,7 @@ ancovaHypothesisMD <- function(id, dataset, dvs = "dvs", between = "between", co
           step.increase <- isolate(input$step.increase)
 
 
-          dat <- as.data.frame(dataset$dataTable[[dv]])
+          dat <- as.data.frame(dataset[[dataTable]][[dv]])
 
           # ... update dataset ancova parameters
           if (!'ancovaParams' %in% names(dataset)) dataset$ancovaParams <- list()
