@@ -2,7 +2,7 @@
 #'
 #' @export
 ggPlotWilcoxon <- function(data, x, y, wt, addParam = c(), font.label.size = 14) {
-  stat.test <- rstatix::add_xy_position(rstatix::add_significance(wt), x=x)
+  stat.test <- rstatix::add_xy_position(rstatix::add_significance(wt), x=x, fun="max")
   bxp <- ggpubr::ggboxplot(
     data, x=x, y=y, color=x, width=0.5, add=addParam, palette="jco"
   )
@@ -33,16 +33,18 @@ ggPlotWilcoxon <- function(data, x, y, wt, addParam = c(), font.label.size = 14)
 ggPlotFactNonParam <- function(data, x, y, color = c(), non, pwc, linetype = color, by = c(), addParam = c(), font.label.size = 14, step.increase = 0.25, type = NULL) {
 
   data[[x]] <- factor(data[[x]])
-  pwc2 <- tryCatch(rstatix::add_xy_position(pwc, x = x, step.increase = step.increase), error = function(e) NULL)
+  pd <- ggplot2::position_dodge(width = 0.15)
+
+  pwc2 <- tryCatch(rstatix::add_xy_position(pwc, x = x, fun="mean_se", step.increase = step.increase), error = function(e) NULL)
   if (is.null(pwc2)) return(ggplot2::ggplot())
   if (length(color) > 0) {
     bxp <- ggpubr::ggboxplot(data, x = x, y = y, color = color, palette = "jco", add=addParam, facet.by = by)
-    bxp1 <- bxp + ggpubr::stat_pvalue_manual(pwc2, color = color, linetype = linetype, hide.ns = T, tip.length = 0, step.group.by = by)
+    bxp1 <- bxp + ggpubr::stat_pvalue_manual(pwc2, color = color, linetype = linetype, hide.ns = T, tip.length = 0, step.group.by = by, position = pd)
     ggtest <- tryCatch(ggplot2::ggplot_build(bxp1), error = function(e) NULL)
     if (!is.null(ggtest)) bxp <- bxp1
   } else {
     bxp <- ggpubr::ggboxplot(data, x = x, y = y, color = x, palette = "jco", add=addParam, facet.by = by)
-    bxp1 <- bxp + ggpubr::stat_pvalue_manual(pwc2, linetype = linetype, hide.ns = T, tip.length = 0, step.group.by = by)
+    bxp1 <- bxp + ggpubr::stat_pvalue_manual(pwc2, linetype = linetype, hide.ns = T, tip.length = 0, step.group.by = by, position = pd)
     ggtest <- tryCatch(ggplot2::ggplot_build(bxp1), error = function(e) NULL)
     if (!is.null(ggtest)) bxp <- bxp1
   }

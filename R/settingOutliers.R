@@ -44,7 +44,7 @@ settingOutliersUI <- function(id) {
       actionLink(ns("identifyingOutliers"), tl("Automatic identification of outliers")),
       uiOutput(ns("outliersInputUI"))
     ),
-    checkboxInput(ns('checkOutliers'), tl('Outliers of data was treated'))
+    checkboxInput(ns('checkOutliers'), paste('(1)', tl('Outliers of data was treated')))
   )
 }
 

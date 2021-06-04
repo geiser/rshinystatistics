@@ -190,21 +190,32 @@ normality_test_per_group <- function(data, dvs, ivs, dv.var = NULL, include.glob
 }
 
 #' @export
-getNonNormal <- function(x, x.name = paste0('', seq(1, length(x))), step = 1, plimit = 0.05) {
+getNonNormal <- function(x, x.name = paste0('', seq(1, length(x))), step = 1, plimit = 0.05, max.step = step+6) {
   if (length(unique(x)) < 4) return(c())
   names(x) <- x.name
-  toReturn <- c()
   if (length(x) > 100) plimit <- 0.01
-  res <- tryCatch(normality_test(x), error = function(e) NULL)
-  while(!is.null(res) && (length(unique(x)) > 3) && res$p < plimit) {
-    y <- sort(x)
-    x.norm <- qqnorm(y, plot.it = F)
-    qqline <- getQQline(y)
-    y.diff <- (x.norm$y-((qqline$slope*x.norm$x)+as.numeric(qqline$intercept)))^2
-    y.diff <- sort(y.diff, decreasing = T)[1:step]
-    x <- x[!names(x) %in% names(y.diff)]
-    toReturn <- c(toReturn, names(y.diff))
-    res <- tryCatch(normality_test(x), error = function(e) NULL)
+
+  toReturn <- c()
+  max.length <- Inf
+  for (pstep in (max.step:step)) {
+    xtemp <- x
+    non.normal <- c()
+    res <- tryCatch(normality_test(xtemp), error = function(e) NULL)
+    while(!is.null(res) && (length(unique(xtemp)) > 3) && res$p < plimit) {
+      y <- sort(xtemp)
+      xnorm <- qqnorm(y, plot.it = F)
+      qqline <- getQQline(y)
+      y.diff <- (xnorm$y-((qqline$slope*xnorm$x)+as.numeric(qqline$intercept)))^2
+      y.diff <- sort(y.diff, decreasing = T)[1:pstep]
+      xtemp <- xtemp[!names(xtemp) %in% names(y.diff)]
+      non.normal <- c(non.normal, names(y.diff))
+      res <- tryCatch(normality_test(xtemp), error = function(e) NULL)
+    }
+    if (length(non.normal) > 0 && length(non.normal) < max.length) {
+      toReturn <- non.normal
+      max.length <- length(toReturn)
+    }
   }
+
   return(toReturn)
 }

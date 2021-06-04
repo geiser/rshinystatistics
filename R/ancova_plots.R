@@ -1,7 +1,7 @@
 #' @export
 ggPlotAoC <- function(data, y, x, color = c(), aov, pwc, line.color = 'black', font.label.size = 14, step.increase = 0.25) {
   data[[x]] <- factor(data[[x]])
-  pwc2 <- tryCatch(rstatix::add_xy_position(pwc, x=x, fun="mean_se", step.increase=step.increase), error = function(e) NULL)
+  pwc2 <- tryCatch(rstatix::add_xy_position(pwc, x=x, fun="max", step.increase=step.increase), error = function(e) NULL)
 
   if (is.null(pwc2)) return(ggplot2::ggplot())
 

@@ -341,7 +341,7 @@ loadDataSetMD <- function(id, var.params = list(), dv.vars = NULL, rds.signature
 
           cnames <- setdiff(unique(unlist(values$variables, use.names = F)),'row.pos')
           cnames <- cnames[cnames %in% colnames(values$fileTable)]
-          initTable <- values$fileTable[complete.cases(values$fileTable[,cnames]),cnames]
+          initTable <- values$fileTable[complete.cases(values$fileTable[,cnames]),]
           qqparams <- get_vars_to_convert_non.numeric()
 
           if (!is.null(qqparams) && length(qqparams) > 0)
@@ -373,7 +373,7 @@ loadDataSetMD <- function(id, var.params = list(), dv.vars = NULL, rds.signature
               # ... without repeated measurement variables
               initTable2 <- lapply(ldvs, FUN = function(dv) {
                 cnames <-  unlist(values$variables[!names(values$variables) %in% dv.vars], use.names = F)
-                initTable[,c(cnames,dv)]
+                initTable
               })
             }
 

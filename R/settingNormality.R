@@ -6,7 +6,7 @@ settingNormalityUI <- function(id) {
     shinyjs::useShinyjs(),
     hr(),
     uiOutput(ns('extremeInputUI')),
-    checkboxInput(ns('checkNormality'), tl('Normality distribution was checked')))
+    checkboxInput(ns('checkNormality'), paste('(2)', tl('Normality distribution was checked'))))
 }
 
 #' @import shiny

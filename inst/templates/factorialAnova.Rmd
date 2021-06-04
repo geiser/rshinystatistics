@@ -1,0 +1,250 @@
+---
+title: "Factorial ANOVA for {{ paste0(paste0('`', dvs, '`'), collapse = ',') }}"
+author: {{ author }} <{{ email }}>
+comment: This file is automatically generate by Shiny-Statistic app (https://statistic.geiser.tech/)
+         Author - Geiser C. Challco <geiser@alumni.usp.br>
+         
+         Shiny-Statistic is distributed in the hope that it will be useful,
+         but WITHOUT ANY WARRANTY; without even the implied warranty of
+         MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+         GNU General Public License for more details.
+         
+         You should have received a copy of the GNU General Public License.
+         If not, see <https://www.gnu.org/licenses/>.
+output:
+  github_document:
+    toc: true
+  word_document:
+    toc: true
+  html_document:
+    toc: true
+  pdf_document:
+    toc: true
+    keep_tex: true
+fontsize: 10pt
+---
+
+```{r setup, include=FALSE}
+## Install and Load Packages
+if (!'remotes' %in% rownames(installed.packages())) install.packages('remotes')
+if (!"rshinystatistics" %in% rownames(installed.packages())) {
+  remotes::install_github("geiser/rshinystatistics")
+} else if (packageVersion("rshinystatistics") < "{{ rshinystatistics.version }}") {
+  remotes::install_github("geiser/rshinystatistics")
+}
+
+wants <- c('ggplot2','ggpubr','rshinystatistics','utils')
+has <- wants %in% rownames(installed.packages())
+if (any(!has)) install.packages(wants[!has])
+
+library(utils)
+library(ggpubr)
+library(ggplot2)
+library(rshinystatistics)
+```
+
+```{r, include=FALSE, purl=FALSE}
+library(knitr)
+opts_chunk$set(echo = TRUE)
+defaultW <- getOption("warn")
+options(warn = -1)
+```
+
+## Initial Variables and Data
+
+* R-script file: [../code/ancova.R](../code/ancova.R)
+* Initial table file: [../data/initial-table.csv](../data/initial-table.csv)
+{{ paste0(paste0('* Data for ', dvs, ' [../data/table-for-',dvs,'.csv](../data/table-for-',dvs,'.csv)'), collapse = '\n') }}
+* Table without outliers and normal distribution of  data:  [../data/table-with-normal-distribution.csv](../data/table-with-normal-distribution.csv)
+* Other data files:  [../data/](../data/)
+* Files related to the presented results:   [../results/](../results/)
+
+
+```{r, include=FALSE}
+wid <- "{{ wid }}"
+between <- c({{ paste0(paste0('"', between, '"'), collapse = ',') }})
+dvs <- c({{ paste0(paste0('"', dvs, '"'), collapse = ',') }})
+names(dvs) <- dvs
+
+dat <- lapply(dvs, FUN = function(dv) {
+  data <- read.csv(paste0("../data/table-for-",dv,".csv"))
+  rownames(data) <- data[["{{ wid }}"]]
+  return(data)
+})
+rdat <- dat
+sdat <- dat
+```
+
+### Descriptive statistics of initial data
+
+```{r, include=FALSE}
+(df <- descriptive_statistics(dat, dvs, between, include.global = T, symmetry.test = T))
+```
+
+```{r, echo=FALSE, purl=FALSE}
+kable(df, digits = 3)
+```
+
+
+```{r, echo=FALSE}
+for (dv in dvs) {
+  car::Boxplot(`dv` ~ {{ paste0(paste0('`',between,'`'), collapse = '*') }}, data = dat[[dv]] %>% cbind(dv=dat[[dv]][[dv]]), id = list(n = Inf))  
+}
+```
+
+## Checking of Assumptions
+
+### Assumption: Symmetry and treatment of outliers
+
+#### Applying transformation for skewness data when normality is not achieved in any dependent variables or covariance
+
+{{ code.skewness }}
+
+#### Dealing with outliers (performing treatment of outliers)
+
+{{ code.outliers }}
+
+### Assumption: Normality distribution of data
+
+#### Removing data that affect normality (extreme values)
+
+```{r}
+non.normal <- {{ code.non.normal }}
+sdat <- remove_from_datatable(rdat, non.normal, wid)
+```
+
+#### Result of normality test in the residual model
+
+```{r, include=FALSE}
+(df <- normality_test_by_res(sdat, dvs, between))
+```
+
+```{r, echo=FALSE, purl=FALSE}
+kable(df, digits = 3)
+```
+
+#### Result of normality test in each group
+
+This is an optional validation and only performed for groups with number greater than 30 observations
+
+```{r, include=FALSE}
+(df <- descriptive_statistics(sdat, dvs, between, include.global = T, normality.test = T))
+```
+
+```{r, echo=FALSE, purl=FALSE}
+kable(df, digits = 3)
+```
+
+**Observation**:
+
+As sample sizes increase, parametric tests remain valid even with the violation of normality [[1](#references)].
+According to the central limit theorem, the sampling distribution tends to be normal if the sample is large, more than (`n > 30`) observations.
+Therefore, we performed parametric tests with large samples as described as follows: 
+
+- In cases with the sample size greater than 100 (`n > 100`), we adopted a significance level of `p < 0.01`
+
+- For samples with `n > 50` observation, we adopted D'Agostino-Pearson test
+that offers better accuracy for larger samples [[2](#references)].
+
+- For samples' size between `n > 100` and `n <= 200`, we ignored the normality test,
+and our decision of validating normality was based only in the interpretation of QQ-plots
+and histograms because the Shapiro-Wilk and D'Agostino-Pearson tests tend to be too sensitive
+with values greater than 200 observation [[3](#references)].
+
+- For samples with `n > 200` observation, we ignore the normality assumption based on the central theorem limit.
+
+
+### Assumption: Homogeneity of data distribution
+
+```{r, include=FALSE}
+(df <- homogeneity_test(sdat, dvs, between))
+```
+
+```{r, echo=FALSE, purl=FALSE}
+kable(df, digits = 3)
+```
+
+## Saving the Data with Normal Distribution Used for Performing ANCOVA Test 
+
+```{r}
+ndat <- sdat[[1]]
+for (dv in names(sdat)[-1]) ndat <- merge(ndat, sdat[[dv]])
+write.csv(ndat, paste0("../data/table-with-normal-distribution.csv"))
+```
+
+Descriptive statistics of data with normal distribution
+
+```{r, include=FALSE}
+(df <- descriptive_statistics(sdat, dvs, between, include.global = T, normality.test = T))
+```
+
+```{r, echo=FALSE, purl=FALSE}
+kable(df, digits = 3)
+```
+
+```{r, echo=FALSE}
+for (dv in dvs) {
+  car::Boxplot(`dv` ~ {{ paste0(paste0('`',between,'`'), collapse = '*') }}, data = sdat[[dv]] %>% cbind(dv=sdat[[dv]][[dv]]), id = list(n = Inf))  
+}
+```
+
+## Computation of ANOVA Test and Pairwise Comparison
+
+### ANOVA test
+
+```{r, include=FALSE}
+(aov <- get.anova.test(sdat, dvs, between, type = {{ type }}, "{{ effect.size }}"))
+```
+
+```{r, echo=FALSE, purl=FALSE}
+cnames <- c("var", "Effect", "DFn", "DFd", "SSn", "SSd", "F", "p", "{{ effect.size }}", "p.signif")
+kdf <- get.ancova.table(aov)[,cnames]
+kable(kdf, digits = 3)
+```
+
+### Pairwise comparison
+
+```{r, include=FALSE}
+(pwc <- get.anova.pwc(sdat, dvs, between, p.adjust.method="{{ p.adjust.method }}"))
+```
+
+```{r, echo=FALSE, purl=FALSE}
+cnames <- c("var", "group1", "group2","estimate", "se","df","statistic","p", "p.adj","p.adj.signif")
+if (length(between) > 1)
+  cnames <- c("var", between, "group1", "group2","estimate", "se","df","statistic","p", "p.adj","p.adj.signif")
+kdf <- get.anova.pwc.table(pwc, only.sig = F)[,cnames]
+kable(kdf, digits = 3)
+```
+
+### Estimated Marginal Means and ANOVA Plots 
+
+```{r, include=FALSE}
+(emms <- get.anova.emmeans.with.ds(pwc, sdat, dvs, between, "common", "var"))
+```
+
+```{r, echo=FALSE, purl=FALSE}
+cnames <- c("var",between,"n","emmean","se.emms","conf.low","conf.high","mean","median","sd","ci")
+kable(emms[,cnames], digits = 3)
+```
+
+{{ anova.plots  }}
+
+### Textual Report
+
+{{ anova.text }}
+{{ anova.pwc.text }}
+
+## Tips and References
+
+- Use the site [https://www.tablesgenerator.com](https://www.tablesgenerator.com) to convert the HTML tables into Latex format
+
+- [1]: Ghasemi, A., & Zahediasl, S. (2012). Normality tests for statistical analysis: a guide for non-statisticians. International journal of endocrinology and metabolism, 10(2), 486.
+
+- [2]: Miot, H. A. (2017). Assessing normality of data in clinical and experimental trials. J Vasc Bras, 16(2), 88-91.
+
+- [3]: Bárány, Imre; Vu, Van (2007). "Central limit theorems for Gaussian polytopes". Annals of Probability. Institute of Mathematical Statistics. 35 (4): 1593–1621.
+
+```{r include=FALSE, echo=FALSE, purl=FALSE}
+options(warn = defaultW)
+```
+

@@ -25,101 +25,64 @@ ind_ttest_plots_code <- function(backup, dataname, dvs, iv, ext = 'Rmd') {
 
 
 #' @export
-ind.ttestSummaryAsFile <- function(ext, backup, dvs = 'dvs', iv = 'iv', path = getwd(), lang = 'en') {
+ind.ttestAsFile <- function(ext, backup, dvs = 'dvs', iv = 'iv', path = getwd(), lang = 'en') {
 
   wid <- backup$variables$wid
   rdvs <- unique(unlist(backup$variables[c(dvs)], use.names = F))
   riv <- unique(unlist(backup$variables[c(iv)], use.names = F))
 
   code.skewness <- paste0(lapply(rdvs, FUN = function(dv) {
-    line.code <- skewness_code(paste0('rdat[["',dv,'"]]'), backup$skewness[[dv]], paste0('"',dv,'"'))
+    line.code <- skewness_code(backup$skewness[[dv]], paste0('"',dv,'"'), paste0('dat[["',dv,'"]]'), paste0('rdat[["',dv,'"]]'))
     if (is.null(line.code)) return("")
     line.code <- paste0(c(
-      paste0('density_res_plot(rdat,"',dv,'",iv,dv.var="var")'),
+      paste0('density_res_plot(rdat[["',dv,'"]],"',dv,'",between)'),
       line.code,
-      paste0('density_res_plot(rdat,"',dv,'",iv,dv.var="var")')),
+      paste0('density_res_plot(rdat[["',dv,'"]],"',dv,'",between)')),
       collapse = "\n")
     if (ext == 'Rmd') {
       line.code <- paste0("\n```{r}\n",line.code,"\n```\n", "\n")
     }
-    if (lang == 'pt')
-      return(paste0('\n##### Aplicando transformação na ',dv,' para reduzir a distorção\n',line.code))
+    if (lang=='pt')
+      return(paste0('\n Aplicando transformação in "',dv,'" para reduzir distorsão\n',line.code))
     else
-      return(paste0('\n##### Applying transformation in ',dv,' to reduce skewness\n',line.code))
+      return(paste0('\n Applying transformation in "',dv,'" to reduce skewness\n',line.code))
   }), collapse = "\n")
 
+
   ttest.params <- backup$indSampleTTestParams$hypothesis
-  tfile <- system.file("templates", paste0("ind.ttestSummary",ifelse(lang!='en',paste0('-',lang),''),".",ext), package="rshinystatistics")
+  tfile <- system.file("templates", paste0("ind.ttest",ifelse(lang!='en',paste0('-',lang),''),".",ext), package="rshinystatistics")
+
+  code.outliers <- ''
+  if (backup$outlier.method == 'remove') {
+    code.outliers <- list.as.code(backup$outliers)
+  } else if (backup$outlier.method == 'winsorize') {
+    code.outliers <- do.call(paste0, lapply(rdvs, FUN = function(dv) {
+      paste0('rdat[["',dv,'"]] <- winzorize(rdat[["',dv,'"]],"',dv,'", c(',paste0(paste0('"',riv,'"'),collapse=','),')',')\n')
+    }))
+    if (ext == "Rmd") {
+      code.outliers <- paste0(c("```{r}", code.outliers, "```"), collapse = '\n')
+    }
+  }
+
   params <- list(
     rshinystatistics.version = as.character(packageVersion("rshinystatistics")),
     author = backup$author, email = backup$email,
     wid = wid, dvs = rdvs, iv = riv,
-    code.outliers =  list.as.code(backup$outliers),
+    code.outliers =  code.outliers,
     code.skewness = code.skewness,
     code.non.normal = list.as.code(backup$toRemoveForNormality),
     ttest.plots = ind_ttest_plots_code(backup, 'sdat', rdvs, riv, ext),
     alternative = ttest.params$alternative, var.equal = ttest.params$var.equal,
     hedges.correction = ttest.params$hedges.correction
   )
+
   if (ext != "Rmd") {
     params[["path"]] <- path
   } else {
     ttest.text <- ttest.as.text(backup$t.test, backup$t.test.ds, riv, ttest.params$var.equal, ttest.params$hedges.correction, lang = lang)
     params[["ttest.text"]] <- ttest.text
   }
-  return(as.character(
-    do.call(templates::tmpl, c(list(".t" = paste(readLines(tfile), collapse="\n")), params))
-  ))
-}
 
-
-#' @export
-ind.ttestDetailAsFile <- function(ext, backup, dv, iv = 'iv', path = getwd()) {
-
-  wid <- backup$variables$wid
-  riv <- unique(unlist(backup$variables[c(iv)], use.names = F))
-
-  code.skewness <- ""
-  line.code <- skewness_code('rdat', backup$skewness[[dv]], paste0('"',dv,'"'))
-  if (!is.null(line.code)) {
-    line.code <- paste0(c(
-      paste0('density_grp_plot(rdat, "',dv,'", "',wid,'", rdat[["',wid,'"]])'),
-      line.code,
-      paste0('density_grp_plot(rdat, "',dv,'", "',wid,'", rdat[["',wid,'"]])')
-    ), collapse = "\n")
-    if (ext == 'Rmd') {
-      line.code <- paste0("```{r}\n",line.code,"\n```\n", "\n")
-    }
-    code.skewness <- paste0('\n##### Applying normality in ',dv,' to reduce skewness\n',line.code)
-  }
-
-  width <- 700
-  height <- 700
-  font.label.size <- 14
-  addParam <- c("jitter")
-  plot.param <- backup$indSampleTTestParams$plot[[dv]]
-  if (!is.null(plot.param)) {
-    addParam <- plot.param$addParam
-    font.label.size <- plot.param$font.label.size
-    width <- plot.param$width
-    height <- plot.param$height
-  }
-
-  ttest.params <- backup$indSampleTTestParams$hypothesis
-  tfile <- system.file("templates", paste0("ind.ttestDetail.",ext), package="rshinystatistics")
-  params <- list(
-    rshinystatistics.version = as.character(packageVersion("rshinystatistics")),
-    author = backup$author, email = backup$email,
-    wid = wid, dv = dv, iv = riv,
-    outlier.ids =  backup$outliers[[dv]],
-    code.skewness = code.skewness,
-    non.normal.ids = backup$toRemoveForNormality[[dv]],
-    addParam = addParam, font.label.size = font.label.size, width = width, height = height,
-    alternative = ttest.params$alternative,
-    var.equal = ttest.params$var.equal,
-    hedges.correction = ttest.params$hedges.correction
-  )
-  if (ext != "Rmd") params[["path"]] <- path
   return(as.character(
     do.call(templates::tmpl, c(list(".t" = paste(readLines(tfile), collapse="\n")), params))
   ))

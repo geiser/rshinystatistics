@@ -1,0 +1,182 @@
+---
+title: "Wilcoxon test for {{ paste0(paste0('`', dvs, '`'), collapse = ',') }} with `{{ iv }}`"
+author: {{ author }} <{{ email }}>
+comment: This file is automatically generate by Shiny-Statistic app (https://statistic.geiser.tech/)
+         Author - Geiser C. Challco <geiser@alumni.usp.br>
+         
+         Shiny-Statistic is distributed in the hope that it will be useful,
+         but WITHOUT ANY WARRANTY; without even the implied warranty of
+         MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+         GNU General Public License for more details.
+         
+         You should have received a copy of the GNU General Public License.
+         If not, see <https://www.gnu.org/licenses/>.
+output:
+  github_document:
+    toc: true
+  word_document:
+    toc: true
+  html_document:
+    toc: true
+  pdf_document:
+    toc: true
+    keep_tex: true
+fontsize: 10pt
+---
+
+```{r setup, include=FALSE}
+## Install and Load Packages
+if (!'remotes' %in% rownames(installed.packages())) install.packages('remotes')
+if (!"rshinystatistics" %in% rownames(installed.packages())) {
+  remotes::install_github("geiser/rshinystatistics")
+} else if (packageVersion("rshinystatistics") < "{{ rshinystatistics.version }}") {
+  remotes::install_github("geiser/rshinystatistics")
+}
+
+wants <- c('ggplot2','ggpubr','rshinystatistics','utils')
+has <- wants %in% rownames(installed.packages())
+if (any(!has)) install.packages(wants[!has])
+
+library(utils)
+library(ggpubr)
+library(ggplot2)
+library(rshinystatistics)
+```
+
+```{r, include=FALSE, purl=FALSE}
+library(knitr)
+opts_chunk$set(echo = TRUE)
+defaultW <- getOption("warn")
+options(warn = -1)
+```
+
+## Initial Variables and Data
+
+* R-script file: [wilcoxon.R](wilcoxon.R)
+{{ paste0(paste0('* Data for ', dvs, ' [data-',dvs,'.csv](data-',dvs,'.csv)'), collapse = '\n') }}
+* Table without outliers:  [../data/table-without-outliers.csv](../data/table-without-outliers.csv)
+* Other data files:  [../data/](../data/)
+* Files related to the presented results:   [../results/](../results/)
+
+
+```{r, include=FALSE}
+wid <- "{{ wid }}"
+iv <- c({{ paste0(paste0('"', iv, '"'), collapse = ',') }})
+dvs <- c({{ paste0(paste0('"', dvs, '"'), collapse = ',') }})
+names(dvs) <- dvs
+
+dat <- lapply(dvs, FUN = function(dv) {
+  data <- read.csv(paste0("../data/table-for-",dv,".csv"))
+  rownames(data) <- data[["{{ wid }}"]]
+  return(data)
+})
+rdat <- dat
+sdat <- dat
+```
+
+### Descriptive statistics of initial data
+
+```{r, include=FALSE}
+(df <- descriptive_statistics(dat, dvs, iv, include.global = T, symmetry.test = T))
+```
+
+```{r, echo=FALSE, purl=FALSE}
+kable(df, digits = 3)
+```
+
+
+```{r, echo=FALSE}
+for (dv in dvs) {
+  car::Boxplot(`dv` ~ {{ paste0(paste0('`',iv,'`'), collapse = '*') }}, data = dat[[dv]] %>% cbind(dv=dat[[dv]][[dv]]), id = list(n = Inf))  
+}
+```
+
+## Checking of Assumptions
+
+### Assumption: Symmetry and treatment of outliers
+
+#### Applying transformation for skewness data when normality is not achieved in any dependent variables or covariance
+
+{{ code.skewness }}
+
+#### Dealing with outliers (performing treatment of outliers)
+
+{{ code.outliers }}
+
+### Assumption: Normality distribution of data
+
+#### Removing data that affect normality (extreme values)
+
+```{r}
+non.normal <- {{ code.non.normal }}
+sdat <- remove_from_datatable(rdat, non.normal, wid)
+```
+
+## Removing outliers from the data
+
+```{r}
+outliers <- {{ code.outliers }}
+sdat <- remove_from_datatable(dat, outliers, wid, "var")
+```
+
+
+## Saving the Data without outliers
+
+```{r}
+ndat <- sdat[[1]]
+for (dv in names(sdat)[-1]) ndat <- merge(ndat, sdat[[dv]])
+write.csv(ndat, paste0("../data/table-without-outliers.csv"))
+```
+
+Descriptive statistics of data with normal distribution
+
+```{r, include=FALSE}
+(df <- descriptive_statistics(sdat, dvs, iv, include.global = T, normality.test = T))
+```
+
+```{r, echo=FALSE, purl=FALSE}
+kable(df, digits = 3)
+```
+
+```{r, echo=FALSE}
+for (dv in dvs) {
+  car::Boxplot(`dv` ~ {{ paste0(paste0('`',iv,'`'), collapse = '*') }}, data = sdat[[dv]] %>% cbind(dv=sdat[[dv]][[dv]]), id = list(n = Inf))  
+}
+```
+
+## Computation of Wilcoxon and Pairwise Comparison
+
+### Wilcoxon
+
+```{r, include=FALSE}
+(res <- wilcoxon_test(sdat, dvs, iv, "{{ alternative }}", as.list=T))
+```
+
+```{r, echo=FALSE, purl=FALSE}
+kable(res$wilcoxon.test[,c(".y.", "group1", "group2", "n1", "n2","statistic", "estimate",
+  "conf.low", "conf.high", "effsize", "magnitude", "p","p.signif")], digits = 3)
+```
+
+
+## Descriptive Statistic and Plots 
+
+```{r, include=FALSE}
+(df <- descriptive_statistics(sdat, dvs, iv, "common", "var"))
+```
+
+```{r echo=FALSE, purl=FALSE}
+cnames <- c("variable",iv,"n","median","mean","min","max","iqr","sd")
+kable(df[,cnames], digits = 3)
+```
+
+{{ wtest.plots  }}
+
+## Textual Report
+
+{{ wilcoxon.text }}
+
+
+## Tips and References
+
+- Use the site [https://www.tablesgenerator.com](https://www.tablesgenerator.com) to convert the HTML tables into Latex format
+

@@ -12,7 +12,7 @@ symmetryOutliersUI <- function(id) {
 }
 
 #' @import shiny
-symmetryOutliersMD <- function(id, dataset, dvs = "dvs", ivs = "between", covar = "covar", initTable = 'initTable', dataTable="dataTable") {
+symmetryOutliersMD <- function(id, dataset, dvs = "dvs", ivs = "between", covar = NULL, initTable = 'initTable', dataTable="dataTable") {
   moduleServer(
     id,
     function(input, output, session) {
@@ -22,13 +22,17 @@ symmetryOutliersMD <- function(id, dataset, dvs = "dvs", ivs = "between", covar 
       wid <- reactiveVal(dataset$variables$wid)
       rdvs <- reactiveVal(unique(unlist(dataset$variables[c(dvs)], use.names = F)))
       rivs <- reactiveVal(unique(unlist(dataset$variables[c(ivs)], use.names = F)))
-      rcovar <- reactiveVal(unique(unlist(dataset$variables[c(covar)], use.names = F)))
+
+      rcovar <- reactiveVal(NULL)
+      if (!is.null(covar) && length(covar) > 0)
+        rcovar <- reactiveVal(unique(unlist(dataset$variables[c(covar)], use.names = F)))
 
       observeEvent(dataset$variables, {
         wid(dataset$variables$wid)
         rdvs(unique(unlist(dataset$variables[c(dvs)], use.names = F)))
         rivs(unique(unlist(dataset$variables[c(ivs)], use.names = F)))
-        rcovar(unique(unlist(dataset$variables[c(covar)], use.names = F)))
+        if (!is.null(covar) && length(covar) > 0)
+          rcovar(unique(unlist(dataset$variables[c(covar)], use.names = F)))
       })
 
       # ... update table of symmetry and outliers assessments
@@ -36,10 +40,14 @@ symmetryOutliersMD <- function(id, dataset, dvs = "dvs", ivs = "between", covar 
       updateSymmetryTables <- function() {
         if (!dataset$isSetup) return(NULL)
 
+        idvs <- rdvs()
         data <- dataset[[dataTable]]
-        data[[rcovar()]] <- dataset[[dataTable]][[1]]
+        if (!is.null(covar) && length(covar) > 0) {
+          idvs <- c(rdvs(),rcovar())
+          data[[rcovar()]] <- dataset[[dataTable]][[1]]
+        }
 
-        params <- list(data = data, dvs = c(rdvs(),rcovar()), ivs = rivs()
+        params <- list(data = data, dvs = idvs, ivs = rivs()
                        , type = 'mean_sd', include.global = T, symmetry.test = T, hide.details = T)
         df <- do.call(descriptive_statistics, params)
         df2TableMD("symmetryAssessmentTbl", df, prefix = ns('symmetry-assessment'))
@@ -73,10 +81,14 @@ symmetryOutliersMD <- function(id, dataset, dvs = "dvs", ivs = "between", covar 
       output$symmetryAnalysisRes <- renderText({
         if (!dataset$isSetup) return(NULL)
 
+        idvs <- rdvs()
         data <- dataset[[dataTable]]
-        data[[rcovar()]] <- dataset[[dataTable]][[1]]
+        if (!is.null(covar) && length(covar) > 0) {
+          idvs <- c(rdvs(), rcovar())
+          data[[rcovar()]] <- dataset[[dataTable]][[1]]
+        }
 
-        suggestions <- lapply(c(rdvs(), rcovar()), FUN = function(dv) {
+        suggestions <- lapply(idvs, FUN = function(dv) {
           res <- symmetry_test(data[[dv]][[dv]])
           if (res$skewness.obs != "symmetrical (normal)") {
             paste0("As"," `", dv, "` ","is"," ", res$skewness.obs
@@ -100,10 +112,14 @@ symmetryOutliersMD <- function(id, dataset, dvs = "dvs", ivs = "between", covar 
         if (!dataset$isSetup) return(NULL)
         if (is.null(input$showSymmetryPlots) || !input$showSymmetryPlots) return(NULL)
 
+        idvs <- rdvs()
         data <- dataset[[dataTable]]
-        data[[rcovar()]] <- dataset[[dataTable]][[1]]
+        if (!is.null(covar) && length(covar) > 0) {
+          idvs <- c(rdvs(), rcovar())
+          data[[rcovar()]] <- dataset[[dataTable]][[1]]
+        }
 
-        do.call(splitLayout, c(cellWidths = input$widthSymmetry, lapply(c(rdvs(),rcovar()), FUN = function(dv) {
+        do.call(splitLayout, c(cellWidths = input$widthSymmetry, lapply(idvs, FUN = function(dv) {
           verticalLayout(
             strong(paste("Density plot of", dv)),
             renderPlot({
@@ -146,11 +162,15 @@ symmetryOutliersMD <- function(id, dataset, dvs = "dvs", ivs = "between", covar 
 
         data <- dataset[[dataTable]]
         suggestions <- lapply(rdvs(), FUN = function(dv) {
-          outliers <- getOutliers(data[[dv]], dv, rivs(), rcovar())
+
+          outliers <- getOutliers(data[[dv]], dv, rivs())
+          if (!is.null(covar) && length(covar) > 0) {
+            outliers <- getOutliers(data[[dv]], dv, rivs(), rcovar())
+          }
+
           if (!is.null(outliers) && nrow(outliers) > 0) {
             ids <- outliers[[wid()]][which(outliers$var == dv)]
-            paste0("As"," `", dv,"` ","has outliers"," ", ", ",
-                   "we recommend to deal with: ",paste0(ids, collapse = ","))
+            paste0("As"," `", dv,"` ","has outliers"," ", ", ","we recommend to deal with: ",paste0(ids, collapse = ","))
           }
         })
         suggestions[sapply(suggestions, is.null)] <- NULL

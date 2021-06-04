@@ -10,18 +10,20 @@ factorialAnovaUI <- function(id) {
       sidebarPanel(
         width = 3
         , loadDataSetUI(ns("loadData"))
+        , uiOutput(ns("settingSymmetryUI"))
         , uiOutput(ns("settingOutliersUI"))
         , uiOutput(ns("settingNormalityUI"))
+        , uiOutput(ns("settingOthersUI"))
       ),
       mainPanel(
         width = 9,
         tabsetPanel(
           id = ns("anovaPanel"), type = "tabs", selected = "none"
           , tabPanel("DataSet", icon = icon("caret-right"), value = "none", displayDataSetUI(ns("dataSet")))
-          , tabPanel(tl("Assumption: Outliers"), value = "outliers", outliersUI(ns("outliers")))
-          , tabPanel(tl("Assumption: Normality"), value = "normality", normalityUI(ns("normality")))
-          , tabPanel(tl("Assumption: Homogeneity"), value = "homogeneity", homogeneityUI(ns("homogeneity")))
-          , tabPanel(tl("ANOVA Test"), value = "hypothesis", factorialAnovaHypothesisUI(ns("hypothesis")))
+          , tabPanel(paste('(1)', tl("Assumption: Symmetry and Without Outliers")), value = "symmetry-outliers", symmetryOutliersUI(ns("symmetryOutliers")))
+          , tabPanel(paste('(2)', tl("Assumption: Normality")), value = "normality", normalityUI(ns("normality")))
+          , tabPanel(paste('(3)', tl("Assumption: Homogeneity")), value = "homogeneity", homogeneityUI(ns("homogeneity")))
+          , tabPanel(paste(tl("ANOVA Test")), value = "hypothesis", factorialAnovaHypothesisUI(ns("hypothesis")))
           , tabPanel(tl("Export"), value = "export-result", factorialAnovaExportUI(ns("export-result")))
         )
       )
@@ -48,7 +50,18 @@ factorialAnovaMD <- function(id) {
         rds.signature = paste0('factorialAnova-',as.character(packageVersion("rshinystatistics")))
       )
 
-      # ... setting outliers and setting normality panels
+      output$settingOthersUI <- renderUI({
+        if (!dataset$isSetup) return(NULL)
+        verticalLayout(
+          checkboxInput(ns('checkHomogeneity'), paste('(3)', tl('Homogeneity of data was checked')))
+        )
+      })
+
+      # ... setting symmetry and dealing with outliers
+
+      output$settingSymmetryUI <- renderUI({
+        if (dataset$isSetup) settingSymmetryUI(ns("settingSymmetry"))
+      })
 
       output$settingOutliersUI <- renderUI({
         if (dataset$isSetup) settingOutliersUI(ns("settingOutliers"))
@@ -58,48 +71,64 @@ factorialAnovaMD <- function(id) {
         if (dataset$isSetup) settingNormalityUI(ns("settingNormality"))
       })
 
+      settingSymmetry <- reactiveVal(NULL)
       settingOutliers <- reactiveVal(NULL)
       settingNormality <- reactiveVal(NULL)
 
       observeEvent(dataset$isSetup, {
         if (dataset$isSetup) {
-          settingOutliers(settingOutliersMD("settingOutliers", dataset, "dvs", "between", updateDataTable = F))
-          settingNormality(settingNormalityMD("settingNormality", dataset, "dvs", updateDataTable = T))
+          settingSymmetry(settingSymmetryMD("settingSymmetry", dataset, "dvs", initTable = 'initTable', dataTable = 'symmetryTable'))
+          settingOutliers(settingOutliersMD("settingOutliers", dataset, "dvs", "between", initTable = 'symmetryTable', dataTable = 'woutlierTable'))
+          settingNormality(settingNormalityMD("settingNormality", dataset, "dvs", initTable = 'woutlierTable', dataTable = 'dataTable'))
         } else {
           updateTabsetPanel(session, "anovaPanel", selected = "none")
+          if (!is.null(settingNormality())) settingNormality()$normalityObserve$suspend()
           if (!is.null(settingOutliers())) settingOutliers()$outliersObserve$suspend()
-          if (!is.null(settingNormality())) {
-            settingNormality()$skewnessObserve$suspend()
-            settingNormality()$extremeObserve$suspend()
-          }
+          if (!is.null(settingSymmetry())) settingSymmetry()$skewnessObserve$suspend()
         }
+      })
+
+      observeEvent(input$checkHomogeneity, {
+        if (dataset$isSetup) dataset$checkHomogeneity <- input$checkHomogeneity
       })
 
       # ... update dataTable
 
       observeEvent(input$anovaPanel, {
-        if (input$anovaPanel == 'none') {
-          displayDataSetMD("dataSet", dataset)
-        } else if (dataset$isSetup) {
-          if (input$anovaPanel == 'outliers') {
-            outliersMD("outliers", dataset, "dvs", "between")
-          } else if (input$anovaPanel == 'normality') {
-            normalityMD("normality", dataset)
-          } else if (input$anovaPanel == 'homogeneity') {
-            homogeneityMD("homogeneity", dataset)
-          } else if (input$anovaPanel == 'hypothesis') {
-            factorialAnovaHypothesisMD("hypothesis", dataset)
-          } else if (input$anovaPanel == 'export-result' && !is.null(dataset$anovaParams[["hypothesis"]])) {
-            factorialAnovaExportMD("export-result", dataset)
-          } else if (input$anovaPanel == 'export-result') {
+        if (!dataset$isSetup) {
+          updateTabsetPanel(session, "anovaPanel", selected = "none")
+          return(NULL)
+        }
+        tab <- isolate(input$anovaPanel)
+
+        if (tab == 'none') {
+          displayDataSetMD("dataSet", dataset, exclude.from.others = c("fileTable","initTable","variables","symmetryTable","woutlierTable"))
+        } else if (tab == 'symmetry-outliers' && dataset$isSetup) {
+          symmetryOutliersMD("symmetryOutliers", dataset, 'dvs', 'between', initTable = 'symmetryTable', dataTable = 'woutlierTable')
+        } else if (tab == 'normality' && dataset$checkSymmetry && dataset$checkOutliers) {
+          normalityMD("normality", dataset, 'dvs', 'between', show.residuals = T)
+        } else if (tab == 'homogeneity' && dataset$checkSymmetry && dataset$checkOutliers && dataset$checkNormality) {
+          homogeneityMD("homogeneity", dataset)
+        } else if (tab == 'hypothesis' && dataset$checkSymmetry && dataset$checkOutliers && dataset$checkNormality && dataset$checkHomogeneity) {
+          factorialAnovaHypothesisMD("hypothesis", dataset)
+        } else if (tab == 'export-result' && !is.null(dataset$anovaParams[["hypothesis"]])) {
+          factorialAnovaExportMD("export-result", dataset)
+        } else {
+          if (tab == 'normality') {
+            showNotification(tl("Before checking the normality distribution, you need to assess the symmetry of data distribution and to perform a treatment of outliers"), type = "error")
+            updateTabsetPanel(session, "anovaPanel", selected = "symmetry-outliers")
+          }else if (tab == 'homogeneity') {
+            showNotification(tl("Before checking the homogeneity, you need to check the normality distribution of data"), type = "error")
+            updateTabsetPanel(session, "anovaPanel", selected = "normality")
+          }else if (tab == 'hypothesis') {
+            showNotification(tl("Before perform the hypothesis test, you need to check the homogeneity of data"), type = "error")
+            updateTabsetPanel(session, "anovaPanel", selected = "homogeneity")
+          } else if (tab == 'export-result') {
             showNotification(tl("Before export results, you need to perform ANOVA test"), type = "error")
             updateTabsetPanel(session, "anovaPanel", selected = "hypothesis")
           }
-        } else {
-          updateTabsetPanel(session, "anovaPanel", selected = "none")
         }
       })
-
     }
   )
 }
@@ -108,7 +137,7 @@ factorialAnovaMD <- function(id) {
 #' @export
 factorialAnovaApp <- function() {
   shinyApp(ui = fluidPage(factorialAnovaUI("factorialAnovaApp")), server = function(input, output) {
-    factorialAnovaMD("factorialAnovaApp")
+    observe({ factorialAnovaMD("factorialAnovaApp") })
   })
 }
 

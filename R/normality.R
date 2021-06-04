@@ -21,7 +21,7 @@ normalityMD <- function(id, dataset, dvs = "dvs", between = "between", within = 
 
       tip <- ''
       if (show.residuals)
-        tip <- paste('A avaliação de distribuição em grupos é opcional quando há',
+        tip <- paste('A avaliação de distribuição em grupos é <b>opcional</b> quando é feita',
                      'avaliação de normalidade empregando modelos residuais.',
                      'Nossa recomendação é apenas realizar a avaliação de normalide em grupos',
                      'com observações maiores do que n > 30')
@@ -92,7 +92,7 @@ normalityMD <- function(id, dataset, dvs = "dvs", between = "between", within = 
       output$assessmentHelp4GroupsUI <- renderUI({
         if (!dataset$isSetup || !show.groups || dataset$checkNormality) return(NULL)
         verticalLayout(
-          helpText(tip), helpText(HTML(normalityHelp)),
+          helpText(HTML(tip)), helpText(HTML(normalityHelp)),
           checkboxInput(ns("showQQPlot4Groups"), tl("Show QQ-plots to assess normality distribution for each group"), width = "100%"),
           conditionalPanel(
             condition = "input.showQQPlot4Groups", ns = ns,

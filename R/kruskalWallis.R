@@ -10,6 +10,7 @@ kruskalWallisUI <- function(id) {
       sidebarPanel(
         width = 3
         , loadDataSetUI(ns("loadData"))
+        , uiOutput(ns("settingSymmetryUI"))
         , uiOutput(ns("settingOutliersUI"))
       ),
       mainPanel(
@@ -17,7 +18,7 @@ kruskalWallisUI <- function(id) {
         tabsetPanel(
           id = ns("kruskalPanel"), type = "tabs", selected = "none"
           , tabPanel("DataSet", icon = icon("caret-right"), value = "none", displayDataSetUI(ns("dataSet")))
-          , tabPanel(tl("Assumption: Outliers (optional)"), value = "outliers", outliersUI(ns("outliers")))
+          , tabPanel(paste('(1)', tl("Assumption: Symmetry and Without Outliers")), value = "symmetry-outliers", symmetryOutliersUI(ns("symmetryOutliers")))
           , tabPanel(tl("Kruskal Test"), value = "hypothesis", kruskalHypothesisUI(ns("hypothesis")))
           , tabPanel(tl("Export"), value = "export-result", kruskalExportUI(ns("export-result")))
         )
@@ -45,43 +46,55 @@ kruskalWallisMD <- function(id) {
         rds.signature = paste0('kruskal-',as.character(packageVersion("rshinystatistics")))
       )
 
-      # ... setting outliers and setting normality panels
+      # ... setting symmetry and dealing with outliers
+
+      output$settingSymmetryUI <- renderUI({
+        if (dataset$isSetup) settingSymmetryUI(ns("settingSymmetry"))
+      })
 
       output$settingOutliersUI <- renderUI({
         if (dataset$isSetup) settingOutliersUI(ns("settingOutliers"))
       })
 
+      settingSymmetry <- reactiveVal(NULL)
       settingOutliers <- reactiveVal(NULL)
 
       observeEvent(dataset$isSetup, {
         if (dataset$isSetup) {
-          settingOutliers(settingOutliersMD("settingOutliers", dataset, "dvs", "between", updateDataTable = T, identify.outliers = F))
+          settingSymmetry(settingSymmetryMD("settingSymmetry", dataset, "dvs", initTable = 'initTable', dataTable = 'symmetryTable'))
+          settingOutliers(settingOutliersMD("settingOutliers", dataset, "dvs", "between", initTable = 'symmetryTable', dataTable = 'dataTable'))
         } else {
           updateTabsetPanel(session, "kruskalPanel", selected = "none")
-          if (!is.null(settingOutliers())) {
-            settingOutliers()$outliersObserve$suspend()
-          }
+          if (!is.null(settingOutliers())) settingOutliers()$outliersObserve$suspend()
+          if (!is.null(settingSymmetry())) settingSymmetry()$skewnessObserve$suspend()
         }
       })
 
       # ... update dataTable
 
       observeEvent(input$kruskalPanel, {
-        if (input$kruskalPanel == 'none') {
-          displayDataSetMD("dataSet", dataset)
-        } else if (dataset$isSetup) {
-          if (input$kruskalPanel == 'outliers') {
-            outliersMD("outliers", dataset, "dvs", "between")
-          } else if (input$kruskalPanel == 'hypothesis') {
-            kruskalHypothesisMD("hypothesis", dataset)
-          } else if (input$kruskalPanel == 'export-result' && !is.null(dataset$kruskalParams[["hypothesis"]])) {
-            kruskalExportMD("export-result", dataset)
-          } else if (input$kruskalPanel == 'export-result') {
+        if (!dataset$isSetup) {
+          updateTabsetPanel(session, "kruskalPanel", selected = "none")
+          return(NULL)
+        }
+        tab <- isolate(input$kruskalPanel)
+
+        if (tab == 'none') {
+          displayDataSetMD("dataSet", dataset, exclude.from.others = c("fileTable","initTable","variables","symmetryTable"))
+        } else if (tab == 'symmetry-outliers' && dataset$isSetup) {
+          symmetryOutliersMD("symmetryOutliers", dataset, 'dvs', 'between', initTable = 'symmetryTable', dataTable = 'dataTable')
+        } else if (tab == 'hypothesis' && dataset$checkSymmetry && dataset$checkOutliers) {
+          kruskalHypothesisMD("hypothesis", dataset)
+        } else if (tab == 'export-result' && !is.null(dataset$srhParams[["hypothesis"]])) {
+          kruskalExportMD("export-result", dataset)
+        } else {
+          if (tab == 'hypothesis') {
+            showNotification(tl("Before perform the hypothesis test, you need to check the symmetry and outlieres of data"), type = "error")
+            updateTabsetPanel(session, "kruskalPanel", selected = "symmetry-outliers")
+          } else if (tab == 'export-result') {
             showNotification(tl("Before export results, you need to perform Scheirer-Ray-Hare test"), type = "error")
             updateTabsetPanel(session, "kruskalPanel", selected = "hypothesis")
           }
-        } else {
-          updateTabsetPanel(session, "kruskalPanel", selected = "none")
         }
       })
 
@@ -92,8 +105,8 @@ kruskalWallisMD <- function(id) {
 #' @import shiny
 #' @export
 kruskalWallisApp <- function() {
-  shinyApp(ui = fluidPage(kruskalWallisUI("KruskalWallis")), server = function(input, output) {
-    kruskalWallisMD("KruskalWallis")
+  shinyApp(ui = fluidPage(kruskalWallisUI("kruskal")), server = function(input, output, session) {
+    observe({ kruskalWallisMD("kruskal") })
   })
 }
 

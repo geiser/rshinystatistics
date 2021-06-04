@@ -3,7 +3,7 @@ kruskalExportUI <- function(id) {
   ns <- NS(id)
   tl <- getTranslator('kruskalExport')
 
-  fchoices <- c("html", "github", "word", "pdf")
+  fchoices <- c("html", "github", "word")
 
   verticalLayout(
     fixedRow(

@@ -10,6 +10,7 @@ wilcoxonTestUI <- function(id) {
       sidebarPanel(
         width = 3
         , loadDataSetUI(ns("loadData"))
+        , uiOutput(ns("settingSymmetryUI"))
         , uiOutput(ns("settingOutliersUI"))
       ),
       mainPanel(
@@ -17,7 +18,7 @@ wilcoxonTestUI <- function(id) {
         tabsetPanel(
           id = ns("wilcoxonPanel"), type = "tabs", selected = "none"
           , tabPanel("DataSet", icon = icon("caret-right"), value = "none", displayDataSetUI(ns("dataSet")))
-          , tabPanel(tl("Assumption: Outliers (optional)"), value = "outliers", outliersUI(ns("outliers")))
+          , tabPanel(paste('(1)', tl("Assumption: Symmetry and Without Outliers")), value = "symmetry-outliers", symmetryOutliersUI(ns("symmetryOutliers")))
           , tabPanel(tl("Wilcoxon Test"), value = "hypothesis", wilcoxonHypothesisUI(ns("hypothesis")))
           , tabPanel(tl("Export"), value = "export-result", wilcoxonExportUI(ns("export-result")))
         )
@@ -45,44 +46,56 @@ wilcoxonTestMD <- function(id) {
         rds.signature = paste0('wilcoxon-',as.character(packageVersion("rshinystatistics")))
       )
 
-      # ... setting outliers and setting normality panels
+      # ... setting symmetry and dealing with outliers
+
+      output$settingSymmetryUI <- renderUI({
+        if (dataset$isSetup) settingSymmetryUI(ns("settingSymmetry"))
+      })
 
       output$settingOutliersUI <- renderUI({
         if (dataset$isSetup) settingOutliersUI(ns("settingOutliers"))
       })
 
+      settingSymmetry <- reactiveVal(NULL)
       settingOutliers <- reactiveVal(NULL)
 
       observeEvent(dataset$isSetup, {
         if (dataset$isSetup) {
-          settingOutliers(settingOutliersMD("settingOutliers", dataset, "dvs", "iv", updateDataTable = T, identify.outliers = F))
+          settingSymmetry(settingSymmetryMD("settingSymmetry", dataset, "dvs", initTable = 'initTable', dataTable = 'symmetryTable'))
+          settingOutliers(settingOutliersMD("settingOutliers", dataset, "dvs", "iv", initTable = 'symmetryTable', dataTable = 'dataTable'))
         } else {
           updateTabsetPanel(session, "wilcoxonPanel", selected = "none")
           if (!is.null(settingOutliers())) settingOutliers()$outliersObserve$suspend()
+          if (!is.null(settingSymmetry())) settingSymmetry()$skewnessObserve$suspend()
         }
       })
 
       # ... update dataTable
-
       observeEvent(input$wilcoxonPanel, {
-        if (input$wilcoxonPanel == 'none') {
-          displayDataSetMD("dataSet", dataset)
-        } else if (dataset$isSetup) {
-          if (input$wilcoxonPanel == 'outliers') {
-            outliersMD("outliers", dataset, "dvs", "iv")
-          } else if (input$wilcoxonPanel == 'hypothesis') {
-            wilcoxonHypothesisMD("hypothesis", dataset)
-          } else if (input$wilcoxonPanel == 'export-result' && !is.null(dataset$wilcoxonParams[["hypothesis"]])) {
-            wilcoxonExportMD("export-result", dataset)
-          } else if (input$wilcoxonPanel == 'export-result') {
-            showNotification(tl("Before export results, you need to perform Wilcoxon's Test"), type = "error")
+        if (!dataset$isSetup) {
+          updateTabsetPanel(session, "wilcoxonPanel", selected = "none")
+          return(NULL)
+        }
+        tab <- isolate(input$wilcoxonPanel)
+
+        if (tab == 'none') {
+          displayDataSetMD("dataSet", dataset, exclude.from.others = c("fileTable","initTable","variables","symmetryTable"))
+        } else if (tab == 'symmetry-outliers' && dataset$isSetup) {
+          symmetryOutliersMD("symmetryOutliers", dataset, 'dvs', 'iv', initTable = 'symmetryTable', dataTable = 'dataTable')
+        } else if (tab == 'hypothesis' && dataset$checkSymmetry && dataset$checkOutliers && dataset$checkNormality && dataset$checkHomogeneity) {
+          wilcoxonHypothesisMD("hypothesis", dataset)
+        } else if (tab == 'export-result' && !is.null(dataset$wilcoxonParams[["hypothesis"]])) {
+          wilcoxonExportMD("export-result", dataset)
+        } else {
+          if (tab == 'hypothesis') {
+            showNotification(tl("Before performing the t-test, you need to perform the symmetry analysis and outliers treatment"), type = "error")
+            updateTabsetPanel(session, "wilcoxonPanel", selected = "symmetry-outliers")
+          } else if (tab == 'export-result') {
+            showNotification(tl("Before export results, you need to perform T-test"), type = "error")
             updateTabsetPanel(session, "wilcoxonPanel", selected = "hypothesis")
           }
-        } else {
-          updateTabsetPanel(session, "wilcoxonPanel", selected = "none")
         }
       })
-
     }
   )
 }
@@ -91,7 +104,7 @@ wilcoxonTestMD <- function(id) {
 #' @export
 wilcoxonTestApp <- function() {
   shinyApp(ui = fluidPage(wilcoxonTestUI("Wilcoxon")), server = function(input, output) {
-    wilcoxonTestMD("Wilcoxon")
+    observe({ wilcoxonTestMD("Wilcoxon") })
   })
 }
 

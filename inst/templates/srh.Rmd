@@ -1,0 +1,179 @@
+---
+title: "Scheirer-Ray-Hare for {{ paste0(paste0('`', dvs, '`'), collapse = ',') }}"
+author: {{ author }} <{{ email }}>
+comment: This file is automatically generate by Shiny-Statistic app (https://statistic.geiser.tech/)
+         Author - Geiser C. Challco <geiser@alumni.usp.br>
+         
+         Shiny-Statistic is distributed in the hope that it will be useful,
+         but WITHOUT ANY WARRANTY; without even the implied warranty of
+         MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+         GNU General Public License for more details.
+         
+         You should have received a copy of the GNU General Public License.
+         If not, see <https://www.gnu.org/licenses/>.
+output:
+  github_document:
+    toc: true
+  word_document:
+    toc: true
+  html_document:
+    toc: true
+  pdf_document:
+    toc: true
+    keep_tex: true
+fontsize: 10pt
+---
+
+```{r setup, include=FALSE}
+## Install and Load Packages
+if (!'remotes' %in% rownames(installed.packages())) install.packages('remotes')
+if (!"rshinystatistics" %in% rownames(installed.packages())) {
+  remotes::install_github("geiser/rshinystatistics")
+} else if (packageVersion("rshinystatistics") < "{{ rshinystatistics.version }}") {
+  remotes::install_github("geiser/rshinystatistics")
+}
+
+wants <- c('ggplot2','ggpubr','rshinystatistics','utils')
+has <- wants %in% rownames(installed.packages())
+if (any(!has)) install.packages(wants[!has])
+
+library(utils)
+library(ggpubr)
+library(ggplot2)
+library(rshinystatistics)
+```
+
+```{r, include=FALSE, purl=FALSE}
+library(knitr)
+opts_chunk$set(echo = TRUE)
+defaultW <- getOption("warn")
+options(warn = -1)
+```
+
+## Initial Variables and Data
+
+* R-script file: [../code/srh.R](../code/srh.R)
+* Initial table file: [../data/initial-table.csv](../data/initial-table.csv)
+{{ paste0(paste0('* Data for ', dvs, ' [../data/table-for-',dvs,'.csv](../data/table-for-',dvs,'.csv)'), collapse = '\n') }}
+* Table without outliers:  [../data/table-without-outliers.csv](../data/table-without-outliers.csv)
+* Other data files:  [../data/](../data/)
+* Files related to the presented results:   [../results/](../results/)
+
+
+```{r, include=FALSE}
+wid <- "{{ wid }}"
+between <- c({{ paste0(paste0('"', between, '"'), collapse = ',') }})
+dvs <- c({{ paste0(paste0('"', dvs, '"'), collapse = ',') }})
+names(dvs) <- dvs
+
+dat <- lapply(dvs, FUN = function(dv) {
+  data <- read.csv(paste0("../data/table-for-",dv,".csv"))
+  rownames(data) <- data[["{{ wid }}"]]
+  return(data)
+})
+rdat <- dat
+sdat <- dat
+```
+
+### Descriptive statistics of initial data
+
+```{r, include=FALSE}
+(df <- descriptive_statistics(dat, dvs, between, include.global = T, symmetry.test = T))
+```
+
+```{r, echo=FALSE, purl=FALSE}
+kable(df, digits = 3)
+```
+
+
+```{r, echo=FALSE}
+for (dv in dvs) {
+  car::Boxplot(`dv` ~ {{ paste0(paste0('`',between,'`'), collapse = '*') }}, data = dat[[dv]] %>% cbind(dv=dat[[dv]][[dv]]), id = list(n = Inf))  
+}
+```
+
+## Assessment of Symmetry and Outliers (performing their treatment)
+
+{{ code.skewness }}
+
+{{ code.outliers }}
+
+```{r}
+sdat <- rdat
+```
+
+## Saving the Data Without Outliers
+
+```{r}
+ndat <- sdat[[1]]
+for (dv in names(sdat)[-1]) ndat <- merge(ndat, sdat[[dv]])
+write.csv(ndat, paste0("../data/table-without-outliers.csv"))
+```
+
+Descriptive statistics of data with normal distribution
+
+```{r, include=FALSE}
+(df <- descriptive_statistics(sdat, dvs, between, include.global = T, symmetry.test = T))
+```
+
+```{r, echo=FALSE, purl=FALSE}
+kable(df, digits = 3)
+```
+
+```{r, echo=FALSE}
+for (dv in dvs) {
+  car::Boxplot(`dv` ~ {{ paste0(paste0('`',between,'`'), collapse = '*') }}, data = sdat[[dv]] %>% cbind(dv=sdat[[dv]][[dv]]), id = list(n = Inf))  
+}
+```
+
+## Computation of Scheirer-Ray-Hare Test and Pairwise Comparison
+
+### SRH test
+
+```{r, include=FALSE}
+(srh <- get.scheirer.test(sdat, dvs, between))
+```
+
+```{r, echo=FALSE, purl=FALSE}
+cnames <- c("var", "Effect", "Df", "Sum Sq", "H", "p.value","p.value.signif")
+kdf <- get.scheirer.table(srh)[,cnames]
+kable(kdf, digits = 3)
+```
+
+### Pairwise comparison
+
+```{r, include=FALSE}
+(pwc <- get.scheirer.pwc(sdat, dvs, between, pwc.method = "{{ pwc.method }}", p.adjust.method = "{{ p.adjust.method }}"))
+```
+
+```{r, echo=FALSE, purl=FALSE}
+cnames <- c("var", c(between), "group1", "group2","estimate","statistic","p", "p.adj","p.adj.signif")
+kdf <- get.scheirer.pwc.table(pwc, only.sig = T)[,cnames]
+kable(kdf, digits = 3)
+```
+
+
+## Descriptive Statistics and Plots 
+
+```{r, include=FALSE}
+(ds <- descriptive_statistics(sdat, dvs, between, "common", "var"))
+```
+
+```{r echo=FALSE}
+cnames <- c("variable",between,"n","median","mean","min","max","iqr","sd")
+kable(ds[,cnames], digits = 3)
+```
+
+{{ srh.plots  }}
+
+
+## Textual Report
+
+{{ srh.text }}
+
+{{ srh.pwc.text }}
+
+
+## Tips and References
+
+- Use the site [https://www.tablesgenerator.com](https://www.tablesgenerator.com) to convert the HTML tables into Latex format

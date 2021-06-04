@@ -11,8 +11,8 @@ linearity_code <- function(dataname, dvname, covarname, ivsnames, ext = "Rmd") {
 
 ancova_plots_code <- function(backup, dataname, dvs, between, ext = 'Rmd') {
   ancova.plots <- paste0(lapply(dvs, FUN = function(dv) {
-    width <- 700
-    height <- 700
+    width <- 900
+    height <- 900
     font.label.size <- 14
     step.increase <- 0.25
     plot.param <- backup$ancovaParams$plot[[dv]]
@@ -60,9 +60,18 @@ ancovaSummaryAsFile <- function(ext, backup, dvs = 'dvs', between = 'between', c
   rcovar <- unique(unlist(backup$variables[c(covar)], use.names = F))
 
 
-  code.skewness <- paste0(lapply(c(rdvs, rcovar), FUN = function(dv) {
+  code.skewness <- paste0(lapply(rdvs, FUN = function(dv) {
     line.code <- skewness_code(backup$skewness[[dv]], paste0('"',dv,'"'), paste0('dat[["',dv,'"]]'), paste0('rdat[["',dv,'"]]'))
     if (is.null(line.code)) return("")
+
+    if (length(backup$skewness) > 0 && length(backup$skewness[[rcovar]]) > 0) {
+      line.code <- paste0(
+        line.code, '\n',
+        skewness_code(backup$skewness[[rcovar]], paste0('"',rcovar,'"')
+                      , initTable=paste0('dat[["',dv,'"]]'), dataTable=paste0('rdat[["',dv,'"]]'))
+      )
+    }
+
     line.code <- paste0(c(
       paste0('density_res_plot(rdat[["',dv,'"]],"',dv,'",between,c(),covar)'),
       line.code,
@@ -71,6 +80,7 @@ ancovaSummaryAsFile <- function(ext, backup, dvs = 'dvs', between = 'between', c
     if (ext == 'Rmd') {
       line.code <- paste0("\n```{r}\n",line.code,"\n```\n", "\n")
     }
+
     if (lang=='pt')
       return(paste0('\n Aplicando transformação in "',dv,'" para reduzir distorsão\n',line.code))
     else
@@ -84,17 +94,17 @@ ancovaSummaryAsFile <- function(ext, backup, dvs = 'dvs', between = 'between', c
   }), collapse = "\n")
 
   aov.params <- backup$ancovaParams$hypothesis
-  tfile <- system.file("templates", paste0("ancovaSummary",ifelse(lang!='en',paste0('-',lang),''),".",ext), package="rshinystatistics")
+  tfile <- system.file("templates", paste0("ancova",ifelse(lang!='en',paste0('-',lang),''),".",ext), package="rshinystatistics")
 
   code.outliers <- ''
   if (backup$outlier.method == 'remove') {
     code.outliers <- list.as.code(backup$outliers)
   } else if (backup$outlier.method == 'winsorize') {
     code.outliers <- do.call(paste0, lapply(rdvs, FUN = function(dv) {
-      paste0('rdat <- winzorize(rdat,"',dv,'", c(',paste0(paste0('"',rbetween,'"'),collapse=','),')',',"',rcovar,'")\n')
+      paste0('rdat[["',dv,'"]] <- winzorize(rdat[["',dv,'"]],"',dv,'", c(',paste0(paste0('"',rbetween,'"'),collapse=','),')',',"',rcovar,'")\n')
     }))
     if (ext == "Rmd") {
-      code.outliers <- paste0(c("```{r include=FALSE, echo=FALSE}", code.outliers, "```"), collapse = '\n')
+      code.outliers <- paste0(c("```{r}", code.outliers, "```"), collapse = '\n')
     }
   }
 
@@ -147,8 +157,8 @@ ancovaDetailAsFile <- function(ext, backup, dv, between = 'between', covar = 'co
     code.skewness <- paste0('\n##### Applying normality in ',dv,' to reduce skewness\n',line.code)
   }
 
-  width <- 700
-  height <- 700
+  width <- 900
+  height <- 900
   font.label.size <- 14
   step.increase <- 0.25
   plot.param <- backup$ancovaParams$plot[[dv]]

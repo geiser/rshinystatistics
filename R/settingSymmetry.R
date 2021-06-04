@@ -23,7 +23,7 @@ settingSymmetryUI <- function(id) {
   ns <- NS(id)
   tl <- getTranslator('settingSymmetry')
   verticalLayout(shinyjs::useShinyjs(), hr(), uiOutput(ns('skewnessInputUI')),
-                 checkboxInput(ns('checkSymmetry'), tl('Symmetry distribution was checked')))
+                 checkboxInput(ns('checkSymmetry'), paste('(1)', tl('Symmetry distribution was checked'))))
 }
 
 #' @import shiny

@@ -55,8 +55,8 @@ ancovaMD <- function(id) {
       output$settingOthersUI <- renderUI({
         if (!dataset$isSetup) return(NULL)
         verticalLayout(
-          checkboxInput(ns('checkLinearity'), tl('Linearity of data was checked')),
-          checkboxInput(ns('checkHomogeneity'), tl('Homogeneity of data was checked'))
+          checkboxInput(ns('checkLinearity'), paste('(3)', tl('Linearity of data was checked'))),
+          checkboxInput(ns('checkHomogeneity'), paste('(4)', tl('Homogeneity of data was checked')))
         )
       })
 
@@ -141,7 +141,6 @@ ancovaMD <- function(id) {
           }
         }
       })
-
     }
   )
 }
@@ -150,7 +149,7 @@ ancovaMD <- function(id) {
 #' @export
 ancovaApp <- function() {
   shinyApp(ui = fluidPage(ancovaUI("ancovaApp")), server = function(input, output) {
-    ancovaMD("ancovaApp")
+    observer({ ancovaMD("ancovaApp") })
   })
 }
 
