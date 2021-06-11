@@ -1,5 +1,5 @@
 ---
-title: "Wilcoxon test for {{ paste0(paste0('`', dvs, '`'), collapse = ',') }} with `{{ iv }}`"
+title: "{{ title.test }} for {{ paste0(paste0('`', dvs, '`'), collapse = ',') }}"
 author: {{ author }} <{{ email }}>
 comment: This file is automatically generate by Shiny-Statistic app (https://statistic.geiser.tech/)
          Author - Geiser C. Challco <geiser@alumni.usp.br>
@@ -52,8 +52,9 @@ options(warn = -1)
 
 ## Initial Variables and Data
 
-* R-script file: [wilcoxon.R](wilcoxon.R)
-{{ paste0(paste0('* Data for ', dvs, ' [data-',dvs,'.csv](data-',dvs,'.csv)'), collapse = '\n') }}
+* R-script file: [../code/kruskal.R](../code/{{ test }}.R)
+* Initial table file: [../data/initial-table.csv](../data/initial-table.csv)
+{{ paste0(paste0('* Data for ', dvs, ' [../data/table-for-',dvs,'.csv](../data/table-for-',dvs,'.csv)'), collapse = '\n') }}
 * Table without outliers:  [../data/table-without-outliers.csv](../data/table-without-outliers.csv)
 * Other data files:  [../data/](../data/)
 * Files related to the presented results:   [../results/](../results/)
@@ -61,9 +62,8 @@ options(warn = -1)
 
 ```{r, include=FALSE}
 wid <- "{{ wid }}"
-iv <- c({{ paste0(paste0('"', iv, '"'), collapse = ',') }})
-dvs <- c({{ paste0(paste0('"', dvs, '"'), collapse = ',') }})
-names(dvs) <- dvs
+between <- c({{ paste0(paste0('"', between, '"'), collapse = ',') }})
+dvs <- c({{ paste0(paste0('"',dvs,'"="',dvs,'"'), collapse = ',') }})
 
 dat <- lapply(dvs, FUN = function(dv) {
   data <- read.csv(paste0("../data/table-for-",dv,".csv"))
@@ -71,13 +71,12 @@ dat <- lapply(dvs, FUN = function(dv) {
   return(data)
 })
 rdat <- dat
-sdat <- dat
 ```
 
 ### Descriptive statistics of initial data
 
 ```{r, include=FALSE}
-(df <- descriptive_statistics(dat, dvs, iv, include.global = T, symmetry.test = T))
+(df <- descriptive_statistics(dat, dvs, between, include.global = T, symmetry.test = T))
 ```
 
 ```{r, echo=FALSE, purl=FALSE}
@@ -86,41 +85,26 @@ kable(df, digits = 3)
 
 
 ```{r, echo=FALSE}
-for (dv in dvs) {
-  car::Boxplot(`dv` ~ {{ paste0(paste0('`',iv,'`'), collapse = '*') }}, data = dat[[dv]] %>% cbind(dv=dat[[dv]][[dv]]), id = list(n = Inf))  
-}
+{{
+sformula <- paste0(paste0('`',between,'`'), collapse = '*')
+box.plot.code  <- paste0(lapply(dvs, FUN = function(dv) {
+  paste0("car::Boxplot(`",dv,"` ~ ",sformula,", data = dat[[\"",dv,"\"]], id = list(n = Inf))")
+}), collapse = '\n')
+box.plot.code
+}}
 ```
 
-## Checking of Assumptions
-
-### Assumption: Symmetry and treatment of outliers
-
-#### Applying transformation for skewness data when normality is not achieved in any dependent variables or covariance
+## Performing Treatment of Symmetry and Outliers
 
 {{ code.skewness }}
 
-#### Dealing with outliers (performing treatment of outliers)
-
 {{ code.outliers }}
 
-### Assumption: Normality distribution of data
-
-#### Removing data that affect normality (extreme values)
-
 ```{r}
-non.normal <- {{ code.non.normal }}
-sdat <- remove_from_datatable(rdat, non.normal, wid)
+sdat <- rdat
 ```
 
-## Removing outliers from the data
-
-```{r}
-outliers <- {{ code.outliers }}
-sdat <- remove_from_datatable(dat, outliers, wid, "var")
-```
-
-
-## Saving the Data without outliers
+## Saving the Data Without Outliers and Accomplish Symmetry (data for the nonparametric test)
 
 ```{r}
 ndat <- sdat[[1]]
@@ -128,10 +112,10 @@ for (dv in names(sdat)[-1]) ndat <- merge(ndat, sdat[[dv]])
 write.csv(ndat, paste0("../data/table-without-outliers.csv"))
 ```
 
-Descriptive statistics of data with normal distribution
+Descriptive statistics of data used in the nonparametric test
 
 ```{r, include=FALSE}
-(df <- descriptive_statistics(sdat, dvs, iv, include.global = T, normality.test = T))
+(df <- descriptive_statistics(sdat, dvs, between, include.global = T, symmetry.test = T))
 ```
 
 ```{r, echo=FALSE, purl=FALSE}
@@ -139,44 +123,35 @@ kable(df, digits = 3)
 ```
 
 ```{r, echo=FALSE}
-for (dv in dvs) {
-  car::Boxplot(`dv` ~ {{ paste0(paste0('`',iv,'`'), collapse = '*') }}, data = sdat[[dv]] %>% cbind(dv=sdat[[dv]][[dv]]), id = list(n = Inf))  
-}
+{{
+sformula <- paste0(paste0('`',between,'`'), collapse = '*')
+box.plot.code  <- paste0(lapply(dvs, FUN = function(dv) {
+  paste0("car::Boxplot(`",dv,"` ~ ",sformula,", data = sdat[[\"",dv,"\"]], id = list(n = Inf))")
+}), collapse = '\n')
+box.plot.code
+}}
 ```
 
-## Computation of Wilcoxon and Pairwise Comparison
+## Computation of Hypothesis Test and Pairwise Comparison
 
-### Wilcoxon
+### {{ title.test }}
 
-```{r, include=FALSE}
-(res <- wilcoxon_test(sdat, dvs, iv, "{{ alternative }}", as.list=T))
-```
+{{ code.hypothesis }}
 
-```{r, echo=FALSE, purl=FALSE}
-kable(res$wilcoxon.test[,c(".y.", "group1", "group2", "n1", "n2","statistic", "estimate",
-  "conf.low", "conf.high", "effsize", "magnitude", "p","p.signif")], digits = 3)
-```
+{{ code.hypothesis.tbl }}
 
+{{ code.pwc }}
 
-## Descriptive Statistic and Plots 
+{{ code.pwc.tbl }}
 
-```{r, include=FALSE}
-(df <- descriptive_statistics(sdat, dvs, iv, "common", "var"))
-```
+{{ code.plots  }}
 
-```{r echo=FALSE, purl=FALSE}
-cnames <- c("variable",iv,"n","median","mean","min","max","iqr","sd")
-kable(df[,cnames], digits = 3)
-```
+### Textual Report
 
-{{ wtest.plots  }}
+{{ hypothesis.text }}
 
-## Textual Report
-
-{{ wilcoxon.text }}
-
+{{ hypothesis.pwc.text }}
 
 ## Tips and References
 
 - Use the site [https://www.tablesgenerator.com](https://www.tablesgenerator.com) to convert the HTML tables into Latex format
-

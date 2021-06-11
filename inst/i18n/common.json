@@ -1,0 +1,49 @@
+{
+  "languages": ["en", "pt"],
+  "translation": [
+    {
+      "en": "Email:",
+      "pt": "Email:"
+    },
+    {
+      "en": "You won't receive a email of the report. Push the button",
+      "pt": "You won't receive a email of the report. Push the button"
+    },
+    {
+      "en": "Generate Export Files",
+      "pt": "Generar Arquivos de Exportação"
+    },
+    {
+      "en": "and the button",
+      "pt": "e o botão"
+    },
+    {
+      "en": "Report formats",
+      "pt": "formatos do relatório"
+    },
+    {
+      "en": "Download ZIP",
+      "pt": "Descarregar ZIP"
+    },
+    {
+      "en": "to obtain the report as ZIP file",
+      "pt": "para obter o relatório como arquivo ZIP"
+    },
+    {
+      "en": "Making report files",
+      "pt": "Gerando os arquivos do relatório"
+    },
+    {
+      "en": "The author and email values are only used to generate the report.",
+      "pt": "Os valores do autor e do email são usados apenas para gerar o relatório."
+    },
+    {
+      "en": "Please perform the ancova test before to generate the report files",
+      "pt": "Efeitue o teste de ancova antes de gerar os arquivos do relatório"
+    },
+    {
+      "en": "Author",
+      "pt": "Autor"
+    }
+  ]
+}

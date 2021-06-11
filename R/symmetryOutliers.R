@@ -1,3 +1,27 @@
+
+getOutliersBoxPlotly <- function(tbl, tbl2, dv, ivs, wid = 'row.pos', boxpoints = "none") {
+  tl <- getTranslator('outliers')
+
+  ivs <- intersect(ivs, colnames(tbl))
+  if (length(ivs) == 0) {
+    ivs <- c('iv')
+    tbl[['iv']] <- rep('iv', nrow(tbl))
+    tbl2[['iv']] <- tbl[['iv']]
+  }
+  livs <- as.list(ivs); names(livs) <- ivs
+
+  lapply(livs, FUN = function(iv) {
+    title <- paste0(tl('With outliers'),': ', dv, ' ~ ', iv)
+    bxp <- boxPlotly(tbl, dv, iv, wid, boxpoints, title = title)
+
+    title <- paste0(tl('Without outliers'),': ', dv, ' ~ ', iv)
+    bxp_wo <- boxPlotly(tbl2, dv, iv, wid, boxpoints, title = title)
+    return(list(plot = bxp, plot.wo = bxp_wo))
+  })
+}
+
+
+
 #' @import shiny
 symmetryOutliersUI <- function(id) {
   ns <- NS(id)

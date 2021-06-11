@@ -1,6 +1,6 @@
 Package: rshinystatistics
 Title: Shiny Statistics
-Version: 0.0.0.9155
+Version: 0.0.0.9185
 Authors@R: 
     person(given = "Geiser",
            family = "Chalco Challco",
