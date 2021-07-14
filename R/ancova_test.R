@@ -75,7 +75,10 @@ get.anvoca.emmeans <- function(pwcs) {
 get.ancova.emmeans.with.ds <- function(pwcs, data, dvs, ivs=c(), type = "common", dv.var = NULL) {
   ds <- descriptive_statistics(data, dvs, ivs, type, dv.var)
   emms <- get.anvoca.emmeans(pwcs)
-  merge(emms, ds, by.x=c("var",ivs), by.y=c("variable",ivs), suffixe=c(".emms",".ds"))
+  toReturn <- merge(emms, ds, by.x=c("var",ivs), by.y=c("variable",ivs), suffixe=c(".emms",".ds"))
+  toReturn[['sd.ds']] <- toReturn[['sd']]
+  toReturn[['sd.emms']] <- sqrt(toReturn[['n']])*toReturn[['se.emms']]
+  return(toReturn)
 }
 
 #' @export

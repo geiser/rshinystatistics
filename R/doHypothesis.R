@@ -1,5 +1,5 @@
-#' @import shiny
-mdnHypothesisUI <- function(id, test) {
+doHypothesisUI <- function(id, test) {
+
   ns <- NS(id)
   tl <- getTranslator('kruskalHypothesis')
 
@@ -11,8 +11,19 @@ mdnHypothesisUI <- function(id, test) {
   if ('wilcoxon' == test) {
     opt.name <- "alternative"
     opt.label <- tl("Alternative hypothesis")
-    opt.choices <- as.list(c('two.sided','greater','less'))
+    opt.choices <- as.list(c('two.sided', 'greater', 'less'))
     names(opt.choices) <- c(tl('Two tailed'), tl('Greater than'), tl('Less than'))
+  } else if ('ancova' == test) {
+    opt.name <- "type"
+    opt.label <- tl("Type AoV")
+    opt.choices <- as.list(c(2, 3, 1))
+    names(opt.choices) <- c(tl('Anova II'), tl('Anova III'), tl('Anova I (balanced)'))
+    pchoices <- c("bonferroni", "hommel", "holm", "hochberg")
+    pairwiseCompLayout <- verticalLayout(
+      h4(tl("Pairwise Comparisons")), br(),
+      radioButtons(ns("p.adjust.method"), tl("P-value ajust method"), choices = pchoices, selected = pchoices[1], inline = T, width = "100%"),
+      df2TableUI(ns("pairwise")), br(), hr()
+    )
   } else {
     pchoices <- c("bonferroni", "hommel", "holm", "hochberg")
     pairwiseCompLayout <- verticalLayout(
@@ -27,7 +38,8 @@ mdnHypothesisUI <- function(id, test) {
   verticalLayout(
     fixedRow(
       column(width = 6, verticalLayout(HTML(""))),
-      column(width = 3, radioButtons(ns(opt.name), opt.label, choices=opt.choices, inline=F))
+      column(width = 3, radioButtons(ns(opt.name), opt.label, choices=opt.choices, inline=F)),
+      column(width = 3, uiOutput(ns('secondParamUI')))
     ),
     fixedRow(
       column(width = 2, actionButton(ns("performTest"), tl("Perform/Update Test"), icon = icon("running"))),
@@ -49,10 +61,12 @@ mdnHypothesisUI <- function(id, test) {
   )
 }
 
-mdnHypothesisMD <- function(id, test, dataset, dvs = "dvs", between = "between") {
+
+doHypothesisMD <- function(id, test, dataset, dvs = "dvs", between = "between", covar = "covar", dataTable = "dataTable") {
 
   opt.name <- "pwc.method"
   if ('wilcoxon' == test) opt.name <- "alternative"
+  if ('ancova' == test) opt.name <- "type"
 
   moduleServer(
     id,
@@ -63,18 +77,28 @@ mdnHypothesisMD <- function(id, test, dataset, dvs = "dvs", between = "between")
       wid <- reactiveVal(dataset$variables$wid)
       rdvs <- reactiveVal(unique(unlist(dataset$variables[c(dvs)], use.names = F)))
       rbetween <- reactiveVal(unique(unlist(dataset$variables[c(between)], use.names = F)))
+      rcovar <- reactiveVal(unique(unlist(dataset$variables[c(covar)], use.names = F)))
 
       observeEvent(dataset$variables, {
         if (!dataset$isSetup) return(NULL)
         wid(dataset$variables$wid)
         rdvs(unique(unlist(dataset$variables[c(dvs)], use.names = F)))
         rbetween(unique(unlist(dataset$variables[c(between)], use.names = F)))
+        rcovar(unique(unlist(dataset$variables[c(covar)], use.names = F)))
         updateRadioButtons(session, "dv", choices = rdvs(), selected = rdvs()[1], inline = T)
       })
 
       values <- reactiveValues()
 
-      # .. update the hypothesis results
+      # ... user interfaces
+
+      output$secondParamUI <- renderUI({
+        if (!dataset$isSetup) return(NULL)
+        if ('ancova' == test)
+          radioButtons(ns("effect.size"), tl("Effect size"), inline=F, choices=c("ges", "pes"), selected = 'ges')
+      })
+
+      # ... update the hypothesis results
 
       updateResult <- function() {
         if (!dataset$isSetup) return(NULL)
@@ -87,15 +111,20 @@ mdnHypothesisMD <- function(id, test, dataset, dvs = "dvs", between = "between")
           values$wilcoxon.test <- list.wtest$wilcoxon.test
 
         } else if ('kruskal' == test) {
-          values$kruskal <- get.kruskal.test(dataset$dataTable, rdvs(), rbetween(), dv.var = 'var')
+          values$kruskal <- get.kruskal.test(dataset[[dataTable]], rdvs(), rbetween(), dv.var = 'var')
           values$kruskal.test <- get.kruskal.table(values$kruskal)
-          values$pwc <- get.kruskal.pwc(dataset$dataTable, rdvs(), rbetween(), p.adjust.method = input$p.adjust.method, dv.var = 'var')
+          values$pwc <- get.kruskal.pwc(dataset[[dataTable]], rdvs(), rbetween(), p.adjust.method = input$p.adjust.method, dv.var = 'var')
           values$pair.wise <- get.kruskal.pwc.table(values$pwc)
         } else if ('srh' == test) {
-          values$srh <- get.scheirer.test(dataset$dataTable, rdvs(), rbetween(), dv.var = 'var')
+          values$srh <- get.scheirer.test(dataset[[dataTable]], rdvs(), rbetween(), dv.var = 'var')
           values$srh.test <- get.scheirer.table(values$srh)
-          values$pwc <- get.scheirer.pwc(dataset$dataTable, rdvs(), rbetween(), p.adjust.method = input$p.adjust.method, dv.var = 'var')
+          values$pwc <- get.scheirer.pwc(dataset[[dataTable]], rdvs(), rbetween(), p.adjust.method = input$p.adjust.method, dv.var = 'var')
           values$pair.wise <- get.scheirer.pwc.table(values$pwc)
+        } else if ('ancova' == test) {
+          values$ancova <- ancova.test(dataset[[dataTable]], rdvs(), rbetween(), rcovar(), input$type, input$effect.size, dv.var = 'var')
+          values$ancova.test <- get.ancova.table(values$ancova)
+          values$pwc <- ancova.pwc(dataset[[dataTable]], rdvs(), rbetween(), rcovar(), input$p.adjust.method, dv.var = 'var')
+          values$pair.wise <- get.ancova.pwc.table(values$pwc)
         }
       }
 
@@ -109,20 +138,27 @@ mdnHypothesisMD <- function(id, test, dataset, dvs = "dvs", between = "between")
         if ('wilcoxon' == test)
           cname1 <- c(".y.","group1", "group2", "n1", "n2","statistic", "estimate",
                       "conf.low", "conf.high", "effsize", "magnitude", "p","p.signif")
+        if ('ancova' == test)
+          cname1 <- c("var", "Effect", "DFn", "DFd", "SSn", "SSd", "F", "p", input$effect.size, "p.signif")
         df2TableMD("result", values[[paste0(test,'.test')]], cname1, prefix = ns('result'))
 
 
         if ('wilcoxon' != test) {
           cname2 <- c("var","group1","group2","n1","n2","estimate","statistic","p","p.adj","p.adj.signif")
-          if ('srh' == test)
-            cname2 <- c("var",rbetween(),"group1","group2","n1","n2","estimate","statistic","p","p.adj","p.adj.signif")
+          if ('srh' == test || 'ancova' == test)
+            cname2 <- c("var", rbetween(), "group1", "group2", "estimate", "statistic", "p", "p.adj", "p.adj.signif")
           df2TableMD("pairwise", values$pair.wise, cname2, pageLength = 50, prefix=ns('pairwise'))
         }
 
 
-        df <- descriptive_statistics(dataset$dataTable, rdvs(), rbetween(), dv.var ='var')
-        cname3 <- c("variable",rbetween(),"n","median","mean","min","max","iqr","sd")
-        df2TableMD("dstbl", df, cname3, prefix=ns("ds"))
+        if ('ancova' == test) {
+          df <- get.ancova.emmeans.with.ds(values$pwc, dataset[[dataTable]], rdvs(), rbetween())
+          cname3 <- c("var", rbetween(), "n","emmean","mean","conf.low","conf.high","sd.emms","sd.ds")
+        } else {
+          df <- descriptive_statistics(dataset[[dataTable]], rdvs(), rbetween())
+          cname3 <- c("variable",rbetween(),"n","median","mean","min","max","iqr","sd")
+        }
+        df2TableMD("dstbl", df, cname3, prefix=ns("descriptive-statistic"))
 
         # ... update hypothesis parameters
         if (!paste0(test,'Params') %in% names(dataset))
@@ -131,7 +167,10 @@ mdnHypothesisMD <- function(id, test, dataset, dvs = "dvs", between = "between")
         dataset[[paste0(test,'Params')]][["hypothesis"]] <- list()
         dataset[[paste0(test,'Params')]][["hypothesis"]][[opt.name]] <- input[[opt.name]]
         if ('kruskal' == test || 'srh' == test) {
-          dataset[[paste0(test,'Params')]][["hypothesis"]]$p.adjust.method <- input$p.adjust.method
+          dataset[[paste0(test,'Params')]][["hypothesis"]][["p.adjust.method"]] <- input$p.adjust.method
+        } else if ('ancova' == test) {
+          dataset[[paste0(test,'Params')]][["hypothesis"]][["effect.size"]] <- input$effect.size
+          dataset[[paste0(test,'Params')]][["hypothesis"]][["p.adjust.method"]] <- input$p.adjust.method
         }
 
         dataset[[test]] <- values[[test]]
@@ -155,18 +194,23 @@ mdnHypothesisMD <- function(id, test, dataset, dvs = "dvs", between = "between")
           font.label.size <- isolate(input$font.label.size)
           step.increase <- isolate(input$step.increase)
 
-
           dat <- as.data.frame(dataset$dataTable[[dv]])
 
           # ... update dataset  parameters
-          if (!paste0(test,'Params') %in% names(dataset)) dataset[[paste0(test,'Params')]] <- list()
-          if (!'plot' %in% names(dataset[[paste0(test,'Params')]])) dataset[[paste0(test,'Params')]][["plot"]] <- list()
+
+          if (!paste0(test,'Params') %in% names(dataset))
+            dataset[[paste0(test,'Params')]] <- list()
+
+          if (!'plot' %in% names(dataset[[paste0(test,'Params')]]))
+            dataset[[paste0(test,'Params')]][["plot"]] <- list()
+
           dataset[[paste0(test,'Params')]][["plot"]][[dv]] <- list(
             width = width, height = height, font.label.size = font.label.size,
             addParam = addParam, step.increase = step.increase
           )
 
           # ... plots results from pairwise
+
           if ('wilcoxon' == test) {
 
             verticalLayout(
@@ -195,6 +239,38 @@ mdnHypothesisMD <- function(id, test, dataset, dvs = "dvs", between = "between")
             else if (length(ivs) == 3)
               plots <- threeWayNonParamFactPlots(dat, dv, ivs, values[[test]][[dv]], values$pwc[[dv]], addParam=addParam,
                                                  font.label.size = font.label.size, step.increase = step.increase, type = 'srh')
+
+            if (length(ivs) == 3) {
+              do.call(verticalLayout, lapply(names(plots), FUN = function(iv) {
+                do.call(verticalLayout, lapply(names(plots[[iv]]), FUN = function(grpby) {
+                  verticalLayout(
+                    h4(paste0('Plot of "',dv,'" based on "',iv,'" and grouped by "',grpby,'"', paste0(' (color: ',setdiff(ivs,c(grpby,iv)),')'))),
+                    renderPlot({ plots[[iv]][[grpby]] }, width = width, height = height))
+                }))
+              }))
+            } else if (length(ivs) == 2) {
+              do.call(verticalLayout, lapply(names(plots), FUN = function(iv) {
+                verticalLayout(
+                  h4(paste0('Plot of "',dv,'" based on "',iv,'"', paste0(' (color: ',setdiff(ivs,iv),')'))),
+                  renderPlot({ plots[[iv]] }, width = width, height = height))
+              }))
+            } else {
+              do.call(verticalLayout, lapply(names(plots), FUN = function(iv) {
+                verticalLayout(
+                  h4(paste0('Plot of "',dv,'" based on "',iv,'"')),
+                  renderPlot({ plots[[iv]] }, width = width, height = height))
+              }))
+            }
+
+          } else if ('ancova' == test) {
+
+            plots <- list()
+            if (length(ivs) == 1)
+              plots <- oneWayAncovaPlots(dat, dv, ivs, values$ancova[[dv]], values$pwc[[dv]], addParam = addParam,
+                                         font.label.size = font.label.size, step.increase = step.increase)
+            else if (length(ivs) == 2)
+              plots <- twoWayAncovaPlots(dat, dv, ivs, values$ancova[[dv]], values$pwc[[dv]], addParam = addParam,
+                                         font.label.size = font.label.size, step.increase = step.increase)
 
             if (length(ivs) == 3) {
               do.call(verticalLayout, lapply(names(plots), FUN = function(iv) {

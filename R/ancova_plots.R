@@ -1,30 +1,28 @@
 #' @export
-ggPlotAoC <- function(data, y, x, color = c(), aov, pwc, line.color = 'black', font.label.size = 14, step.increase = 0.25) {
+ggPlotAoC <- function(data, x, y, color = c(), aov, pwc, linetype = color, by = c(), addParam = c(), font.label.size = 14, step.increase = 0.25, palette = "jco") {
+  if (is.null(aov) || is.null(pwc)) return(NULL)
+
   data[[x]] <- factor(data[[x]])
-  pwc2 <- tryCatch(rstatix::add_xy_position(pwc, x=x, fun="max", step.increase=step.increase), error = function(e) NULL)
-
-  if (is.null(pwc2)) return(ggplot2::ggplot())
-
   pd <- ggplot2::position_dodge(width = 0.15)
-  emms <- rstatix::get_emmeans(pwc2)
-  if (nrow(emms) > 2) {
-    lp <- ggpubr::ggline(emms, x=x, y="emmean", color=line.color, palette = "jco", plot_type='b', size=0.4, position = pd)
+
+  pwc2 <- tryCatch(rstatix::add_xy_position(pwc, x=x, fun="max", step.increase=step.increase, scales = "free"), error = function(e) NULL)
+  if (is.null(pwc2)) return(ggplot2::ggplot())
+  if (length(color) > 0) {
+    emms <- rstatix::get_emmeans(pwc2)
+    lp <- ggpubr::ggline(emms, x=x, y = "emmean", color=color, palette = palette, plot_type='b', size=0.4, position = pd, facet.by = by)
     lp <- lp + ggplot2::geom_errorbar(ggplot2::aes_string(ymin="conf.low", ymax="conf.high", color=color), width=0.1, size = 1, position = pd)
+    lp <- lp + ggpubr::stat_pvalue_manual(pwc2, color = color, linetype = linetype, hide.ns = T, tip.length = 0, step.group.by = by, position = pd)
   } else {
-    lp <- ggpubr::ggline(emms, x=x, y="emmean", palette = "jco", plot_type='b', size=0.4, position = pd)
+    emms <- rstatix::get_emmeans(pwc2)
+    lp <- ggpubr::ggline(emms, x=x, y="emmean", color = x, palette = palette, plot_type='b', size=0.4, position = pd, facet.by = by)
     lp <- lp + ggplot2::geom_errorbar(ggplot2::aes_string(ymin="conf.low", ymax="conf.high"), width=0.1, size = 1, position = pd)
+    lp <- lp + ggpubr::stat_pvalue_manual(pwc2, linetype = linetype, hide.ns = T, tip.length = 0, step.group.by = by, position = pd)
   }
 
-  if (length(line.color) > 1) {
-    lp <- lp + ggpubr::stat_pvalue_manual(pwc2, hide.ns=T, tip.length=0.005, bracket.size=0.3, color = line.color, position = pd)
-  } else {
-    lp <- lp + ggpubr::stat_pvalue_manual(pwc2, hide.ns=T, tip.length=0.005, bracket.size=0.3, color = line.color, position = pd)
-  }
-  lp <- lp + ggplot2::labs(subtitle = rstatix::get_test_label(aov, detailed=T), caption=rstatix::get_pwc_label(pwc))
+  if ('jitter' %in% addParam)
+    lp <- lp + ggplot2::geom_jitter(data = data, ggplot2::aes_(x=as.name(x), y=as.name(y), colour=factor(data[[color]])), width=0.075, height=0.075, size=0.75)
+  lp <- lp + ggplot2::labs(subtitle = rstatix::get_test_label(aov, detailed = T), caption = rstatix::get_pwc_label(pwc2))
   lp <- lp + ggplot2::theme(text = ggplot2::element_text(size=font.label.size))
-
-  lp <- lp + ggplot2::geom_jitter(data = data, ggplot2::aes_(x=as.name(x),y=as.name(y),colour=factor(data[[color]]))
-                                  ,width=0.075,height=0.075,size=0.75)
   return(lp)
 }
 
@@ -41,13 +39,11 @@ ggPlotAoC <- function(data, y, x, color = c(), aov, pwc, line.color = 'black', f
 #' @param step.increase the numeric vector to be used to minimize the overlap
 #' @return A list of ggplot objects with the Two-Way ANOVA plots
 #' @export
-oneWayAncovaPlots <- function(data, dv, ivs, aov, pwcs, font.label.size = 14, step.increase = 0.25) {
+oneWayAncovaPlots <- function(data, dv, ivs, aov, pwcs, addParam=c(), font.label.size = 14, step.increase = 0.25) {
   livs <- as.list(ivs); names(livs) <- ivs
   return(lapply(livs, FUN = function(iv) {
-    pwc <- pwcs[[iv]]
-    color <- iv
-    lp <- ggPlotAoC(data, dv, iv, color, aov, pwc, "black", font.label.size, step.increase)
-    return(lp)
+    ggPlotAoC(data, iv, dv, aov=aov, pwc=pwcs[[iv]], addParam=addParam,
+              font.label.size = font.label.size, step.increase = step.increase)
   }))
 }
 
@@ -65,12 +61,13 @@ oneWayAncovaPlots <- function(data, dv, ivs, aov, pwcs, font.label.size = 14, st
 #' @param step.increase the numeric vector to be used to minimize the overlap
 #' @return A list of ggplot objects with the Two-Way ANOVA plots
 #' @export
-twoWayAncovaPlots <- function(data, dv, ivs, aov, pwcs, font.label.size = 14, step.increase = 0.25) {
+twoWayAncovaPlots <- function(data, dv, ivs, aov, pwcs, addParam=c(), font.label.size = 14, step.increase = 0.25) {
   livs <- as.list(ivs); names(livs) <- ivs
   return(lapply(livs, FUN = function(iv) {
     pwc <- pwcs[[iv]]
     color <- setdiff(ivs, iv)
-    lp <- ggPlotAoC(data, dv, iv, color, aov, pwc, color, font.label.size, step.increase)
-    return(lp)
+    ggPlotAoC(data, iv, dv, color=color, aov=aov, pwc=pwc, addParam=addParam,
+              font.label.size = font.label.size, step.increase = step.increase)
   }))
 }
+

@@ -17,6 +17,9 @@ linearityUI <- function(id, title = "Linearity test") {
       column(width = 3, numericInput(ns("height"), "Height", value = 400, min=100, step = 50)),
       column(width = 3, checkboxInput(ns("showLabel"), tl("Show labels"), value = T))
     ),
+    fixedRow(
+      column(width = 4, radioButtons(ns('method'), tl("Method"), choices = c("lm","loess","glm","gam"), inline = T)),
+    ),
     uiOutput(ns("linearPlotsUI"))
   )
 }
@@ -44,6 +47,10 @@ linearityMD <- function(id, dataset, dvs = "dvs", between = "between", covar = "
 
       # ... plots linear plots
 
+      observeEvent(input$method, {
+        dataset$lmethod <- input$method
+      })
+
       output$linearPlotsUI <- renderUI({
         if (dataset$isSetup && input$dv %in% names(dataset[[dataTable]])) {
           dv <- input$dv
@@ -61,7 +68,7 @@ linearityMD <- function(id, dataset, dvs = "dvs", between = "between", covar = "
                   params$repel = T
                   params$label = wid()
                 }
-                do.call(ggpubr::ggscatter, params) + ggplot2::stat_smooth(method = "loess", span = 0.9)
+                do.call(ggpubr::ggscatter, params) + ggplot2::stat_smooth(method = input$method, span = 0.9)
               }, width = input$width, height = input$height)
             )
           }))

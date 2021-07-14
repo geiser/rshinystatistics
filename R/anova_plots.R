@@ -21,7 +21,7 @@ ggPlotAoV <- function(data, x, y, color = c(), aov, pwc, linetype = color, by = 
   data[[x]] <- factor(data[[x]])
   pd <- ggplot2::position_dodge(width = 0.15)
 
-  pwc2 <- tryCatch(rstatix::add_xy_position(pwc, x = x, fun="max", step.increase = step.increase), error = function(e) NULL)
+  pwc2 <- tryCatch(rstatix::add_xy_position(pwc, x = x, fun="max", step.increase = step.increase, scales = "free"), error = function(e) NULL)
   if (is.null(pwc2)) return(ggplot2::ggplot())
   if (length(color) > 0) {
     bxp <- ggpubr::ggboxplot(data, x = x, y = y, color = color, palette = "jco", add=addParam, facet.by = by)
@@ -36,11 +36,6 @@ ggPlotAoV <- function(data, x, y, color = c(), aov, pwc, linetype = color, by = 
   }
   bxp <- bxp + ggplot2::labs(subtitle = rstatix::get_test_label(aov, detailed = T), caption = rstatix::get_pwc_label(pwc2))
   bxp <- bxp + ggplot2::theme(text = ggplot2::element_text(size=font.label.size))
-  #attr(bxp,"lbl") <- paste0(
-  #  'Plot of "',y,'" based on "',x,'"',
-  #  ifelse(length(by)>0, paste0(' grouped by "',paste0(by,collapse='*')),'"'),
-  #  ifelse(length(color)>0, paste0(' (color: ',color,')'), '')
-  #)
   return(bxp)
 }
 

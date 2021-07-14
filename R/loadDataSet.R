@@ -1,5 +1,6 @@
 #' @import shiny
 loadDataSetUI <- function(id) {
+  shinyjs::useShinyjs()
   ns <- NS(id)
   tl <- getTranslator('loadDataSet')
   verticalLayout(
@@ -406,6 +407,9 @@ loadDataSetMD <- function(id, var.params = list(), dv.vars = NULL, rds.signature
           values$isSetup <- T
           values$reportId <- '000'
         } else {
+
+          shinyjs::refresh()
+
           values$isSetup <- F
           values$variables <- list()
           nlists <- names(reactiveValuesToList(values))

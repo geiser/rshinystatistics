@@ -1,7 +1,7 @@
 #' @import shiny
-ancovaExportUI <- function(id) {
+exportHypothesisUI <- function(id) {
   ns <- NS(id)
-  tl <- getTranslator('ancovaExport')
+  tl <- getTranslator('common')
 
   fchoices <- c("html", "github", "word")
 
@@ -10,11 +10,11 @@ ancovaExportUI <- function(id) {
       column(width = 3, textInput(ns("author"), tl("Author:"), "Geiser C. Challco")),
       column(width = 3, textInput(ns("email"), tl("Email:"), "geiser@alumni.usp.br")),
     ),
-    helpText(paste0(tl("The author and email values are only used to generate the report."),
-                    tl("You won't receive a email of the report. Push the button "),
-                    '"',tl('Generate Export Files'),'"',tl(' and the button '),'"',tl('Download ZIP'),'" ',
-                    tl("to obtain the report in ZIP format"))),
-    checkboxGroupInput(ns("files"), tl("Export formats"), choices = fchoices, selected = "html", width = "100%", inline = T),
+    helpText(paste(tl("The author and email values are only used to generate the report."),
+                   tl("You won't receive a email of the report. Push the button"),'"',
+                   tl('Generate Export Files'),'" ', tl('and the button'),'"',tl('Download ZIP'),'"',
+                   tl("to obtain the report as ZIP file"))),
+    checkboxGroupInput(ns("files"), tl("Report formats"), choices = fchoices, selected = "html", width = "100%", inline = T),
     fixedRow(
       column(width = 2, uiOutput(ns("exportButtonUI"))),
       column(width = 2, uiOutput(ns("space1UI"))),
@@ -29,28 +29,28 @@ ancovaExportUI <- function(id) {
 
 
 #' @import shiny
-ancovaExportMD <- function(id, dataset, dvs = "dvs", between = "between", covar = "covar", initTable='initTable', dataTable = 'dataTable', fileTable='fileTable') {
+exportHypothesisMD <- function(id, test, dataset, dvs = "dvs", between = "between", covar = "covar", initTable='initTable', dataTable = 'dataTable', fileTable='fileTable') {
   moduleServer(
     id,
     function(input, output, session) {
       ns <- session$ns
-      tl <- getTranslator('ancovaExport')
+      tl <- getTranslator('common')
 
       rdvs <- reactiveVal(unique(unlist(dataset$variables[c(dvs)], use.names = F)))
+
       observeEvent(dataset$variables, {
+        if (!dataset$isSetup) return(NULL)
         rdvs(unique(unlist(dataset$variables[c(dvs)], use.names = F)))
-        updateCheckboxGroupInput(session, "dvs", choices = rdvs(), inline = T)
       })
 
       reportId <- reactiveVal(
         digest::digest(list(
-          id = id, dataTable = dataset[[dataTable]], all.names = T,
-          ancovaParams = dataset$ancovaParams,
+          id = id, test = test,
+          fileTable = dataset[[fileTable]], dataTable = dataset[[dataTable]],
           dvs = dvs, between = between, covar = covar), algo = "xxhash64")
       )
-      path <- reactiveVal(
-        paste0(getwd(),'/report/ancova/',reportId())
-      )
+
+      path <- reactiveVal(paste0(getwd(),'/report/',test,'/',reportId()))
 
       # ... generate reports
 
@@ -61,10 +61,10 @@ ancovaExportMD <- function(id, dataset, dvs = "dvs", between = "between", covar 
         dir.create(paste0(path(),'/results'), showWarnings = F, recursive = T)
 
         knitr::opts_knit$set(base.dir = NULL)
-        inc <- 1/(length(input$files) * (1+length(input$dvs)))
+        inc <- 1/length(input$files)
 
         backup <- reactiveValuesToList(dataset, all.names = T)
-        backup[["rds.signature"]] <- paste0('ancova-', as.character(packageVersion("rshinystatistics")))
+        backup[["rds.signature"]] <- paste0(test, '-', as.character(packageVersion("rshinystatistics")))
         backup[["author"]] <- input$author
         backup[["email"]] <- input$email
 
@@ -74,24 +74,26 @@ ancovaExportMD <- function(id, dataset, dvs = "dvs", between = "between", covar 
         for (dv in rdvs()) write.csv(backup[[initTable]][[dv]], paste0(path(),'/data/table-for-',dv,'.csv'))
 
         # ... saving code
-        cat(ancovaSummaryAsFile('Rmd', backup, dvs, between, covar), file = paste0(path(),'/code/ancova.Rmd'))
-        knitr::purl(paste0(path(),'/code/ancova.Rmd'), paste0(path(),'/code/ancova.R'), documentation = 2)
+        cat(hypothesisAsFile('Rmd', test, backup, dvs, between, covar), file = paste0(path(),'/code/',test,'.Rmd'))
+        knitr::purl(paste0(path(),'/code/',test,'.Rmd'), paste0(path(),'/code/',test,'.R'), documentation = 2)
 
         # ... generating reports
         for (nfile in input$files) {
-          progress$inc(inc, detail = paste('Generating', nfile,'files for the report'))
-          rmarkdown::render(paste0(path(), '/code/ancova.Rmd'), paste0(nfile,'_document'), output_dir = paste0(path(),'/results'))
+          progress$inc(inc, detail = paste('Generating',nfile,'files for the report'))
+          rmarkdown::render(paste0(path(),'/code/',test,'.Rmd'), paste0(nfile,'_document'), output_dir = paste0(path(),'/results'))
         }
       }
 
-      observeEvent(input[[paste0("exportAncova",reportId())]], {
+      # .. button to generate and download the report
+
+      observeEvent(input[[paste0("export",test,reportId())]], {
         if (!dataset$isSetup) return(NULL)
         validate(
-          need(!is.null(dataset$ancovaParams[["hypothesis"]]),
-               tl("Please perform the ANCOVA test before to generate the files to be exported"))
+          need(!is.null(dataset[[paste0(test,'Params')]][["hypothesis"]]),
+               tl(paste0("Please perform the ",test," test before to generate the report files")))
         )
         progress <- shiny::Progress$new()
-        progress$set(message = tl("Making files to export ANCOVA"), value = 0)
+        progress$set(message = tl("Making report files"), value = 0)
 
         updateFiles(progress)
         on.exit(progress$close())
@@ -103,11 +105,11 @@ ancovaExportMD <- function(id, dataset, dvs = "dvs", between = "between", covar 
 
       output$exportButtonUI <- renderUI({
         if (!dataset$isSetup) return(NULL)
-        actionButton(ns(paste0("exportAncova",reportId())), tl("Generate Export Files"), icon = icon('file-export'))
+        actionButton(ns(paste0("export",test,reportId())), tl("Generate Export Files"), icon = icon('file-export'))
       })
 
       output$downloadButtonUI <- renderUI({
-        if (!is.null(input[[paste0("exportAncova",reportId())]]) && (input[[paste0("exportAncova",reportId())]]) > 0) {
+        if (!is.null(input[[paste0("export",test,reportId())]]) && (input[[paste0("export",test,reportId())]]) > 0) {
           downloadButton(ns('downloadZIP'), tl('Download ZIP'))
         }
       })

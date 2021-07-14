@@ -3,7 +3,7 @@
 #'
 #' @export
 ggPlotWilcoxon <- function(data, x, y, wt, addParam = c(), font.label.size = 14) {
-  stat.test <- rstatix::add_xy_position(rstatix::add_significance(wt), x=x, fun="max")
+  stat.test <- rstatix::add_xy_position(rstatix::add_significance(wt), x=x, fun="max", scales = "free")
   bxp <- ggpubr::ggboxplot(
     data, x=x, y=y, color=x, width=0.5, add=addParam, palette="jco"
   )
@@ -36,7 +36,7 @@ ggPlotFactNonParam <- function(data, x, y, color = c(), non, pwc, linetype = col
   data[[x]] <- factor(data[[x]])
   pd <- ggplot2::position_dodge(width = 0.15)
 
-  pwc2 <- tryCatch(rstatix::add_xy_position(pwc, x = x, fun="mean_se", step.increase = step.increase), error = function(e) NULL)
+  pwc2 <- tryCatch(rstatix::add_xy_position(pwc, x = x, fun="max", step.increase = step.increase), error = function(e) NULL)
   if (is.null(pwc2)) return(ggplot2::ggplot())
   if (length(color) > 0) {
     bxp <- ggpubr::ggboxplot(data, x = x, y = y, color = color, palette = "jco", add=addParam, facet.by = by)

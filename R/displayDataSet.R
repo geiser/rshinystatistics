@@ -30,7 +30,7 @@ displayDataSetUI <- function(id) {
 }
 
 #' @import shiny
-displayDataSetMD <- function(id, dataset, exclude.from.others = c("fileTable", "initTable", "variables")) {
+displayDataSetMD <- function(id, dataset, exclude.from.others = c("fileTable","initTable","variables","symmetryTable","woutlierTable","dataTable")) {
   moduleServer(
     id,
     function(input, output, session) {

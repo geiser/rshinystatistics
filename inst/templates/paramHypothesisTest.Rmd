@@ -1,5 +1,5 @@
 ---
-title: "ANCOVA test for {{ paste0(paste0('`', dvs, '`'), collapse = ',') }}"
+title: "{{ title.test }} for {{ paste0(paste0('`', dvs, '`'), collapse = ',') }}"
 author: {{ author }} <{{ email }}>
 comment: This file is automatically generate by Shiny-Statistic app (https://statistic.geiser.tech/)
          Author - Geiser C. Challco <geiser@alumni.usp.br>
@@ -55,14 +55,14 @@ options(warn = -1)
 * R-script file: [../code/ancova.R](../code/ancova.R)
 * Initial table file: [../data/initial-table.csv](../data/initial-table.csv)
 {{ paste0(paste0('* Data for ', dvs, ' [../data/table-for-',dvs,'.csv](../data/table-for-',dvs,'.csv)'), collapse = '\n') }}
-* Table without outliers and normal distribution of  data:  [../data/table-with-normal-distribution.csv](../data/table-with-normal-distribution.csv)
-* Other data files:  [../data/](../data/)
-* Files related to the presented results:   [../results/](../results/)
+* Table without outliers and normal distribution of  data: [../data/table-with-normal-distribution.csv](../data/table-with-normal-distribution.csv)
+* Other data files: [../data/](../data/)
+* Files related to the presented results: [../results/](../results/)
 
 
 ```{r, include=FALSE}
 wid <- "{{ wid }}"
-covar <- "{{ covar }}"
+{{ ifelse(length(covar) > 0, paste0('covar <- "',covar,'"'), '') }}
 between <- c({{ paste0(paste0('"', between, '"'), collapse = ',') }})
 dvs <- c({{ paste0(paste0('"', dvs, '"'), collapse = ',') }})
 names(dvs) <- dvs
@@ -79,26 +79,32 @@ sdat <- dat
 ### Descriptive statistics of initial data
 
 ```{r, include=FALSE}
-df <- dat; df[[covar]] <- dat[[1]]
-(df <- descriptive_statistics(df, c(dvs,covar), between, include.global = T, symmetry.test = T))
+{{
+if (length(covar) > 0)
+  paste0('df <- dat; df[[covar]] <- dat[[1]]')
+}}
+(df <- descriptive_statistics(df, dvs, between, include.global = T, symmetry.test = T))
 ```
 
 ```{r, echo=FALSE, purl=FALSE}
 kable(df, digits = 3)
 ```
 
-
 ```{r, echo=FALSE}
-for (dv in dvs) {
-  car::Boxplot(`dv` ~ {{ paste0(paste0('`',between,'`'), collapse = '*') }}, data = dat[[dv]] %>% cbind(dv=dat[[dv]][[dv]]), id = list(n = Inf))  
-}
+{{
+sformula <- paste0(paste0('`',between,'`'), collapse = '*')
+box.plot.code  <- paste0(lapply(dvs, FUN = function(dv) {
+  paste0("car::Boxplot(`",dv,"` ~ ",sformula,", data = dat[[\"",dv,"\"]], id = list(n = Inf))")
+}), collapse = '\n')
+box.plot.code
+}}
 ```
 
 ## Checking of Assumptions
 
 ### Assumption: Symmetry and treatment of outliers
 
-#### Applying transformation for skewness data when normality is not achieved in any dependent variables or covariance
+#### Applying transformation for skewness data when normality is not achieved
 
 {{ code.skewness }}
 
@@ -118,7 +124,13 @@ sdat <- remove_from_datatable(rdat, non.normal, wid)
 #### Result of normality test in the residual model
 
 ```{r, include=FALSE}
-(df <- normality_test_by_res(sdat, dvs, between, c(), covar))
+{{
+if (length(covar) > 0) {
+  paste0('(df <- normality_test_by_res(sdat, dvs, between, c(), covar))')
+} else {
+  paste0('(df <- normality_test_by_res(sdat, dvs, between)')
+}
+}}
 ```
 
 ```{r, echo=FALSE, purl=FALSE}
@@ -127,10 +139,10 @@ kable(df, digits = 3)
 
 #### Result of normality test in each group
 
-This is an optional validation and only performed for groups with number greater than 30 observations
+This is an optional validation and only valid for groups with number greater than 30 observations
 
 ```{r, include=FALSE}
-(df <- descriptive_statistics(sdat, dvs, between, include.global = T, normality.test = T))
+(df <- descriptive_statistics(sdat, dvs, between, include.global = F, normality.test = T))
 ```
 
 ```{r, echo=FALSE, purl=FALSE}
@@ -156,21 +168,26 @@ with values greater than 200 observation [[3](#references)].
 - For samples with `n > 200` observation, we ignore the normality assumption based on the central theorem limit.
 
 
-### Assumption: Linearity of dependent variables and covariate variable
-
 {{ linearity.code }}
+
 
 ### Assumption: Homogeneity of data distribution
 
 ```{r, include=FALSE}
-(df <- homogeneity_test(sdat, dvs, between, c(), covar))
+{{
+if (length(covar) > 0) {
+  paste0('(df <- homogeneity_test(sdat, dvs, between, c(), covar))')
+} else {
+  paste0('(df <- homogeneity_test(sdat, dvs, between)')
+}
+}}
 ```
 
 ```{r, echo=FALSE, purl=FALSE}
 kable(df, digits = 3)
 ```
 
-## Saving the Data with Normal Distribution Used for Performing ANCOVA Test 
+## Saving the Data with Normal Distribution Used for Performing {{ title.test }} 
 
 ```{r}
 ndat <- sdat[[1]]
@@ -194,55 +211,33 @@ for (dv in dvs) {
 }
 ```
 
-## Computation of ANCOVA Test and Pairwise Comparison
+## Computation of {{ title.test }} and Pairwise Comparison
 
-### ANCOVA test
+### {{ title.test }}
 
-```{r, include=FALSE}
-(aov <- ancova.test(sdat, dvs, between, covar, {{ type }}, "{{ effect.size }}", "var"))
-```
+{{ code.hypothesis }}
 
-```{r, echo=FALSE, purl=FALSE}
-cnames <- c("var", "Effect", "DFn", "DFd", "SSn", "SSd", "F", "p", "{{ effect.size }}", "p.signif")
-kdf <- get.ancova.table(aov)[,cnames]
-kable(kdf, digits = 3)
-```
+{{ code.hypothesis.tbl }}
 
-### Pairwise comparison
+{{ code.pwc }}
 
-```{r, include=FALSE}
-(pwc <- ancova.pwc(sdat, dvs, between, covar, "{{ p.adjust.method }}", "var"))
-```
+{{ code.pwc.tbl }}
 
-```{r, echo=FALSE, purl=FALSE}
-cnames <- c("var", between, "group1", "group2","estimate", "se","df","statistic","p", "p.adj","p.adj.signif")
-kdf <- get.ancova.pwc.table(pwc, only.sig = F)[,cnames]
-kable(kdf, digits = 3)
-```
+{{ code.emms }}
 
-### Estimated Marginal Means and ANCOVA Plots 
+{{ code.emms.tbl }}
 
-```{r, include=FALSE}
-(emms <- get.ancova.emmeans.with.ds(pwc, sdat, dvs, between, "common", "var"))
-```
-
-```{r, echo=FALSE, purl=FALSE}
-cnames <- c("var",between,covar,"n","emmean","se.emms","conf.low","conf.high","mean","median","sd","ci")
-kable(emms[,cnames], digits = 3)
-```
-
-{{ ancova.plots  }}
+{{ code.plots  }}
 
 ### Textual Report
 
-{{ ancova.text }}
-{{ ancova.pwc.text }}
+{{ hypothesis.text }}
+
+{{ hypothesis.pwc.text }}
 
 ## Tips and References
 
 - Use the site [https://www.tablesgenerator.com](https://www.tablesgenerator.com) to convert the HTML tables into Latex format
-
-- [1]: Ghasemi, A., & Zahediasl, S. (2012). Normality tests for statistical analysis: a guide for non-statisticians. International journal of endocrinology and metabolism, 10(2), 486.
 
 - [2]: Miot, H. A. (2017). Assessing normality of data in clinical and experimental trials. J Vasc Bras, 16(2), 88-91.
 
