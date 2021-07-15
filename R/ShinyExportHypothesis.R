@@ -100,6 +100,7 @@ shinyExportHypothesisMD <- function(id, test, dataset, dvs = "dvs", between = "b
         cat(as.character(
           templates::tmpl(paste(readLines(system.file("templates/metadata", "metadata.yml", package="rshinystatistics")), collapse="\n")
                           , title.test = toupper(test), str.formula = str.formula
+                          , author = input$author, email = input$email
                           , description = paste0("(@author = ", input$author, ", @email = ", input$email, ")"))
         ), file = paste0(path(),'/metadata/metadata.yml'))
 
