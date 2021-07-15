@@ -286,7 +286,7 @@ shinyNormalityMD <- function(id, dataset, dvs = "dvs", between = "between", with
           names(res) <- dat[[wid()]]
         }
 
-        selected <- getNonNormal(res, x.name=names(res), step = 2, plimit = 0.05)
+        selected <- getNonNormal(res, x.name=names(res), step = 1, plimit = 0.05)
         params <- list(data = dat, wid = wid(), dv = dv, between = between, within = within, covar = rcovar(),
                        width = input$widthRes, height = input$heightRes, bins = input$binsRes)
         verticalLayout(

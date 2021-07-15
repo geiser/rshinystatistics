@@ -1,5 +1,5 @@
 ---
-title: "{{ title.test }} for {{ paste0(paste0('`', dvs, '`'), collapse = ',') }}"
+title: "{{ title.test }} for {{ as_formula(paste0(dvs,collapse = ','), between, covar = covar, as.character = T) }}"
 author: {{ author }} <{{ email }}>
 comment: This file is automatically generate by Shiny-Statistic app (https://statistic.geiser.tech/)
          Author - Geiser C. Challco <geiser@alumni.usp.br>

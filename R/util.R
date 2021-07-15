@@ -86,10 +86,10 @@ as_formula <- function(dv, between = c(), within = c(), covar = NULL, wid = 'row
 
   sformula <- paste0(paste0('`',ivs,'`'), collapse = '*')
   if (!is.null(covar))
-    sformula <- paste0('`', covar, '` + ', sformula)
-  sformula <- paste0('`', dv, '` ~ ', sformula)
+    sformula <- paste0('`', covar, '`+', sformula)
+  sformula <- paste0('`', dv, '`~', sformula)
   if (length(within) > 0) {
-    sformula <- paste0(sformula,' + Error(',paste0('`',wid,'`'),'/(',paste0(paste0('`',within,'`'),collapse='*'),'))')
+    sformula <- paste0(sformula,'+Error(',paste0('`',wid,'`'),'/(',paste0(paste0('`',within,'`'),collapse='*'),'))')
   }
   if (as.character) return(sformula)
   else return(stats::as.formula(sformula))

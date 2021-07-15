@@ -39,10 +39,14 @@ shinyExportHypothesisMD <- function(id, test, dataset, dvs = "dvs", between = "b
       tl <- getTranslator()
 
       rdvs <- reactiveVal(unique(unlist(dataset$variables[c(dvs)], use.names = F)))
+      rbetween <- reactiveVal(unique(unlist(dataset$variables[c(between)], use.names = F)))
+      rcovar <- reactiveVal(unique(unlist(dataset$variables[c(covar)], use.names = F)))
 
       observeEvent(dataset$variables, {
         if (!dataset$isSetup) return(NULL)
         rdvs(unique(unlist(dataset$variables[c(dvs)], use.names = F)))
+        rbetween(unique(unlist(dataset$variables[c(between)], use.names = F)))
+        rcovar(unique(unlist(dataset$variables[c(covar)], use.names = F)))
       })
 
       reportId <- reactiveVal(
@@ -73,7 +77,7 @@ shinyExportHypothesisMD <- function(id, test, dataset, dvs = "dvs", between = "b
         backup[["email"]] <- input$email
 
         # ... saving data
-        saveRDS(backup, file = paste0(path(), '/data/backup.rds'))
+        saveRDS(backup, file = paste0(path(), 'backup.rds'))
         write.csv(backup[[fileTable]], paste0(path(),'/data/initial-table.csv'))
         for (dv in rdvs()) write.csv(backup[[initTable]][[dv]], paste0(path(),'/data/table-for-',dv,'.csv'))
         file.copy(system.file("templates/data", "LICENSE", package="rshinystatistics"), paste0(path(),'/data/LICENSE'), overwrite = T)
@@ -143,7 +147,10 @@ shinyExportHypothesisMD <- function(id, test, dataset, dvs = "dvs", between = "b
       })
 
       output$downloadZIP <- downloadHandler(
-        filename = function() { paste0(ns("backup"), reportId(), ".zip") },
+        filename = function() {
+          str.formula <- as_formula(paste0(rdvs(), collapse = '_'), between = rbetween(), covar = rcovar(), as.character =T)
+          paste0(ns("backup"), '-', URLencode(gsub('/','_',gsub('`','',str.formula))), '-', reportId(), ".zip")
+        },
         content = function(file) { zip::zipr(file, files = paste0(path(),"/")) }
       )
 

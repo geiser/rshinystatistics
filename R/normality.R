@@ -199,7 +199,7 @@ getNonNormal <- function(x, x.name = paste0('', seq(1, length(x))), step = 1, pl
   for (pstep in (max.step:step)) {
     xtemp <- x
     non.normal <- c()
-    res <- tryCatch(normality_test(xtemp), error = function(e) NULL)
+    res <- tryCatch(normality.test(xtemp), error = function(e) NULL)
     while(!is.null(res) && (length(unique(xtemp)) > 3) && res$p < plimit) {
       y <- sort(xtemp)
       xnorm <- qqnorm(y, plot.it = F)
@@ -208,7 +208,7 @@ getNonNormal <- function(x, x.name = paste0('', seq(1, length(x))), step = 1, pl
       y.diff <- sort(y.diff, decreasing = T)[1:pstep]
       xtemp <- xtemp[!names(xtemp) %in% names(y.diff)]
       non.normal <- c(non.normal, names(y.diff))
-      res <- tryCatch(normality_test(xtemp), error = function(e) NULL)
+      res <- tryCatch(normality.test(xtemp), error = function(e) NULL)
     }
     if (length(non.normal) > 0 && length(non.normal) < max.length) {
       toReturn <- non.normal
