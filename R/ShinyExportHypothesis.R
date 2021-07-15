@@ -77,7 +77,7 @@ shinyExportHypothesisMD <- function(id, test, dataset, dvs = "dvs", between = "b
         backup[["email"]] <- input$email
 
         # ... saving data
-        saveRDS(backup, file = paste0(path(), 'backup.rds'))
+        saveRDS(backup, file = paste0(path(), '/backup.rds'))
         write.csv(backup[[fileTable]], paste0(path(),'/data/initial-table.csv'))
         for (dv in rdvs()) write.csv(backup[[initTable]][[dv]], paste0(path(),'/data/table-for-',dv,'.csv'))
         file.copy(system.file("templates/data", "LICENSE", package="rshinystatistics"), paste0(path(),'/data/LICENSE'), overwrite = T)
@@ -105,7 +105,7 @@ shinyExportHypothesisMD <- function(id, test, dataset, dvs = "dvs", between = "b
 
         # ... saving REPRODUCING
         cat(as.character(
-          templates::tmpl(paste(readLines(system.file("templates", "REPRODUCING.md", package="rshinystatistics")), collapse="\n")
+          templates::tmpl(paste(readLines(system.file("templates", "REPRODUCING", package="rshinystatistics")), collapse="\n")
                           , reportId = reportId())
         ), file = paste0(path(),'/REPRODUCING.md'))
 
