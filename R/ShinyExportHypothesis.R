@@ -96,23 +96,24 @@ shinyExportHypothesisMD <- function(id, test, dataset, dvs = "dvs", between = "b
         file.copy(system.file("templates/environment", "Dockerfile", package="rshinystatistics"), paste0(path(),'/environment/Dockerfile'), overwrite = T)
 
         # ... saving metadata
+        str.formula <- as_formula(paste0(rdvs(), collapse = ','), between = rbetween(), covar = rcovar(), as.character = T)
         cat(as.character(
           templates::tmpl(paste(readLines(system.file("templates/metadata", "metadata.yml", package="rshinystatistics")), collapse="\n")
-                          , title.test = toupper(test), dvs = rdvs()
-                          , description = paste0("@author = ", input$author, ", @email = ", input$email))
+                          , title.test = toupper(test), str.formula = str.formula
+                          , description = paste0("(@author = ", input$author, ", @email = ", input$email, ")"))
         ), file = paste0(path(),'/metadata/metadata.yml'))
-
-        # ... generating reports
-        for (nfile in input$files) {
-          progress$inc(inc, detail = paste('Generating',nfile,'files for the report'))
-          rmarkdown::render(paste0(path(),'/code/',test,'.Rmd'), paste0(nfile,'_document'), output_dir = paste0(path(),'/results'))
-        }
 
         # ... saving REPRODUCING
         cat(as.character(
           templates::tmpl(paste(readLines(system.file("templates", "REPRODUCING.md", package="rshinystatistics")), collapse="\n")
                           , reportId = reportId())
         ), file = paste0(path(),'/REPRODUCING.md'))
+
+        # ... generating reports
+        for (nfile in input$files) {
+          progress$inc(inc, detail = paste('Generating',nfile,'files for the report'))
+          rmarkdown::render(paste0(path(),'/code/',test,'.Rmd'), paste0(nfile,'_document'), output_dir = paste0(path(),'/results'))
+        }
 
       }
 
@@ -148,7 +149,7 @@ shinyExportHypothesisMD <- function(id, test, dataset, dvs = "dvs", between = "b
 
       output$downloadZIP <- downloadHandler(
         filename = function() {
-          str.formula <- as_formula(paste0(rdvs(), collapse = '_'), between = rbetween(), covar = rcovar(), as.character =T)
+          str.formula <- as_formula(paste0(rdvs(), collapse = '_'), between = rbetween(), covar = rcovar(), as.character = T)
           paste0(ns("backup"), '-', URLencode(gsub('/','_',gsub('`','',str.formula))), '-', reportId(), ".zip")
         },
         content = function(file) { zip::zipr(file, files = paste0(path(),"/")) }
