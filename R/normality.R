@@ -1,207 +1,220 @@
-#' @import shiny
-normalityUI <- function(id) {
-  ns <- NS(id)
-  tl <- getTranslator("normality")
+#' Symmetry test
+#'
+#' This function performs a symmetry test in a numeric vector.
+#'
+#' @param x a numeric vector of data values
+#' @return A data frame containing the value of the skewness and kurtosis values
+#' @export
+symmetry.test <- function(x) {
+  skewness <- as.numeric(timeDate::skewness(x, na.rm = T))
+  skewness.obs <- 'symmetrical (normal)'
+  if (skewness < -2) {
+    skewness.obs <- 'negative severe skew'
+  } else if (skewness >= -2 && skewness < -1) {
+    skewness.obs <- 'negative greater skew'
+  } else if (skewness >= -1 && skewness < -0.5) {
+    skewness.obs <- 'negative moderate skew'
+  } else if (skewness > 0.5 && skewness <= 1) {
+    skewness.obs <- 'positive moderate skew'
+  } else if (skewness > 1 && skewness <= 2) {
+    skewness.obs <- 'positive greater skew'
+  } else if (skewness > 2) {
+    skewness.obs <- 'positive severe skew'
+  }
 
-  verticalLayout(
-    uiOutput(ns("normalityAssessmentInResUI")),
-    br(), hr(), br(),
-    uiOutput(ns("normalityAssessmentPerGroupsUI"))
-  )
+  kurtosis <- as.numeric(timeDate::kurtosis(x, na.rm = T))
+  kurtosis.obs <- 'mesokurtic (normal)'
+  if (kurtosis < -3) {
+    kurtosis.obs <- 'platykurtic (outliers)'
+  } else if (kurtosis > 3) {
+    kurtosis.obs <- 'leptokurtic (outliers)'
+  }
+
+  return(list(
+    skewness = skewness, skewness.obs = skewness.obs,
+    kurtosis = kurtosis, kurtosis.obs = kurtosis.obs
+  ))
 }
 
-#' @import shiny
-normalityMD <- function(id, dataset, dvs = "dvs", between = "between", within = "within"
-                        , covar = "covar", show.residuals = T, show.groups = T, dataTable="dataTable") {
-  moduleServer(
-    id,
-    function(input, output, session) {
-      ns <- session$ns
-      tl <- getTranslator('normality')
+#' Normality Test
+#'
+#' This function performs a normality test in a numeric vector.
+#'
+#' @param x a numeric vector of data values
+#' @return A data frame containing the value of the normality statistic and its corresponding p.value
+#' @export
+normality.test <- function(x) {
+  if (length(unique(x)) < 4) {
+    df <- data.frame(
+      n = length(x),
+      skewness = 0,
+      kurtosis = 0,
+      symmetry = 'few data',
+      statistic = NA,
+      method = NA,
+      p = 1,
+      p.signif = NA,
+      normality = 'NO'
+    )
+    return(df)
+  }
 
-      tip <- ''
-      if (show.residuals)
-        tip <- paste('A avaliação de distribuição em grupos é <b>opcional</b> quando é feita',
-                     'avaliação de normalidade empregando modelos residuais.',
-                     'Nossa recomendação é apenas realizar a avaliação de normalide em grupos',
-                     'com observações maiores do que n > 30')
-      normalityHelp <- paste(
-        'Na tabela de avaliação de distribuição de normalidade, empregamos os códigos:<ul>',
-        '<li><b>YES</b> para indicar que a distribuição de normalidade é satisfeita</li>',
-        '<li><b>NO</b> quando a hipótese nula é rejeitada (indicando que os dados não são de uma distribuição normal)</li>',
-        '<li><b>QQ</b> para indicar que o p-value do teste pode ser ignorado, efetuando apenas a avaliação de normalidade com base nos gráficos QQ</li>',
-        '<li><b>--</b> indica que o teste de normalidade pode ser ignorado</li>', '</ul>',
-        'Se a amostra é suficientemente grande (maiores de 100 observações), os dados precissam apenas uma distribuição aproximadamente normal.
-        Assim o nivel de sig. para rejeitar a hipótese nula foi reduzida para p = 0.01 e em casos com maior de 50 observações, adoptamos
-        DAgostino-Pearson test ao invés de Shapiro-Wilk.')
+  plimit <- 0.05
+  n.test <- shapiro.test(x)
+  cutpoints <- c(0, 1e-04, 0.001, 0.01, 0.05, 1)
 
-      wid <- reactiveVal(dataset$variables$wid)
-      rdvs <- reactiveVal(unique(unlist(dataset$variables[c(dvs)], use.names = F)))
-      rbetween <- reactiveVal(unique(unlist(dataset$variables[c(between)], use.names = F)))
-      rwithin <- reactiveVal(unique(unlist(dataset$variables[c(within)], use.names = F)))
-      rcovar <- reactiveVal(unique(unlist(dataset$variables[c(covar)], use.names = F)))
-      updateRadioButtons(session, "dv", choices = rdvs(), selected = rdvs()[1], inline = T)
+  if (length(x) > 100) {
+    plimit <- 0.01
+    cutpoints <- c(0, 1e-05, 1e-04, 0.001, 0.01, 1)
+  }
+  if (length(x) > 50) n.test <- fBasics::dagoTest(x)@test
 
-      observeEvent(dataset$variables, {
-        wid(dataset$variables$wid)
-        rdvs(unique(unlist(dataset$variables[c(dvs)], use.names = F)))
-        rbetween(unique(unlist(dataset$variables[c(between)], use.names = F)))
-        rwithin(unique(unlist(dataset$variables[c(within)], use.names = F)))
-        rcovar(unique(unlist(dataset$variables[c(covar)], use.names = F)))
-        updateRadioButtons(session, "dv", choices = rdvs(), selected = rdvs()[1], inline = T)
-      })
+  normality <- ifelse(n.test$p.value[1] < plimit, 'NO', 'YES')
+  if (length(x) > 100) normality <- 'QQ'
+  if (length(x) > 200) normality <- '-'
 
-      # .. Assessment of normality distribution in the residual model
+  sd <- symmetry.test(x)
 
-      output$normalityAssessmentInResUI <- renderUI({
-        if (!dataset$isSetup || !show.residuals) return(NULL)
-        verticalLayout(
-          p(h4("Assessment of normality in the residual model")),
-          df2TableUI(ns("normalityResTbl")),
-          uiOutput(ns("assessmentHelp4ResUI"))
-        )
-      })
+  df <- cbind(rstatix::add_significance(data.frame(
+    n = length(x),
+    skewness = sd$skewness,
+    kurtosis = sd$kurtosis,
+    symmetry = ifelse(sd$skewness.obs == 'symmetrical (normal)' && sd$kurtosis.obs == 'mesokurtic (normal)', "YES", "NO"),
+    statistic = n.test$statistic[1],
+    method = strsplit(n.test$method, ' ')[[1]][1],
+    p = n.test$p.value[1]
+  ), p.col = "p", cutpoints = cutpoints), normality = normality)
+  rownames(df) <- rep('', nrow(df))
+  return(df)
+}
 
-      output$assessmentHelp4ResUI <- renderUI({
-        if (!dataset$isSetup || !show.residuals || dataset$checkNormality) return(NULL)
-        verticalLayout(
-          helpText(HTML(normalityHelp)),
-          checkboxInput(ns("showQQPlot4Residual"), tl("Show QQ-plots to assess normality distribution in the residual model"), width = "100%"),
-          conditionalPanel(
-            condition = "input.showQQPlot4Residual", ns = ns,
-            fixedRow(
-              column(width = 3, radioButtons(ns('dvRes'), tl("Dependent variable"), choices = rdvs(), selected = rdvs()[1], inline = T)),
-              column(width = 3, numericInput(ns("widthRes"), "Width", value = 500, min=100, step = 50)),
-              column(width = 3, numericInput(ns("heightRes"), "Height", value = 400, min=100, step = 50)),
-              column(width = 3, sliderInput(ns("binsRes"), "Number of bins:", min = 5, max = 100, value = 35))
-            ),
-            uiOutput(ns("qqPlot4ResidualUI"))
-          )
-        )
-      })
+#' Normality Test
+#'
+#' This function performs a normality test in diferents columns of vector.
+#'
+#' @param dat a tibble data.frame containing the variables in which performing the normality test
+#' @param dvs a list of numeric columns in which performing the normality test
+#' @return A data frame containing the value of the normality statistic and its corresponding p.value
+#' @export
+normality.test.at <- function(dat, dvs) {
+  df <- dplyr::select(dplyr::group_data(dat), -starts_with(".rows"))
+  do.call(rbind, lapply(dvs, FUN = function(dv) {
+    do.call(rbind, lapply(seq(1, nrow(dplyr::group_data(dat))), FUN = function(i) {
+      n.test <- normality.test(dat[[dv]][dplyr::group_data(dat)[[".rows"]][[i]]])
+      cbind(variable = dv, df[i,] , n.test)
+    }))
+  }))
+}
 
-      output$normalityAssessmentPerGroupsUI <- renderUI({
-        if (!dataset$isSetup || !show.groups) return(NULL)
-        verticalLayout(
-          p(h4("Assessment of normality in the groups")),
-          df2TableUI(ns("normalityPerGroupsTbl")),
-          uiOutput(ns("assessmentHelp4GroupsUI"))
-        )
-      })
-
-      output$assessmentHelp4GroupsUI <- renderUI({
-        if (!dataset$isSetup || !show.groups || dataset$checkNormality) return(NULL)
-        verticalLayout(
-          helpText(HTML(tip)), helpText(HTML(normalityHelp)),
-          checkboxInput(ns("showQQPlot4Groups"), tl("Show QQ-plots to assess normality distribution for each group"), width = "100%"),
-          conditionalPanel(
-            condition = "input.showQQPlot4Groups", ns = ns,
-            fixedRow(
-              column(width = 3, radioButtons(ns('dvGroups'), tl("Dependent variable"), choices = rdvs(), selected = rdvs()[1], inline = T)),
-              column(width = 3, numericInput(ns("widthGroups"), "Width", value = 500, min=100, step = 50)),
-              column(width = 3, numericInput(ns("heightGroups"), "Height", value = 400, min=100, step = 50)),
-              column(width = 3, sliderInput(ns("binsGroups"), "Number of bins:", min = 5, max = 100, value = 35))
-            ),
-            uiOutput(ns("qqPlot4GroupsUI"))
-          )
-        )
-      })
-
-
-      # ... tables of normality assessment
-
-      updateNormalityTables <- function() {
-        if (!dataset$isSetup) return(NULL)
-        data <- dataset[[dataTable]]
-        if (show.residuals) {
-          df <- do.call(normality_test_by_res, list(
-            data = data, dvs = rdvs(), between = rbetween(), within = rwithin(), covar = rcovar(), wid = wid()))
-          cnames <- c('var','normality','method','statistic','p','p.signif')
-          df2TableMD("normalityResTbl", df, cnames, prefix = ns('normality-residual-assessment'))
-        }
-
-        dargs <- list(data = data, dvs = rdvs(), ivs = c(rbetween(), rwithin()), type = 'mean_sd', normality.test = T)
-        df.grp <- do.call(descriptive_statistics, dargs)
-        df2TableMD("normalityPerGroupsTbl", df.grp, prefix = ns('normality-assessment-per-group'))
-      }
-
-      observeEvent(dataset$isSetup, { if (dataset$isSetup) updateNormalityTables() })
-      observeEvent(dataset[[dataTable]], { if (dataset$isSetup) updateNormalityTables() })
-
-      # .. QQ plots for residuals
-
-      output$qqPlot4ResidualUI <- renderUI({
-        if (!dataset$isSetup) return(NULL)
-        dv <- input$dvRes
-        dat <- as.data.frame(dataset[[dataTable]][[dv]])
-        within <- rwithin()[rwithin() %in% colnames(dat)]
-        between <- rbetween()[rbetween() %in% colnames(dat)]
-
-        sformula <- as_formula(dv, between, within, rcovar(), wid())
-        if (length(between) == 0 && length(within) == 0 && length(rcovar()) == 0) {
-          res <- dat[[dv]]
-          names(res) <- dat[[wid()]]
-        } else if (length(within) > 0) {
-          res <- as.data.frame(stats::proj(stats::aov(sformula, data = dat))[[3]])$Residuals
-          names(res) <- dat[[wid()]]
-        } else {
-          res <- residuals(lm(sformula, data = dat))
-          names(res) <- dat[[wid()]]
-        }
-
-        selected <- getNonNormal(res, x.name=names(res), step = 2, plimit = 0.05)
-        params <- list(data = dat, wid = wid(), dv = dv, between = between, within = within, covar = rcovar(),
-                       width = input$widthRes, height = input$heightRes, bins = input$binsRes)
-        verticalLayout(
-          do.call(qqResidualPanel, params),
-          span(tl("To achive normality, we suggest to remove the elements:")),
-          selectInput(ns(paste0('extremeRes',dv,'Input')), '',choices = dat[[wid()]], selected = selected, multiple = T, width = '100%'),
-          actionButton(ns(paste0('removeRes',dv,'Button')), tl("Remove to achieve normality")), br()
-        )
-      })
-
-      lapply(rdvs(), FUN = function(dv){
-        observeEvent(input[[paste0('removeRes',dv,'Button')]], {
-          if (!dataset$isSetup) return(NULL)
-          ids <- isolate(dataset$addToRemoveForNormality[[dv]])
-          dataset$addToRemoveForNormality[[dv]] <- c(ids, input[[paste0('extremeRes',dv,'Input')]])
-        })
-      })
-
-      # .. QQ plots for groups
-
-      infoGroupQQs <- reactiveVal(NULL)
-
-      output$qqPlot4GroupsUI <- renderUI({
-        if (!dataset$isSetup) return(NULL)
-        dv <- input$dvGroups
-        infoGroupQQs(info_for_qq_groups(dataset[[dataTable]], dv, c(rbetween(),rwithin()), wid()))
-        do.call(verticalLayout, lapply(infoGroupQQs(), FUN = function(info) {
-          params <- list(
-            data = info$data, dv = dv, wid = wid(), name = info$lbl,
-            width = input$widthGroups, height = input$heightGroups, bins = input$binsGroups
-          )
-          verticalLayout(
-            do.call(qqGroupPanel, params),
-            span(tl("To achive normality, we suggest to remove the elements:")),
-            selectInput(ns(paste0('extremeGroup',dv,'Input',info$i)), '', choices = info$data[[wid()]], selected = info$non.normal, multiple = T, width = '100%'),
-            actionButton(ns(paste0('removeGroup',dv,'Button',info$i)), tl("Remove to achieve normality")), br()
-          )
-        }))
-      })
-
-      observeEvent(infoGroupQQs(), {
-        lapply(rdvs(), FUN = function(dv) {
-          lapply(infoGroupQQs(), FUN = function(info) {
-            observeEvent(input[[paste0('removeGroup',dv,'Button',info$i)]], {
-              if (!dataset$isSetup) return(NULL)
-              ids <- isolate(dataset$addToRemoveForNormality[[dv]])
-              dataset$addToRemoveForNormality[[dv]] <- c(ids, input[[paste0('extremeGroup',dv,'Input',info$i)]])
-            })
-          })
-        })
-      })
-
+#' Normality Test of Residual Model
+#'
+#' This function performs a normality test in a residual model.
+#'
+#' @param data a data.frame or list of data containing the variables in which performing the normality test
+#' @param dvs a character vector containing the dependent variables
+#' @param between a character vector containing the independent variable used as between-subject
+#' @param within a character vector containing the independent variable used as within-subject
+#' @param covar a character indicating the column of covariate variable used in the normality test
+#' @param dv.var column with the information to classify observations based on dependent variables
+#' @return A data frame containing the normality test
+#' @export
+normality.test.by.residual <- function(data, dvs, between = c(), within = c(), covar = NULL, wid = 'row.pos', dv.var = NULL) {
+  result <- do.call(rbind, lapply(dvs, FUN = function(dv) {
+    if (is.data.frame(data)) {
+      dat <- as.data.frame(data)
+      if (!is.null(dv.var))
+        dat <- as.data.frame(data[which(data[[dv.var]] == dv),])
+    } else if (is.list(data)) {
+      dat <- as.data.frame(data[[dv]])
     }
-  )
+
+    within <- within[within %in% colnames(dat)]
+    between <- between[between %in% colnames(dat)]
+
+    sformula <- as_formula(dv, between, within, covar, wid)
+    if (length(between) == 0 && length(within) == 0 && length(covar) == 0) {
+      res <- dat[[dv]]
+      names(res) <- dat[[wid]]
+    } else if (length(within) > 0) {
+      res <- as.data.frame(stats::proj(stats::aov(sformula, data = dat))[[3]])$Residuals
+      names(res) <- dat[[wid]]
+    } else {
+      res <- residuals(lm(sformula, data = dat))
+      names(res) <- dat[[wid]]
+    }
+    df <- normality.test(res)
+    if (nrow(df) > 0) return(cbind(var = dv, df))
+  }))
+  return(result)
+}
+
+#' Normality Test per Groups
+#'
+#' This function performs a normality test per groups.
+#'
+#' @param data a data.frame containing the variables in which performing the normality test
+#' @param dvs a character vector containing the dependent variables
+#' @param ivs character vector containing the independent variable used define the groups
+#' @param dv.var column with the information to classify observations based on dependent variables
+#' @param include.global a boolean value indicating if a summarization is presented of all items
+#' @param hide.details a boolean value indicating if details should be presented
+#' @return A data frame containing the normality test
+#' @export
+normality.test.per.groups <- function(data, dvs, ivs, dv.var = NULL, include.global = F, hide.details = F) {
+  non.normal <- do.call(rbind, lapply(dvs, FUN = function(dv) {
+    if (is.data.frame(data)) {
+      dat <- as.data.frame(data)
+      if (!is.null(dv.var))
+        dat <- data[which(data[[dv.var]] == dv),]
+    } else if (is.list(data)) {
+      dat <- as.data.frame(data[[dv]])
+    }
+
+    givs <- unique(ivs[ivs %in% colnames(dat)])
+    dat <- dplyr::group_by_at(dat, givs)
+
+    df <- normality.test.at(dat, dv)
+    for (cname in setdiff(ivs, colnames(df))) {
+      df[[cname]] <- NA
+    }
+
+    if (nrow(df) > 0) {
+      if (include.global) {
+        if (hide.details) df$symmetry <- rep(NA, nrow(df))
+        df <- plyr::rbind.fill(df, normality.test.at(as.data.frame(dat), dv))
+      }
+      return(cbind(var = dv, df))
+    }
+  }))
+  return(non.normal)
+}
+
+getNonNormal <- function(x, x.name = paste0('', seq(1, length(x))), step = 1, plimit = 0.05, max.step = step+6) {
+  if (length(unique(x)) < 4) return(c())
+  names(x) <- x.name
+  if (length(x) > 100) plimit <- 0.01
+
+  toReturn <- c()
+  max.length <- Inf
+  for (pstep in (max.step:step)) {
+    xtemp <- x
+    non.normal <- c()
+    res <- tryCatch(normality_test(xtemp), error = function(e) NULL)
+    while(!is.null(res) && (length(unique(xtemp)) > 3) && res$p < plimit) {
+      y <- sort(xtemp)
+      xnorm <- qqnorm(y, plot.it = F)
+      qqline <- getQQline(y)
+      y.diff <- (xnorm$y-((qqline$slope*xnorm$x)+as.numeric(qqline$intercept)))^2
+      y.diff <- sort(y.diff, decreasing = T)[1:pstep]
+      xtemp <- xtemp[!names(xtemp) %in% names(y.diff)]
+      non.normal <- c(non.normal, names(y.diff))
+      res <- tryCatch(normality_test(xtemp), error = function(e) NULL)
+    }
+    if (length(non.normal) > 0 && length(non.normal) < max.length) {
+      toReturn <- non.normal
+      max.length <- length(toReturn)
+    }
+  }
+
+  return(toReturn)
 }

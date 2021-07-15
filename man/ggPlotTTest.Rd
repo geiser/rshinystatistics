@@ -2,7 +2,7 @@
 % Please edit documentation in R/ttest_plots.R
 \name{ggPlotTTest}
 \alias{ggPlotTTest}
-\title{T-Test Plot}
+\title{Independent T-Test Plot}
 \usage{
 ggPlotTTest(data, x, y, tt, addParam = c(), font.label.size = 14)
 }
@@ -23,5 +23,5 @@ ggPlotTTest(data, x, y, tt, addParam = c(), font.label.size = 14)
 A ggplot object with the t-test plot
 }
 \description{
-This function create ggpubr box-plot to report result from a t-test.
+This function create ggpubr box-plot to report result from an independent t-test.
 }

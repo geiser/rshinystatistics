@@ -6,6 +6,22 @@
 \usage{
 ggPlotPairedTTest(data, x, y, tt, id, font.label.size = 14)
 }
+\arguments{
+\item{data}{a data.frame containing the data in which performing the t-test}
+
+\item{x}{a character string containing the name of variable used as x-axis}
+
+\item{y}{a character string containing the name of variable used as y-axis}
+
+\item{tt}{the statistical results returned by a t_test from rstatix}
+
+\item{id}{the identification column of observations in the data}
+
+\item{font.label.size}{the integer value with the font label size}
+}
+\value{
+A ggplot object with the t-test plot
+}
 \description{
 This function create ggpubr box-plot to report result from a paired t-test.
 }
