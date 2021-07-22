@@ -117,8 +117,8 @@ shinyExportHypothesisMD <- function(id, test, dataset, dvs = "dvs", between = "b
         }
 
         if (file.exists(paste0(path(),'/results/',test,'.md'))) {
-          cat(paste(gsub(paste0(path(),'/results/'), "", readLines(paste0(path(),'/results/',test,'.md'))), collapse = '\n')
-              , file = paste0(path(),'/results/',test,'.md'))
+          str.file <- paste(gsub(paste0(path(),'/results/'), "", readLines(paste0(path(),'/results/',test,'.md'))), collapse = '\n')
+          cat(as.character(str.file), file = paste0(path(),'/results/',test,'.md'))
         }
       }
 
