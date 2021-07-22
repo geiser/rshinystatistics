@@ -12,7 +12,7 @@
 #' @param normality.test a boolean value to indicate if normality test is included
 #' @return A data.frame containing the results for the descriptive statistics
 #' @export
-get.descriptives <- function(data, dvs, ivs, type = "common", dv.var = NULL
+get.descriptives <- function(data, dvs, ivs, type = "common", covar = NULL, dv.var = NULL
                              , include.global = F, symmetry.test = F, normality.test = F, hide.details = F) {
   tbls <- lapply(dvs, FUN = function(dv) {
     if (is.data.frame(data)) {
@@ -23,9 +23,9 @@ get.descriptives <- function(data, dvs, ivs, type = "common", dv.var = NULL
       divs <- intersect(ivs, colnames(dat))
       dat <- dat[,c(dv, divs)]
     } else if (is.list(data)) {
-      dat <- dat <- as.data.frame(data[[dv]])
+      dat <- as.data.frame(data[[dv]])
       divs <- intersect(ivs, colnames(dat))
-      dat <- dat[,c(dv, divs)]
+      dat <- dat[,c(dv, divs, covar)]
     }
     if (length(divs) > 0)
       dat <- dplyr::group_by_at(dat,  dplyr::vars(divs))

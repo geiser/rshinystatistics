@@ -9,6 +9,7 @@ get.descriptives(
   dvs,
   ivs,
   type = "common",
+  covar = NULL,
   dv.var = NULL,
   include.global = F,
   symmetry.test = F,

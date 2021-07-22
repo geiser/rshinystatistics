@@ -116,6 +116,10 @@ shinyExportHypothesisMD <- function(id, test, dataset, dvs = "dvs", between = "b
           rmarkdown::render(paste0(path(),'/code/',test,'.Rmd'), paste0(nfile,'_document'), output_dir = paste0(path(),'/results'))
         }
 
+        if (file.exists(paste0(path(),'/results/',test,'.md'))) {
+          cat(paste(gsub(paste0(path(),'/results/'), "", readLines(paste0(path(),'/results/',test,'.md'))), collapse = '\n')
+              , file = paste0(path(),'/results/',test,'.md'))
+        }
       }
 
       # .. button to generate and download the report
@@ -151,7 +155,7 @@ shinyExportHypothesisMD <- function(id, test, dataset, dvs = "dvs", between = "b
       output$downloadZIP <- downloadHandler(
         filename = function() {
           str.formula <- as_formula(paste0(rdvs(), collapse = '_'), between = rbetween(), covar = rcovar(), as.character = T)
-          paste0(ns("backup"), '-', URLencode(gsub('/','_',gsub('`','',str.formula))), '-', reportId(), ".zip")
+          paste0(ns(""), URLencode(gsub('/','_',gsub('`','',str.formula))), '-', reportId(), ".zip")
         },
         content = function(file) { zip::zipr(file, files = paste0(path(),"/")) }
       )

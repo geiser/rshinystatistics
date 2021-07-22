@@ -82,7 +82,7 @@ get.ancova.pwc.table <- function(pwcs, only.sig = F) {
 }
 
 #' @export
-get.anvoca.emmeans <- function(pwcs) {
+get.ancova.emmeans <- function(pwcs) {
   cnames <- c("var")
   toReturn <- do.call(rbind, lapply(names(pwcs), FUN = function(dv) {
     do.call(rbind, lapply(names(pwcs[[dv]]), FUN = function(iv) {
@@ -97,10 +97,13 @@ get.anvoca.emmeans <- function(pwcs) {
 }
 
 #' @export
-get.ancova.emmeans.with.ds <- function(pwcs, data, dvs, ivs=c(), type = "common", dv.var = NULL) {
-  ds <- get.descriptives(data, dvs, ivs, type, dv.var)
-  emms <- get.anvoca.emmeans(pwcs)
-  toReturn <- merge(emms, ds, by.x=c("var",ivs), by.y=c("variable",ivs), suffixe=c(".emms",".ds"))
+get.ancova.emmeans.with.ds <- function(pwcs, data, dvs, ivs=c(), type = "common", covar = NULL, dv.var = NULL) {
+  ds <- get.descriptives(data, dvs, ivs, type, covar, dv.var)
+  if (length(covar) > 0)
+    ds <- merge(ds[ds$variable!=covar,], ds[ds$variable==covar, !colnames(ds) %in% c('variable')]
+                , by=ivs, all.x = T, suffixes = c("", paste0(".",covar)))
+  emms <- get.ancova.emmeans(pwcs)
+  toReturn <- merge(emms, ds, by.x=c("var",ivs), by.y=c("variable",ivs), suffixes=c(".emms",".ds"))
   toReturn[['sd.emms']] <- sqrt(toReturn[['n']])*toReturn[['se.emms']]
   return(toReturn)
 }

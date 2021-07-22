@@ -124,8 +124,8 @@ hypothesisAsFile <- function(ext, test, backup, dvs = 'dvs', between = 'between'
                        '\n','(pdf <- get.ancova.pwc.table(pwc, only.sig = F))')
     code.pwc.tbl <- 'kable(pdf[,c("var",between,"group1","group2","estimate","conf.low","conf.high","se","statistic","p","p.adj","p.adj.signif")], digits = 3)'
 
-    code.emms <- paste0('(emms <- get.ancova.emmeans.with.ds(pwc, sdat, dvs, between, "common"))')
-    code.emms.tbl <- 'kable(emms[,c("var",between,"n","emmean","mean","conf.low","conf.high","sd","sd.emms","se.emms")], digits = 3)'
+    code.emms <- paste0('(emms <- get.ancova.emmeans.with.ds(pwc, sdat, dvs, between, "common", covar = covar))')
+    code.emms.tbl <- 'kable(emms, digits = 3)'
 
     hypothesis.text <- ancova.as.text(backup[[test]], backup$dataTable, rbetween, rcovar, test.params$effect.size, lang=lang)
     hypothesis.pwc.text <- aov.pwc.as.text(test, backup$pwc, backup$ds, rbetween, p.adjust.method = test.params$p.adjust.method, lang=lang)

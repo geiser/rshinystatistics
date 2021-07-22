@@ -7,3 +7,4 @@ Rscript -e "rmarkdown::render(input = '{{ test }}.Rmd', output_dir = '../results
 # The previous version of this file was commented-out and follows below:
 #
 # Rscript {{ test }}.R "$@"
+
