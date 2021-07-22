@@ -70,7 +70,7 @@ sig.aov.as.text <- function(aov, effect.size = "ges", sdv = NULL, lang = 'en') {
 aov.pwc.as.text <- function(test, pwcs, ds, between, p.adjust.method = "bonferroni", lang='en') {
 
   if (test == 'ancova') {
-    emms <- get.anvoca.emmeans(pwcs)
+    emms <- get.ancova.emmeans(pwcs)
     pwc.df <- get.ancova.pwc.table(pwcs, only.sig = T)
   } else if (test == 'anova') {
     emms <- get.anova.emmeans(pwcs)
