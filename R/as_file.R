@@ -9,7 +9,7 @@ hypothesisAsFile <- function(ext, test, backup, dvs = 'dvs', between = 'between'
   code.skewness <- paste0(lapply(rdvs, FUN = function(dv) {
     line.code <- skewness.as.code(backup$skewness[[dv]], paste0('"',dv,'"'), paste0('dat[["',dv,'"]]'), paste0('rdat[["',dv,'"]]'))
     if (is.null(line.code)) return("")
-    if (length(backup$skewness) > 0 && length(backup$skewness[[rcovar]]) > 0) {
+    if (length(backup$skewness) > 0 && length(rcovar) > 0 && length(backup$skewness[[rcovar]]) > 0) {
       line.code <- paste0(
         line.code, '\n',
         skewness.as.code(backup$skewness[[rcovar]], paste0('"',rcovar,'"')
@@ -18,9 +18,9 @@ hypothesisAsFile <- function(ext, test, backup, dvs = 'dvs', between = 'between'
     }
 
     line.code <- paste0(c(
-      paste0('density.plot.by.residual(rdat[["',dv,'"]],"',dv,'",between',ifelse(length(backup$skewness[[rcovar]]) > 0,',c(),covar',''),')'),
+      paste0('density.plot.by.residual(rdat[["',dv,'"]],"',dv,'",between',ifelse(length(rcovar) > 0 && length(backup$skewness[[rcovar]]) > 0,',c(),covar',''),')'),
       line.code,
-      paste0('density.plot.by.residual(rdat[["',dv,'"]],"',dv,'",between',ifelse(length(backup$skewness[[rcovar]]) > 0,',c(),covar',''),')')),
+      paste0('density.plot.by.residual(rdat[["',dv,'"]],"',dv,'",between',ifelse(length(rcovar) > 0 && length(backup$skewness[[rcovar]]) > 0,',c(),covar',''),')')),
       collapse = "\n")
 
     if (ext == 'Rmd') {
@@ -43,7 +43,7 @@ hypothesisAsFile <- function(ext, test, backup, dvs = 'dvs', between = 'between'
     code.outliers <- list.as.code(backup$outliers)
   } else if (backup$outlier.method == 'winsorize') {
     code.outliers <- do.call(paste0, lapply(rdvs, FUN = function(dv) {
-      paste0('rdat[["',dv,'"]] <- winzorize(rdat[["',dv,'"]],"',dv,'", c(',paste0(paste0('"',rbetween,'"'),collapse=','),')',ifelse(length(backup$skewness[[rcovar]]) > 0,',covar',''),')\n')
+      paste0('rdat[["',dv,'"]] <- winzorize(rdat[["',dv,'"]],"',dv,'", c(',paste0(paste0('"',rbetween,'"'),collapse=','),')',ifelse(length(rcovar) > 0 && length(backup$skewness[[rcovar]]) > 0,',covar',''),')\n')
     }))
     if (ext == "Rmd") {
       code.outliers <- paste0(c("```{r}", code.outliers, "```"), collapse = '\n')
