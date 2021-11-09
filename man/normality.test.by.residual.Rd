@@ -11,7 +11,8 @@ normality.test.by.residual(
   within = c(),
   covar = NULL,
   wid = "row.pos",
-  dv.var = NULL
+  dv.var = NULL,
+  skewness = c()
 )
 }
 \arguments{
@@ -26,6 +27,8 @@ normality.test.by.residual(
 \item{covar}{a character indicating the column of covariate variable used in the normality test}
 
 \item{dv.var}{column with the information to classify observations based on dependent variables}
+
+\item{skewness}{a list of transformation to achieve normality}
 }
 \value{
 A data frame containing the normality test

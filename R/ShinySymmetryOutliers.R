@@ -71,6 +71,7 @@ shinySymmetryOutliersMD <- function(id, dataset, dvs = "dvs", ivs = "between", c
         }
 
         params <- list(data = data, dvs = idvs, ivs = rivs()
+                       , skewness = getSkewnessMap(dataset$skewness)
                        , type = 'mean_sd', include.global = T, symmetry.test = T, hide.details = T)
         df <- do.call(get.descriptives, params)
         shiny2TableMD("symmetryAssessmentTbl", df, prefix = ns('symmetry-assessment'))
@@ -112,9 +113,12 @@ shinySymmetryOutliersMD <- function(id, dataset, dvs = "dvs", ivs = "between", c
         }
 
         suggestions <- lapply(idvs, FUN = function(dv) {
-          res <- symmetry.test(data[[dv]][[dv]])
+          skewness <- getSkewnessMap(dataset$skewness)
+          col <- dv; if (col %in% names(skewness)) col <- skewness[[dv]]
+
+          res <- symmetry.test(data[[dv]][[col]])
           if (res$skewness.obs != "symmetrical (normal)") {
-            paste0("As"," `", dv, "` ","is"," ", res$skewness.obs
+            paste0("As"," `", col, "` ","is"," ", res$skewness.obs
                    , ", ","we recommend to apply "
                    , switch(res$skewness.obs
                             , 'positive moderate skew' = 'sqrt(x)'
@@ -143,11 +147,15 @@ shinySymmetryOutliersMD <- function(id, dataset, dvs = "dvs", ivs = "between", c
         }
 
         do.call(splitLayout, c(cellWidths = input$widthSymmetry, lapply(idvs, FUN = function(dv) {
+
+          skewness <- getSkewnessMap(dataset$skewness)
+          col <- dv; if (col %in% names(skewness)) col <- skewness[[dv]]
+
           verticalLayout(
             strong(paste("Density plot of", dv)),
             renderPlot({
               gplot <- ggpubr::gghistogram(
-                data[[dv]], x = dv, y = "..density..", add = "mean",
+                data[[dv]], x = col, y = "..density..", add = "mean",
                 bins = input$binsSymmetry, palette = "jco", rug = T, add_density = T)
               gplot <- gplot + ggpubr::stat_overlay_normal_density(color = "red", linetype = "dashed")
               gplot

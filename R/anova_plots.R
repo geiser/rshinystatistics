@@ -13,9 +13,10 @@
 #' @param addParam the character vector with elements to be included in the plot (e.g. "dotplot", "jitter", "boxplot", "point", "mean", "mean_se", "mean_sd", "mean_ci", "mean_range", "median", "median_iqr", "median_mad", "median_range"); see ?desc_statby for more details.
 #' @param font.label.size the integer value with the font label size
 #' @param step.increase the numeric vector to be used to minimize the overlap
+#' @param p.label the label used for p-values
 #' @return A ggplot object with the ANOVA plot
 #' @export
-ggPlotAoV <- function(data, x, y, color = c(), aov, pwc, linetype = color, by = c(), addParam = c(), font.label.size = 14, step.increase = 0.25) {
+ggPlotAoV <- function(data, x, y, color = c(), aov, pwc, linetype = color, by = c(), addParam = c(), font.label.size = 14, step.increase = 0.25, p.label = "p.adj.signif") {
   if (is.null(aov) || is.null(pwc)) return(NULL)
 
   data[[x]] <- factor(data[[x]])
@@ -25,16 +26,26 @@ ggPlotAoV <- function(data, x, y, color = c(), aov, pwc, linetype = color, by = 
   if (is.null(pwc2)) return(ggplot2::ggplot())
   if (length(color) > 0) {
     bxp <- ggpubr::ggboxplot(data, x = x, y = y, color = color, palette = "jco", add=addParam, facet.by = by)
-    bxp1 <- bxp + ggpubr::stat_pvalue_manual(pwc2, color = color, linetype = linetype, hide.ns = T, tip.length = 0, step.group.by = by, position = pd)
+    if (p.label == "p.adj") {
+      pwc2[["p.adj"]] <- round(pwc2[["p.adj"]],3)
+      bxp1 <- bxp + ggpubr::stat_pvalue_manual(pwc2, color = color, linetype = linetype, hide.ns = T, tip.length = 0, step.group.by = by, position = pd, label = "p.adj = {p.adj}")
+    } else {
+      bxp1 <- bxp + ggpubr::stat_pvalue_manual(pwc2, color = color, linetype = linetype, hide.ns = T, tip.length = 0, step.group.by = by, position = pd)
+    }
     ggtest <- tryCatch(ggplot2::ggplot_build(bxp1), error = function(e) NULL)
     if (!is.null(ggtest)) bxp <- bxp1
   } else {
     bxp <- ggpubr::ggboxplot(data, x = x, y = y, color = x, palette = "jco", add=addParam, facet.by = by)
-    bxp1 <- bxp + ggpubr::stat_pvalue_manual(pwc2, linetype = linetype, hide.ns = T, tip.length = 0, step.group.by = by, position = pd)
+    if (p.label == "p.adj") {
+      pwc2[["p.adj"]] <- round(pwc2[["p.adj"]],3)
+      bxp1 <- bxp + ggpubr::stat_pvalue_manual(pwc2, linetype = linetype, hide.ns = T, tip.length = 0, step.group.by = by, position = pd, label = "p.adj = {p.adj}")
+    } else {
+      bxp1 <- bxp + ggpubr::stat_pvalue_manual(pwc2, linetype = linetype, hide.ns = T, tip.length = 0, step.group.by = by, position = pd)
+    }
     ggtest <- tryCatch(ggplot2::ggplot_build(bxp1), error = function(e) NULL)
     if (!is.null(ggtest)) bxp <- bxp1
   }
-  bxp <- bxp + ggplot2::labs(subtitle = rstatix::get_test_label(aov, detailed = T), caption = rstatix::get_pwc_label(pwc2))
+  bxp <- bxp + ggplot2::labs(subtitle = rstatix::get_test_label(aov, detailed = T, row = which(min(aov$p) == aov$p)), caption = rstatix::get_pwc_label(pwc2))
   bxp <- bxp + ggplot2::theme(text = ggplot2::element_text(size=font.label.size))
   return(bxp)
 }
@@ -52,9 +63,10 @@ ggPlotAoV <- function(data, x, y, color = c(), aov, pwc, linetype = color, by = 
 #' @param addParam the character vector with elements to be included in the plot (e.g. "dotplot", "jitter", "boxplot", "point", "mean", "mean_se", "mean_sd", "mean_ci", "mean_range", "median", "median_iqr", "median_mad", "median_range"); see ?desc_statby for more details.
 #' @param font.label.size the integer value with the font label size
 #' @param step.increase the numeric vector to be used to minimize the overlap
+#' @param p.label the label used for p-values
 #' @return A list of ggplot objects with the Three-Way ANOVA plots
 #' @export
-threeWayAnovaPlots <- function(data, dv, ivs, aov, pwcs, addParam=c(), font.label.size = 14, step.increase = 0.25) {
+threeWayAnovaPlots <- function(data, dv, ivs, aov, pwcs, addParam=c(), font.label.size = 14, step.increase = 0.25, p.label = "p.adj.signif") {
   livs <- as.list(ivs); names(livs) <- ivs
   toReturn <- lapply(livs, FUN = function(iv) {
     pwc <- pwcs[[iv]]
@@ -63,7 +75,7 @@ threeWayAnovaPlots <- function(data, dv, ivs, aov, pwcs, addParam=c(), font.labe
     inner.toReturn <- lapply(lgbys, FUN = function(gby) {
       color <- setdiff(ivs, c(iv, gby))
       ggPlotAoV(data, iv, dv, color=color, by=gby, aov=aov, pwc=pwc, addParam=addParam,
-                font.label.size = font.label.size, step.increase = step.increase)
+                font.label.size = font.label.size, step.increase = step.increase, p.label = p.label)
     })
     return(inner.toReturn)
   })
@@ -82,15 +94,16 @@ threeWayAnovaPlots <- function(data, dv, ivs, aov, pwcs, addParam=c(), font.labe
 #' @param addParam the character vector with elements to be included in the plot (e.g. "dotplot", "jitter", "boxplot", "point", "mean", "mean_se", "mean_sd", "mean_ci", "mean_range", "median", "median_iqr", "median_mad", "median_range"); see ?desc_statby for more details.
 #' @param font.label.size the integer value with the font label size
 #' @param step.increase the numeric vector to be used to minimize the overlap
+#' @param p.label the label used for p-values
 #' @return A list of ggplot objects with the Two-Way ANOVA plots
 #' @export
-twoWayAnovaPlots <- function(data, dv, ivs, aov, pwcs, addParam=c(), font.label.size = 14, step.increase = 0.25) {
+twoWayAnovaPlots <- function(data, dv, ivs, aov, pwcs, addParam=c(), font.label.size = 14, step.increase = 0.25, p.label = "p.adj.signif") {
   livs <- as.list(ivs); names(livs) <- ivs
   return(lapply(livs, FUN = function(iv) {
     pwc <- pwcs[[iv]]
     color <- setdiff(ivs, iv)
     ggPlotAoV(data, iv, dv, color=color, aov=aov, pwc=pwc, addParam=addParam,
-              font.label.size = font.label.size, step.increase = step.increase)
+              font.label.size = font.label.size, step.increase = step.increase, p.label = p.label)
   }))
 }
 
@@ -106,13 +119,14 @@ twoWayAnovaPlots <- function(data, dv, ivs, aov, pwcs, addParam=c(), font.label.
 #' @param addParam the character vector with elements to be included in the plot (e.g. "dotplot", "jitter", "boxplot", "point", "mean", "mean_se", "mean_sd", "mean_ci", "mean_range", "median", "median_iqr", "median_mad", "median_range"); see ?desc_statby for more details.
 #' @param font.label.size the integer value with the font label size
 #' @param step.increase the numeric vector to be used to minimize the overlap
+#' @param p.label the label used for p-values
 #' @return A list of ggplot objects with the One-Way ANOVA plots
 #' @export
-oneWayAnovaPlots <- function(data, dv, ivs, aov, pwcs, addParam=c(), font.label.size = 14, step.increase = 0.25) {
+oneWayAnovaPlots <- function(data, dv, ivs, aov, pwcs, addParam=c(), font.label.size = 14, step.increase = 0.25, p.label = "p.adj.signif") {
   livs <- as.list(ivs); names(livs) <- ivs
   return(lapply(livs, FUN = function(iv) {
     ggPlotAoV(data, iv, dv, aov=aov, pwc=pwcs[[iv]], addParam=addParam,
-              font.label.size = font.label.size, step.increase = step.increase)
+              font.label.size = font.label.size, step.increase = step.increase, p.label = p.label)
   }))
 }
 

@@ -4,7 +4,14 @@
 \alias{winzorize}
 \title{Winsorization}
 \usage{
-winzorize(dat, dv, ivs = NULL, covar = NULL, probs = c(0.05, 0.95))
+winzorize(
+  dat,
+  dv,
+  ivs = NULL,
+  covar = NULL,
+  probs = c(0.05, 0.95),
+  skewness = c()
+)
 }
 \arguments{
 \item{dat}{a data frame containing the values to be winzorized}
@@ -16,6 +23,8 @@ winzorize(dat, dv, ivs = NULL, covar = NULL, probs = c(0.05, 0.95))
 \item{covar}{columns with the covariante}
 
 \item{probs}{numeric vector of probabilities with values in [0,1] as used in quantile}
+
+\item{skewness}{columns in which there were applied skewness transformation}
 }
 \value{
 A data frame containing the column with dv values replaced

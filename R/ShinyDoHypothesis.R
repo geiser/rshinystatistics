@@ -35,6 +35,8 @@ shinyDoHypothesisUI <- function(id, test) {
   }
 
   addchoices <- list("todos" = "jitter", "média" = "mean", "não" = "none")
+  pvalchoices <- list("símbolo" = "p.adj.signif", "p.adj"= "p.adj")
+  palettes <- list("")
 
   title.emms.ds <- tl("Descriptive Statistics")
   if (test %in% c('anova','ancova'))
@@ -58,8 +60,11 @@ shinyDoHypothesisUI <- function(id, test) {
       column(width = 3, radioButtons(ns("addParam"),  "point style", inline = T, choices = addchoices)),
       column(width = 2, numericInput(ns("width"), "width", value = 700, min = 100, step = 50)),
       column(width = 2, numericInput(ns("height"), "height", value = 700, min = 100, step = 50)),
-      column(width = 2, numericInput(ns("font.label.size"), tl("Font text size"), value = 14, min = 4, step = 2)),
-      column(width = 2, numericInput(ns("step.increase"), tl("Step of signif."), value = 0.25, min = 0.05, max = 0.95, step = 0.05)),
+      column(width = 2, numericInput(ns("font.label.size"), tl("Text size"), value = 14, min = 4, step = 2)),
+      column(width = 2, numericInput(ns("step.increase"), tl("Signif."), value = 0.25, min = 0.05, max = 0.95, step = 0.05))
+    ),
+    fixedRow(
+      column(width = 3, radioButtons(ns("p.label"),  "p label", inline = T, choices = pvalchoices, selected = "p.adj.signif")),
       column(width = 1, actionButton(ns("updatePlot"), tl("Update Plot")))
     ),
     uiOutput(ns("pairwisePlotsUI"))
@@ -113,6 +118,7 @@ shinyDoHypothesisMD <- function(id, test, dataset, dvs = "dvs", between = "betwe
 
       updateResult <- function() {
         if (!dataset$isSetup) return(NULL)
+        skewness = getSkewnessMap(dataset$skewness)
         if ('wilcoxon' == test) {
           list.wtest <- wilcoxon.test(dataset$dataTable, rdvs(), rbetween(), input[[opt.name]], as.list = T)
           values$wt <- list.wtest$wt
@@ -141,9 +147,9 @@ shinyDoHypothesisMD <- function(id, test, dataset, dvs = "dvs", between = "betwe
           values$pwc <- ancova.pwc(dataset[[dataTable]], rdvs(), rbetween(), rcovar(), input$p.adjust.method)
           values$pair.wise <- get.ancova.pwc.table(values$pwc)
         } else if ('anova' == test) {
-          values$anova <- anova.test(dataset[[dataTable]], rdvs(), rbetween(), wid = wid(), type = input$type, effect.size = input$effect.size)
+          values$anova <- anova.test(dataset[[dataTable]], rdvs(), rbetween(), wid = wid(), type = input$type, effect.size = input$effect.size, skewness = skewness)
           values$anova.test <- get.anova.table(values$anova)
-          values$pwc <- anova.pwc(dataset[[dataTable]], rdvs(), rbetween(), p.adjust.method = input$p.adjust.method)
+          values$pwc <- anova.pwc(dataset[[dataTable]], rdvs(), rbetween(), p.adjust.method = input$p.adjust.method, skewness = skewness)
           values$pair.wise <- get.anova.pwc.table(values$pwc)
         }
       }
@@ -217,6 +223,7 @@ shinyDoHypothesisMD <- function(id, test, dataset, dvs = "dvs", between = "betwe
           width <- isolate(input$width)
           height <- isolate(input$height)
           addParam <- isolate(input$addParam)
+          p.label <- isolate(input$p.label)
           font.label.size <- isolate(input$font.label.size)
           step.increase <- isolate(input$step.increase)
 
@@ -232,7 +239,7 @@ shinyDoHypothesisMD <- function(id, test, dataset, dvs = "dvs", between = "betwe
 
           dataset[[paste0(test,'Params')]][["plot"]][[dv]] <- list(
             width = width, height = height, font.label.size = font.label.size,
-            addParam = addParam, step.increase = step.increase
+            addParam = addParam, step.increase = step.increase, p.label = p.label
           )
 
           # ... plots results from pairwise
@@ -289,10 +296,10 @@ shinyDoHypothesisMD <- function(id, test, dataset, dvs = "dvs", between = "betwe
             plots <- list()
             if (length(ivs) == 1)
               plots <- oneWayAncovaPlots(dat, dv, ivs, values$ancova[[dv]], values$pwc[[dv]], addParam = addParam,
-                                         font.label.size = font.label.size, step.increase = step.increase)
+                                         font.label.size = font.label.size, step.increase = step.increase, p.label = p.label)
             else if (length(ivs) == 2)
               plots <- twoWayAncovaPlots(dat, dv, ivs, values$ancova[[dv]], values$pwc[[dv]], addParam = addParam,
-                                         font.label.size = font.label.size, step.increase = step.increase)
+                                         font.label.size = font.label.size, step.increase = step.increase, p.label = p.label)
             if (length(ivs) == 3) {
               do.call(verticalLayout, lapply(names(plots), FUN = function(iv) {
                 do.call(verticalLayout, lapply(names(plots[[iv]]), FUN = function(grpby) {
@@ -318,13 +325,13 @@ shinyDoHypothesisMD <- function(id, test, dataset, dvs = "dvs", between = "betwe
             plots <- list()
             if (length(ivs) == 1)
               plots <- oneWayAnovaPlots(dat, dv, ivs, values$anova[[dv]], values$pwc[[dv]], addParam=addParam,
-                                        font.label.size = font.label.size, step.increase = step.increase)
+                                        font.label.size = font.label.size, step.increase = step.increase, p.label = p.label)
             else if (length(ivs) == 2)
               plots <- twoWayAnovaPlots(dat, dv, ivs, values$anova[[dv]], values$pwc[[dv]], addParam=addParam,
-                                        font.label.size = font.label.size, step.increase = step.increase)
+                                        font.label.size = font.label.size, step.increase = step.increase, p.label = p.label)
             else if (length(ivs) == 3)
               plots <- threeWayAnovaPlots(dat, dv, ivs, values$anova[[dv]], values$pwc[[dv]], addParam=addParam,
-                                          font.label.size = font.label.size, step.increase = step.increase)
+                                          font.label.size = font.label.size, step.increase = step.increase, p.label = p.label)
             if (length(ivs) == 3) {
               do.call(verticalLayout, lapply(names(plots), FUN = function(iv) {
                 do.call(verticalLayout, lapply(names(plots[[iv]]), FUN = function(grpby) {

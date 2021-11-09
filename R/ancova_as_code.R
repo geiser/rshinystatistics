@@ -15,6 +15,7 @@ ancova.as.code.plots <- function(backup, dataname, dvs, between, covar, ext = 'R
       font.label.size <- plot.param$font.label.size
       width <- plot.param$width
       height <- plot.param$height
+      p.label <- plot.param$p.label
     }
 
     if (length(between) == 2) {
@@ -26,7 +27,7 @@ ancova.as.code.plots <- function(backup, dataname, dvs, between, covar, ext = 'R
     plot.code <- paste0(
       'plots <- ', nfunction,'(',dataname,'[["',dv,'"]], "',dv,'", between',"\n",
       ', aov[["',dv,'"]], pwc[["',dv,'"]], addParam = c(',paste0(paste0('"',addParam,'"'), collapse = ','),')',
-      ', font.label.size=',font.label.size,', step.increase=',step.increase,')')
+      ', font.label.size=',font.label.size,', step.increase=',step.increase,', p.label="',p.label,'"',')')
     if (ext == 'Rmd') {
       plot.code <- paste0(c("```{r}", plot.code, "```"), collapse = "\n")
     }

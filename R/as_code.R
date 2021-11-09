@@ -50,19 +50,19 @@ display.plots.str <- function(ext, ivs, width=700, height=700, dv='dependent var
 skewness.as.code <- function(skew, dvname, initTable='dat', dataTable = 'rdat') {
   if (skew %in% c('posSqrt','negSqrt','posLog','negLog','posInv','negInv')) {
     if (skew == 'posSqrt') {
-      skewness.code <- paste0('sqrt(',initTable,'[[',dvname,']])')
+      skewness.code <- paste0('sqrt(',initTable,'[["',dvname,'"]])')
     } else if (skew == 'negSqrt') {
-      skewness.code <- paste0('-1*sqrt(max(',initTable,'[[',dvname,']]+1) - ',initTable,'[[',dvname,']])')
+      skewness.code <- paste0('-1*sqrt(max(',initTable,'[["',dvname,'"]]+1) - ',initTable,'[["',dvname,'"]])')
     } else if (skew == 'posLog') {
-      skewness.code <- paste0('log10(',initTable,'[[',dvname,']])')
+      skewness.code <- paste0('log10(',initTable,'[["',dvname,'"]])')
     } else if (skew == 'negLog') {
-      skewness.code <- paste0('-1*log10(max(',initTable,'[[',dvname,']]+1) - ',initTable,'[[',dvname,']])')
+      skewness.code <- paste0('-1*log10(max(',initTable,'[["',dvname,'"]]+1) - ',initTable,'[["',dvname,'"]])')
     } else if (skew == 'posInv') {
-      skewness.code <- paste0('1/(',initTable,'[[',dvname,']])')
+      skewness.code <- paste0('1/(',initTable,'[["',dvname,'"]])')
     } else  if (skew == 'negInv') {
-      skewness.code <- paste0('-1/(max(',initTable,'[[',dvname,']]+1) - ',initTable,'[[',dvname,']])')
+      skewness.code <- paste0('-1/(max(',initTable,'[["',dvname,'"]]+1) - ',initTable,'[["',dvname,'"]])')
     }
-    skewness.code <- paste0(dataTable,'[[',dvname,']] <- ', skewness.code)
+    skewness.code <- paste0(dataTable,'[["std.',dvname,'"]] <- ', skewness.code)
     return(skewness.code)
   } else return(NULL)
 }

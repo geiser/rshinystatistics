@@ -1,12 +1,20 @@
 #' This function provides a wrapper for rstatic::identify_outliers for multiple dependent variables dvs
-getOutliers <- function (data, dvs, ivs = c(), covar = c(), is.extreme = T) {
+getOutliers <- function (data, dvs, ivs = c(), covar = c(), is.extreme = T, skewness = c()) {
   dat <- data
+
+  if (length(skewness) > 0 && is.list(skewness))
+    skewness = names(skewness)[sapply(skewness, FUN = function(i) !is.null(i) && i!='none')]
+
   if (length(ivs) > 0)
     dat <- dplyr::group_by_at(data, dplyr::vars(ivs))
 
   df.out <- do.call(rbind, lapply(dvs, FUN = function(dv) {
+    if (dv %in% skewness) dv <- paste0(paste0('std.',dv))
+
     outliers <- rstatix::identify_outliers(dat, variable = dv, coef = 1.25)
     if (nrow(outliers) > 0 && length(covar) > 0) {
+      if (covar %in% skewness) covar <- paste0(paste0('std.',covar))
+
       covarout <- rstatix::identify_outliers(dat, variable = covar, coef = 1.25)
       if (!is.null(covarout) && nrow(covarout) > 0) {
         cnames <- intersect(colnames(covarout), colnames(outliers))
@@ -35,7 +43,7 @@ shinySettingOutliersUI <- function(id) {
       actionLink(ns("identifyingOutliers"), tl("Automatic identification of outliers")),
       uiOutput(ns("outliersInputUI"))
     ),
-    checkboxInput(ns('checkOutliers'), paste('(1)', tl('Outliers of data was treated')))
+    checkboxInput(ns('checkOutliers'), paste('(1)', tl('Outliers was treated')))
   )
 }
 
@@ -69,7 +77,7 @@ shinySettingOutliersMD <- function(id, dataset, dvs = "dvs", ivs = "ivs", covar 
       observeEvent(input$identifyingOutliers, {
         if (!dataset$isSetup || input$method != 'remove') return(NULL)
         for (dv in rdvs()) {
-          outliers <- getOutliers(dataset[[initTable]][[dv]], dv, rivs(), rcovar())
+          outliers <- getOutliers(dataset[[initTable]][[dv]], dv, rivs(), rcovar(), skewness = dataset$skewness)
           selected <- outliers[[wid()]][which(outliers$var == dv)]
           updateSelectInput(session, paste0('outliers', dv, 'Input'), selected=selected)
         }
@@ -124,7 +132,7 @@ shinySettingOutliersMD <- function(id, dataset, dvs = "dvs", ivs = "ivs", covar 
               ids <- dataset$outliers[[dv]]
             dat <- dat[!dat[[wid()]] %in% c(ids),]
           } else if ('winsorize' == input$method) {
-            dat <- winzorize(dat, dv, rivs(), rcovar())
+            dat <- winzorize(dat, dv, rivs(), rcovar(), skewness = dataset$skewness)
           }
           if (!is.null(dat) && nrow(dat) > 0) return(dat)
         })

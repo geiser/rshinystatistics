@@ -10,7 +10,8 @@ homogeneity.test(
   between = c(),
   within = c(),
   covar = NULL,
-  dv.var = NULL
+  dv.var = NULL,
+  skewness = c()
 )
 }
 \arguments{
@@ -25,6 +26,8 @@ homogeneity.test(
 \item{covar}{column with the variable to be used as covariance}
 
 \item{dv.var}{column with the information to classify observations based on dependent variables}
+
+\item{skewness}{a list of transformation to achieve normality}
 }
 \value{
 A data frame containing the homogeneity test (levene's test of variances and Anova slopes in ancova)

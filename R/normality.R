@@ -116,9 +116,11 @@ normality.test.at <- function(dat, dvs) {
 #' @param within a character vector containing the independent variable used as within-subject
 #' @param covar a character indicating the column of covariate variable used in the normality test
 #' @param dv.var column with the information to classify observations based on dependent variables
+#' @param skewness a list of transformation to achieve normality
 #' @return A data frame containing the normality test
 #' @export
-normality.test.by.residual <- function(data, dvs, between = c(), within = c(), covar = NULL, wid = 'row.pos', dv.var = NULL) {
+normality.test.by.residual <- function(data, dvs, between = c(), within = c(), covar = NULL
+                                       , wid = 'row.pos', dv.var = NULL, skewness = c()) {
   result <- do.call(rbind, lapply(dvs, FUN = function(dv) {
     if (is.data.frame(data)) {
       dat <- as.data.frame(data)
@@ -127,6 +129,9 @@ normality.test.by.residual <- function(data, dvs, between = c(), within = c(), c
     } else if (is.list(data)) {
       dat <- as.data.frame(data[[dv]])
     }
+
+    for (col in names(skewness))
+      dat[[col]] <- dat[[skewness[[col]]]]
 
     within <- within[within %in% colnames(dat)]
     between <- between[between %in% colnames(dat)]
@@ -158,10 +163,13 @@ normality.test.by.residual <- function(data, dvs, between = c(), within = c(), c
 #' @param dv.var column with the information to classify observations based on dependent variables
 #' @param include.global a boolean value indicating if a summarization is presented of all items
 #' @param hide.details a boolean value indicating if details should be presented
+#' @param skewness a list of transformation to achieve normality
 #' @return A data frame containing the normality test
 #' @export
-normality.test.per.groups <- function(data, dvs, ivs, dv.var = NULL, include.global = F, hide.details = F) {
+normality.test.per.groups <- function(data, dvs, ivs, dv.var = NULL
+                                      , include.global = F, hide.details = F, skewness = c()) {
   non.normal <- do.call(rbind, lapply(dvs, FUN = function(dv) {
+
     if (is.data.frame(data)) {
       dat <- as.data.frame(data)
       if (!is.null(dv.var))
@@ -169,6 +177,9 @@ normality.test.per.groups <- function(data, dvs, ivs, dv.var = NULL, include.glo
     } else if (is.list(data)) {
       dat <- as.data.frame(data[[dv]])
     }
+
+    for (col in names(skewness))
+      dat[[col]] <- dat[[skewness[[col]]]]
 
     givs <- unique(ivs[ivs %in% colnames(dat)])
     dat <- dplyr::group_by_at(dat, givs)

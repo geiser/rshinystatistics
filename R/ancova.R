@@ -98,12 +98,21 @@ get.ancova.emmeans <- function(pwcs) {
 
 #' @export
 get.ancova.emmeans.with.ds <- function(pwcs, data, dvs, ivs=c(), type = "common", covar = NULL, dv.var = NULL) {
-  ds <- get.descriptives(data, dvs, ivs, type, covar, dv.var)
+  ds <- get.descriptives(data, dvs, ivs, ifelse(type=="apa-format","common",type), covar, dv.var)
+
   if (length(covar) > 0)
     ds <- merge(ds[ds$variable!=covar,], ds[ds$variable==covar, !colnames(ds) %in% c('variable')]
                 , by=ivs, all.x = T, suffixes = c("", paste0(".",covar)))
+
   emms <- get.ancova.emmeans(pwcs)
-  toReturn <- merge(emms, ds, by.x=c("var",ivs), by.y=c("variable",ivs), suffixes=c(".emms",".ds"))
+  toReturn <- merge(emms, ds, by.x=c("var",ivs), by.y=c("variable",ivs), suffixes=c(".emms",""))
   toReturn[['sd.emms']] <- sqrt(toReturn[['n']])*toReturn[['se.emms']]
+
+  if (type == "apa-format") {
+    toReturn2 <- toReturn[,c("var",ivs,"n",paste0("mean.",covar),paste0("se.",covar),"mean","se","emmean","se.emms")]
+    colnames(toReturn2) <- c("var",ivs,"n",paste0(c("M","SE")," (pre)"), paste0(c("M","SE")," (unadj)"), paste0(c("M","SE")," (adj)"))
+    toReturn <- toReturn2
+  }
+
   return(toReturn)
 }

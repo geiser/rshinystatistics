@@ -47,7 +47,9 @@ shinyHomogeneityMD <- function(id, dataset, dvs = "dvs", between = "between", wi
 
       # Homogeneity test
       updateHomogTbl <- function() {
-        h.test <- homogeneity.test(dataset[[dataTable]], rdvs(), rbetween(), rwithin(), rcovar(), dv.var = 'var')
+        h.test <- homogeneity.test(
+          dataset[[dataTable]], rdvs(), rbetween(), rwithin(), rcovar()
+          , dv.var = 'var', skewness = getSkewnessMap(dataset$skewness))
         shiny2TableMD("homogeneityTable", h.test, prefix = ns(''))
       }
 

@@ -1,6 +1,6 @@
 Package: rshinystatistics
 Title: Shiny Statistics
-Version: 0.0.0.9302
+Version: 0.0.0.9400
 Authors@R: 
     person(given = "Geiser",
            family = "Chalco Challco",
@@ -20,6 +20,7 @@ Imports:
   shiny.i18n,
   shinyjs,
   shinyTree,
+  colourpicker,
   DT,
 	stats,
 	fBasics,
@@ -36,7 +37,6 @@ Imports:
 	plotly,
 	zip,
 	tools,
-	careless,
 	digest,
 	templates,
 	DescTools,

@@ -23,7 +23,10 @@ shinyDisplayDataSetUI <- function(id) {
         br(),
         radioButtons(ns('dv'), tl('Dependent variable'), choices = c(''), inline = T),
         h4("dataset$initTable ..."),
-        shiny2TableUI(ns("initTable"))
+        shiny2TableUI(ns("initTable")),
+        br(),
+        h4("dataset$dataTable ..."),
+        shiny2TableUI(ns("dataTable"))
       ),
       type = "pills"
     )
@@ -46,6 +49,7 @@ shinyDisplayDataSetMD <- function(id, dataset, exclude.from.others = c("fileTabl
       observe({
         if (dataset$isSetup) {
           shiny2TableMD("initTable", dataset$initTable[[input$dv]], pageLength = 10, prefix = ns('initTable'))
+          shiny2TableMD("dataTable", dataset$dataTable[[input$dv]], pageLength = 10, prefix = ns('dataTable'))
         }
       })
 

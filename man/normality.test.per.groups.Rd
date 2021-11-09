@@ -10,7 +10,8 @@ normality.test.per.groups(
   ivs,
   dv.var = NULL,
   include.global = F,
-  hide.details = F
+  hide.details = F,
+  skewness = c()
 )
 }
 \arguments{
@@ -25,6 +26,8 @@ normality.test.per.groups(
 \item{include.global}{a boolean value indicating if a summarization is presented of all items}
 
 \item{hide.details}{a boolean value indicating if details should be presented}
+
+\item{skewness}{a list of transformation to achieve normality}
 }
 \value{
 A data frame containing the normality test

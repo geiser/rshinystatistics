@@ -7,7 +7,8 @@ hypothesisAsFile <- function(ext, test, backup, dvs = 'dvs', between = 'between'
   rcovar <- unique(unlist(backup$variables[c(covar)], use.names = F))
 
   code.skewness <- paste0(lapply(rdvs, FUN = function(dv) {
-    line.code <- skewness.as.code(backup$skewness[[dv]], paste0('"',dv,'"'), paste0('dat[["',dv,'"]]'), paste0('rdat[["',dv,'"]]'))
+    line.code <- skewness.as.code(backup$skewness[[dv]], dv, paste0('dat[["',dv,'"]]'), paste0('rdat[["',dv,'"]]'))
+
     if (is.null(line.code)) return("")
     if (length(backup$skewness) > 0 && length(rcovar) > 0 && length(backup$skewness[[rcovar]]) > 0) {
       line.code <- paste0(
@@ -20,7 +21,7 @@ hypothesisAsFile <- function(ext, test, backup, dvs = 'dvs', between = 'between'
     line.code <- paste0(c(
       paste0('density.plot.by.residual(rdat[["',dv,'"]],"',dv,'",between',ifelse(length(rcovar) > 0 && length(backup$skewness[[rcovar]]) > 0,',c(),covar',''),')'),
       line.code,
-      paste0('density.plot.by.residual(rdat[["',dv,'"]],"',dv,'",between',ifelse(length(rcovar) > 0 && length(backup$skewness[[rcovar]]) > 0,',c(),covar',''),')')),
+      paste0('density.plot.by.residual(rdat[["',dv,'"]],"std.',dv,'",between',ifelse(length(rcovar) > 0 && length(backup$skewness[[rcovar]]) > 0,',c(),paste0("std.",covar)',''),')')),
       collapse = "\n")
 
     if (ext == 'Rmd') {
@@ -43,7 +44,7 @@ hypothesisAsFile <- function(ext, test, backup, dvs = 'dvs', between = 'between'
     code.outliers <- list.as.code(backup$outliers)
   } else if (backup$outlier.method == 'winsorize') {
     code.outliers <- do.call(paste0, lapply(rdvs, FUN = function(dv) {
-      paste0('rdat[["',dv,'"]] <- winzorize(rdat[["',dv,'"]],"',dv,'", c(',paste0(paste0('"',rbetween,'"'),collapse=','),')',ifelse(length(rcovar) > 0 && length(backup$skewness[[rcovar]]) > 0,',covar',''),')\n')
+      paste0('rdat[["',dv,'"]] <- winzorize(rdat[["',dv,'"]],"',dv,'", c(',paste0(paste0('"',rbetween,'"'),collapse=','),')',ifelse(length(rcovar) > 0 && length(backup$skewness[[rcovar]]) > 0,',covar',''),', skewness=skewness)\n')
     }))
     if (ext == "Rmd") {
       code.outliers <- paste0(c("```{r}", code.outliers, "```"), collapse = '\n')
@@ -130,28 +131,39 @@ hypothesisAsFile <- function(ext, test, backup, dvs = 'dvs', between = 'between'
     else
       code.pwc.tbl <- 'kable(pdf[,c("var","group1","group2","estimate","conf.low","conf.high","se","statistic","p","p.adj","p.adj.signif")], digits = 3)'
 
-    code.emms <- paste0('(emms <- get.ancova.emmeans.with.ds(pwc, sdat, dvs, between, "common", covar = covar))')
-    code.emms.tbl <- 'kable(emms, digits = 3)'
+    code.emms <- c('(apa <- get.ancova.emmeans.with.ds(pwc, sdat, dvs, between, "apa-format", covar = covar))'
+                   ,'(emms <- get.ancova.emmeans.with.ds(pwc, sdat, dvs, between, "common", covar = covar))')
+    code.emms.tbl <- c('kable(apa, digits = 3)', 'kable(emms, digits = 3)')
 
     hypothesis.text <- ancova.as.text(backup[[test]], backup$dataTable, rbetween, rcovar, test.params$effect.size, lang=lang)
     hypothesis.pwc.text <- aov.pwc.as.text(test, backup$pwc, backup$ds, rbetween, p.adjust.method = test.params$p.adjust.method, lang=lang)
   } else if ('anova' == test) {
+
+    ckewness <- ''
+    skewness <- getSkewnessMap(backup$skewness)
+    if (length(skewness) > 0)
+      ckewness <- paste0(',skewness = c(', paste0(lapply(names(skewness), FUN = function(i) {
+        paste0(i, '="', skewness[[i]],'"') }), collapse = ','),')')
+
     title.test = 'ANOVA test'
     code.plots <- anova.as.code.plots(backup, 'sdat', rdvs, rbetween, ext)
 
-    code.hypothesis <- paste0('aov <- anova.test(sdat, dvs, between, type=', test.params$type ,', effect.size="', test.params$effect.size ,'")',
+    code.hypothesis <- paste0('aov <- anova.test(sdat, dvs, between, type=', test.params$type ,', effect.size="', test.params$effect.size ,'", skewness=skewness)',
                               '\n','(adf <- get.anova.table(aov))')
     code.hypothesis.tbl <- paste0('kable(adf[,c("var","Effect","DFn","DFd","SSn","SSd","F","p","',test.params$effect.size,'","p.signif")], digits=3)')
 
-    code.pwc <- paste0('pwc <- anova.pwc(sdat, dvs, between, p.adjust.method = "', test.params$p.adjust.method ,'")',
+    code.pwc <- paste0('pwc <- anova.pwc(sdat, dvs, between, p.adjust.method = "', test.params$p.adjust.method ,'", skewness=skewness)',
                        '\n','(pdf <- get.anova.pwc.table(pwc, only.sig = F))')
+
     if (length(rbetween) > 1)
       code.pwc.tbl <- 'kable(pdf[,c("var",between,"group1","group2","estimate","conf.low","conf.high","se","statistic","p","p.adj","p.adj.signif")], digits = 3)'
     else
       code.pwc.tbl <- 'kable(pdf[,c("var","group1","group2","estimate","conf.low","conf.high","se","statistic","p","p.adj","p.adj.signif")], digits = 3)'
 
-    code.emms <- paste0('(emms <- get.anova.emmeans.with.ds(pwc, sdat, dvs, between, "common"))')
-    code.emms.tbl <- 'kable(emms[,c("var",between,"n","emmean","mean","conf.low","conf.high","sd","sd.emms","se.emms")], digits = 3)'
+    code.emms <- c('(apa <- get.anova.emmeans.with.ds(pwc, sdat, dvs, between, "apa-format"))'
+                   ,'(emms <- get.anova.emmeans.with.ds(pwc, sdat, dvs, between, "common"))')
+    code.emms.tbl <- c('kable(apa, digits = 3)'
+                       ,'kable(emms[,c("var",between,"n","emmean","mean","conf.low","conf.high","sd","sd.emms","se.emms")], digits = 3)')
 
     hypothesis.text <- anova.as.text(backup[[test]], backup$dataTable, rbetween, test.params$effect.size, lang=lang)
     hypothesis.pwc.text <- aov.pwc.as.text(test, backup$pwc, backup$ds, rbetween, p.adjust.method = test.params$p.adjust.method, lang=lang)
@@ -172,6 +184,7 @@ hypothesisAsFile <- function(ext, test, backup, dvs = 'dvs', between = 'between'
     test = test, title.test = title.test, author = backup$author, email = backup$email,
     wid = wid, dvs = rdvs, between = rbetween, covar = NULL,
     code.outliers =  code.outliers, code.skewness = code.skewness,
+    skewness = getSkewnessMap(backup$skewness),
     code.hypothesis = code.hypothesis, code.hypothesis.tbl = code.hypothesis.tbl,
     code.pwc = code.pwc, code.pwc.tbl = code.pwc.tbl, code.plots = code.plots
   )

@@ -1,3 +1,11 @@
+getSkewnessMap <- function(skewness = c(), prefix = 'std.') {
+  toReturn <- list()
+  for (i in names(skewness))
+    if (!is.null(skewness[[i]]) && skewness[[i]]!='none')
+      toReturn[[i]] <- paste0(prefix,i)
+  return(toReturn)
+}
+
 
 #' Settings Data Table for Dependent Variables
 #'
@@ -126,17 +134,26 @@ getTranslator <- function(lang = 'en') {
 #' @param ivs columns with the independent variables
 #' @param covar columns with the covariante
 #' @param probs numeric vector of probabilities with values in [0,1] as used in quantile
+#' @param skewness columns in which there were applied skewness transformation
 #' @return A data frame containing the column with dv values replaced
 #' @export
-winzorize <- function(dat, dv, ivs = NULL, covar = NULL, probs = c(0.05, 0.95)) {
+winzorize <- function(dat, dv, ivs = NULL, covar = NULL, probs = c(0.05, 0.95), skewness = c()) {
   if (dv %in% colnames(dat)) {
     dat[[dv]] <- DescTools::Winsorize(dat[[dv]], probs = probs)
+    if (dv %in% skewness)
+      dat[[paste0('std.',dv)]] <- DescTools::Winsorize(dat[[paste0('std.',dv)]], probs = probs)
+
     if (length(ivs) > 0) {
       pdat <- dplyr::group_by_at(dat, dplyr::vars(ivs))
       pdat <- dplyr::group_modify(pdat, function(.x,.y) {
         .x[[dv]] <- DescTools::Winsorize(.x[[dv]], probs = probs)
+        if (dv %in% skewness)
+          .x[[paste0('std.',dv)]] <- DescTools::Winsorize(.x[[paste0('std.',dv)]], probs = probs)
+
         if (length(covar) > 0) {
           .x[[covar]] <- DescTools::Winsorize(.x[[covar]], probs = probs)
+          if (covar %in% skewness)
+            .x[[paste0('std.',covar)]] <- DescTools::Winsorize(.x[[paste0('std.',covar)]], probs = probs)
         }
         return(.x)
       })

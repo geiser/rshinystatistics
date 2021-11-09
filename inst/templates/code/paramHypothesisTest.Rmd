@@ -63,6 +63,14 @@ wid <- "{{ wid }}"
 between <- c({{ paste0(paste0('"', between, '"'), collapse = ',') }})
 dvs <- c({{ paste0(paste0('"', dvs, '"'), collapse = ',') }})
 names(dvs) <- dvs
+{{
+if (length(skewness) > 0) {
+  paste0('skewness <- c(', paste0(lapply(names(skewness), FUN = function(i) {
+        paste0('"',i, '"="', skewness[[i]],'"') }), collapse = ','),')')
+} else {
+  paste0('skewness <- c()')
+}
+}}
 
 dat <- lapply(dvs, FUN = function(dv) {
   data <- read.csv(paste0("../data/table-for-",dv,".csv"))
@@ -126,9 +134,9 @@ sdat <- removeFromDataTable(rdat, non.normal, wid)
 ```{r, include=FALSE}
 {{
 if (length(covar) > 0) {
-  paste0('(df <- normality.test.by.residual(sdat, dvs, between, c(), covar))')
+  paste0('(df <- normality.test.by.residual(sdat, dvs, between, c(), covar, skewness = skewness))')
 } else {
-  paste0('(df <- normality.test.by.residual(sdat, dvs, between))')
+  paste0('(df <- normality.test.by.residual(sdat, dvs, between, skewness = skewness))')
 }
 }}
 ```
@@ -142,7 +150,7 @@ kable(df, digits = 3)
 This is an optional validation and only valid for groups with number greater than 30 observations
 
 ```{r, include=FALSE}
-(df <- get.descriptives(sdat, dvs, between, include.global = F, normality.test = T))
+(df <- get.descriptives(sdat, dvs, between, include.global = F, normality.test = T, skewness = skewness))
 ```
 
 ```{r, echo=FALSE, purl=FALSE}
@@ -176,9 +184,9 @@ with values greater than 200 observation [[3](#references)].
 ```{r, include=FALSE}
 {{
 if (length(covar) > 0) {
-  paste0('(df <- homogeneity.test(sdat, dvs, between, c(), covar))')
+  paste0('(df <- homogeneity.test(sdat, dvs, between, c(), covar, skewness = skewness))')
 } else {
-  paste0('(df <- homogeneity.test(sdat, dvs, between))')
+  paste0('(df <- homogeneity.test(sdat, dvs, between, skewness = skewness))')
 }
 }}
 ```

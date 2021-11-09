@@ -1,6 +1,7 @@
 
 #' @export
-anova.test <- function(data, dvs, between=c(), within=c(), wid = 'row.pos', type = NULL, effect.size = 'ges', dv.var = NULL, as.table = F) {
+anova.test <- function(data, dvs, between=c(), within=c(), wid = 'row.pos', type = NULL
+                       , effect.size = 'ges', dv.var = NULL, as.table = F, skewness = c()) {
   ldvs <- as.list(dvs); names(ldvs) <- dvs
   toReturn <- lapply(ldvs, FUN = function(dv) {
     if (is.data.frame(data)) {
@@ -11,13 +12,15 @@ anova.test <- function(data, dvs, between=c(), within=c(), wid = 'row.pos', type
       dat <- as.data.frame(data[[dv]])
     }
 
+    for (col in names(skewness))
+      dat[[col]] <- dat[[skewness[[col]]]]
+
     rbetween <- intersect(as.character(between),colnames(dat))
     rwithin <- intersect(as.character(within),colnames(dat))
 
     sformula <- as_formula(dv, rbetween, rwithin, wid = wid)
     aov <- tryCatch(rstatix::anova_test(dat, sformula, type = type, effect.size = effect.size, detailed = T)
                     , error = function(e) return(NULL))
-    #aov <- rstatix::anova_test(dat, dv=dv, wid=wid, between = rbetween, within = rwithin, type = type, effect.size = effect.size, detailed = T)
     if (!is.null(aov)) return(aov)
   })
   if (as.table) toReturn <- get.anova.table(toReturn)
@@ -25,7 +28,7 @@ anova.test <- function(data, dvs, between=c(), within=c(), wid = 'row.pos', type
 }
 
 #' @export
-anova.pwc <- function(data, dvs, between=c(), within=c(), p.adjust.method = "bonferroni", dv.var = NULL, as.table = F, only.sig = F) {
+anova.pwc <- function(data, dvs, between=c(), within=c(), p.adjust.method = "bonferroni", dv.var = NULL, as.table = F, only.sig = F, skewness = c()) {
   ldvs <- as.list(dvs); names(ldvs) <- dvs
 
   toReturn <- lapply(ldvs, FUN = function(dv) {
@@ -45,15 +48,40 @@ anova.pwc <- function(data, dvs, between=c(), within=c(), p.adjust.method = "bon
 
     lapply(livs, FUN = function(iv) {
       gdat <-  dplyr::group_by_at(dat, dplyr::vars(setdiff(names(livs), iv)))
+      col <- dv; if (col %in% names(skewness)) col <- skewness[[dv]]
       if (length(rwithin) > 0) {
         pwc <- tryCatch(rstatix::pairwise_t_test(gdat, as.formula(paste0('`',dv,'`'," ~ ",'`',iv,'`')),
                                                  paired = iv %in% rwithin,
                                                  p.adjust.method = p.adjust.method, detailed=T)
                         , error = function(e) NULL)
+        if (col != dv) {
+          pwc2 <- rstatix::pairwise_t_test(gdat, as.formula(paste0('`',col,'`'," ~ ",'`',iv,'`')),
+                                           paired = iv %in% rwithin,
+                                           p.adjust.method = p.adjust.method, detailed=T)
+          pwc[[".y."]] <- pwc2[[".y."]]
+          pwc[["statistic"]] <- pwc2[["statistic"]]
+          pwc[["df"]] <- pwc2[["df"]]
+          pwc[["p"]] <- pwc2[["p"]]
+          pwc[["p.adj"]] <- pwc2[["p.adj"]]
+          pwc[["p.signif"]] <- pwc2[["p.signif"]]
+          pwc[["p.adj.signif"]] <- pwc2[["p.adj.signif"]]
+        }
+
       } else {
         pwc <- tryCatch(rstatix::emmeans_test(gdat, as.formula(paste0('`',dv,'`'," ~ ",'`',iv,'`')),
                                               p.adjust.method = p.adjust.method, detailed=T)
                         , error = function(e) NULL)
+        if (col != dv) {
+          pwc2 <- rstatix::emmeans_test(gdat, as.formula(paste0('`',col,'`'," ~ ",'`',iv,'`')),
+                                        p.adjust.method = p.adjust.method, detailed=T)
+          pwc[[".y."]] <- pwc2[[".y."]]
+          pwc[["statistic"]] <- pwc2[["statistic"]]
+          pwc[["df"]] <- pwc2[["df"]]
+          pwc[["p"]] <- pwc2[["p"]]
+          pwc[["p.adj"]] <- pwc2[["p.adj"]]
+          pwc[["p.signif"]] <- pwc2[["p.signif"]]
+          pwc[["p.adj.signif"]] <- pwc2[["p.adj.signif"]]
+        }
       }
 
       if (!is.null(pwc)) return(pwc)
@@ -127,10 +155,17 @@ get.anova.emmeans <- function(pwcs) {
 
 #' @export
 get.anova.emmeans.with.ds <- function(pwcs, data, dvs, ivs=c(), type = "common", dv.var = NULL) {
-  ds <- get.descriptives(data, dvs, ivs, type, dv.var)
+  ds <- get.descriptives(data, dvs, ivs, ifelse(type=="apa-format","common",type), dv.var)
   emms <- get.anova.emmeans(pwcs)
-  toReturn <- merge(emms, ds, by.x=c("var",ivs), by.y=c("variable",ivs), suffixe=c(".emms",".ds"))
+  toReturn <- merge(emms, ds, by.x=c("var",ivs), by.y=c("variable",ivs), suffixe=c(".emms",""))
   toReturn[['sd.emms']] <- sqrt(toReturn[['n']])*toReturn[['se.emms']]
+
+  if (type == "apa-format") {
+    toReturn2 <- toReturn[,c("var",ivs,"n","mean","se")]
+    colnames(toReturn2) <- c("var",ivs,"n", "M","SE")
+    toReturn <- toReturn2
+  }
+
   return(toReturn)
 }
 

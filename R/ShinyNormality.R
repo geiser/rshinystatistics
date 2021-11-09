@@ -1,4 +1,4 @@
-info_for_qq_groups <- function(data, dv, ivs, wid = 'row.pos', dv.var = NULL) {
+info_for_qq_groups <- function(data, dv, ivs, wid = 'row.pos', dv.var = NULL, skewness = c()) {
   if (is.data.frame(data)) {
     dat <- as.data.frame(data)
     if (!is.null(dv.var))
@@ -6,6 +6,9 @@ info_for_qq_groups <- function(data, dv, ivs, wid = 'row.pos', dv.var = NULL) {
   } else if (is.list(data)) {
     dat <- as.data.frame(data[[dv]])
   }
+
+  for (col in names(skewness))
+    dat[[col]] <- dat[[skewness[[col]]]]
 
   sivs <- unique(ivs[ivs %in% colnames(dat)])
 
@@ -252,12 +255,14 @@ shinyNormalityMD <- function(id, dataset, dvs = "dvs", between = "between", with
         data <- dataset[[dataTable]]
         if (show.residuals) {
           df <- do.call(normality.test.by.residual, list(
-            data = data, dvs = rdvs(), between = rbetween(), within = rwithin(), covar = rcovar(), wid = wid()))
+            data = data, dvs = rdvs(), between = rbetween(), within = rwithin()
+            , covar = rcovar(), wid = wid(), skewness = getSkewnessMap(dataset$skewness)))
           cnames <- c('var','normality','method','statistic','p','p.signif')
           shiny2TableMD("normalityResTbl", df, cnames, prefix = ns('normality-residual-assessment'))
         }
 
-        dargs <- list(data = data, dvs = rdvs(), ivs = c(rbetween(), rwithin()), type = 'mean_sd', normality.test = T)
+        dargs <- list(data = data, dvs = rdvs(), ivs = c(rbetween(), rwithin())
+                      , type = 'mean_sd', normality.test = T, skewness = getSkewnessMap(dataset$skewness))
         df.grp <- do.call(get.descriptives, dargs)
         shiny2TableMD("normalityPerGroupsTbl", df.grp, prefix = ns('normality-assessment-per-group'))
       }
@@ -273,6 +278,10 @@ shinyNormalityMD <- function(id, dataset, dvs = "dvs", between = "between", with
         dat <- as.data.frame(dataset[[dataTable]][[dv]])
         within <- rwithin()[rwithin() %in% colnames(dat)]
         between <- rbetween()[rbetween() %in% colnames(dat)]
+
+        skewness = getSkewnessMap(dataset$skewness)
+        for (col in names(skewness))
+          dat[[col]] <- dat[[skewness[[col]]]]
 
         sformula <- as_formula(dv, between, within, rcovar(), wid())
         if (length(between) == 0 && length(within) == 0 && length(rcovar()) == 0) {
@@ -312,7 +321,8 @@ shinyNormalityMD <- function(id, dataset, dvs = "dvs", between = "between", with
       output$qqPlot4GroupsUI <- renderUI({
         if (!dataset$isSetup) return(NULL)
         dv <- input$dvGroups
-        infoGroupQQs(info_for_qq_groups(dataset[[dataTable]], dv, c(rbetween(),rwithin()), wid()))
+        infoGroupQQs(info_for_qq_groups(dataset[[dataTable]], dv, c(rbetween(),rwithin()), wid()
+                                        , skewness = getSkewnessMap(dataset$skewness)))
         do.call(verticalLayout, lapply(infoGroupQQs(), FUN = function(info) {
           params <- list(
             data = info$data, dv = dv, wid = wid(), name = info$lbl,

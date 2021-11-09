@@ -1,17 +1,17 @@
 set_symmetry <- function(dat, col, skew = NULL) {
   if (!is.null(skew) && (col %in% colnames(dat))) {
     if (skew == 'posSqrt') {
-      dat[[col]] <- sqrt(dat[[col]])
+      dat[[paste0('std.',col)]] <- sqrt(dat[[col]])
     } else if (skew == 'negSqrt') {
-      dat[[col]] <- -1*sqrt(max(dat[[col]]+1) - dat[[col]])
+      dat[[paste0('std.',col)]] <- -1*sqrt(max(dat[[col]]+1) - dat[[col]])
     } else if (skew == 'posLog') {
-      dat[[col]] <- log10(dat[[col]])
+      dat[[paste0('std.',col)]] <- log10(dat[[col]])
     } else if (skew == 'negLog') {
-      dat[[col]] <- -1*log10(max(dat[[col]]+1) - dat[[col]])
+      dat[[paste0('std.',col)]] <- -1*log10(max(dat[[col]]+1) - dat[[col]])
     } else if (skew == 'posInv') {
-      dat[[col]] <- 1/(dat[[col]])
+      dat[[paste0('std.',col)]] <- 1/(dat[[col]])
     } else  if (skew == 'negInv') {
-      dat[[col]] <- -1/(max(dat[[col]]+1) - dat[[col]])
+      dat[[paste0('std.',col)]] <- -1/(max(dat[[col]]+1) - dat[[col]])
     }
   }
   return(dat)
@@ -22,7 +22,7 @@ shinySettingSymmetryUI <- function(id) {
   ns <- NS(id)
   tl <- getTranslator()
   verticalLayout(shinyjs::useShinyjs(), hr(), uiOutput(ns('skewnessInputUI')),
-                 checkboxInput(ns('checkSymmetry'), paste('(1)', tl('Symmetry distribution was checked'))))
+                 checkboxInput(ns('checkSymmetry'), paste('(1)', tl('Symmetry was checked'))))
 }
 
 #' @import shiny

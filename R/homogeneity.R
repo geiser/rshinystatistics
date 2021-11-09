@@ -8,9 +8,10 @@
 #' @param within a character vector containing the independent variable used within-subject
 #' @param covar column with the variable to be used as covariance
 #' @param dv.var column with the information to classify observations based on dependent variables
+#' @param skewness a list of transformation to achieve normality
 #' @return A data frame containing the homogeneity test (levene's test of variances and Anova slopes in ancova)
 #' @export
-homogeneity.test <- function(data, dvs, between = c(), within = c(), covar = NULL, dv.var = NULL) {
+homogeneity.test <- function(data, dvs, between = c(), within = c(), covar = NULL, dv.var = NULL, skewness = c()) {
   do.call(rbind, lapply(dvs, FUN = function(dv) {
     if (is.data.frame(data)) {
       dat <- as.data.frame(data)
@@ -19,6 +20,9 @@ homogeneity.test <- function(data, dvs, between = c(), within = c(), covar = NUL
     } else if (is.list(data)) {
       dat <- as.data.frame(data[[dv]])
     }
+
+    for (col in names(skewness))
+      dat[[col]] <- dat[[skewness[[col]]]]
 
     sformula <- as_formula(dv, between, within, as.character = T)
     if (!is.null(covar) && length(covar) > 0) {

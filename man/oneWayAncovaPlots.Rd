@@ -12,7 +12,8 @@ oneWayAncovaPlots(
   pwcs,
   addParam = c(),
   font.label.size = 14,
-  step.increase = 0.25
+  step.increase = 0.25,
+  p.label = "p.adj.signif"
 )
 }
 \arguments{
@@ -29,6 +30,8 @@ oneWayAncovaPlots(
 \item{font.label.size}{the integer value with the font label size}
 
 \item{step.increase}{the numeric vector to be used to minimize the overlap}
+
+\item{p.label}{the expression used in the p-values in the plot}
 }
 \value{
 A list of ggplot objects with the Two-Way ANOVA plots

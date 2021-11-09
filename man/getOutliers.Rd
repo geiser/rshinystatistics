@@ -4,7 +4,7 @@
 \alias{getOutliers}
 \title{This function provides a wrapper for rstatic::identify_outliers for multiple dependent variables dvs}
 \usage{
-getOutliers(data, dvs, ivs = c(), covar = c(), is.extreme = T)
+getOutliers(data, dvs, ivs = c(), covar = c(), is.extreme = T, skewness = c())
 }
 \description{
 This function provides a wrapper for rstatic::identify_outliers for multiple dependent variables dvs

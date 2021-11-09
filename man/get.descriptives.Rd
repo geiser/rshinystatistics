@@ -14,7 +14,8 @@ get.descriptives(
   include.global = F,
   symmetry.test = F,
   normality.test = F,
-  hide.details = F
+  hide.details = F,
+  skewness = c()
 )
 }
 \arguments{
@@ -33,6 +34,8 @@ get.descriptives(
 \item{symmetry.test}{a boolean value to indicate if symmetry test is included}
 
 \item{normality.test}{a boolean value to indicate if normality test is included}
+
+\item{skewness}{a list of transformation to achieve normality}
 }
 \value{
 A data.frame containing the results for the descriptive statistics
