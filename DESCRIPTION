@@ -1,6 +1,6 @@
 Package: rshinystatistics
 Title: Shiny Statistics
-Version: 0.0.0.9301
+Version: 0.0.0.9302
 Authors@R: 
     person(given = "Geiser",
            family = "Chalco Challco",
@@ -42,4 +42,4 @@ Imports:
 	DescTools,
 	stringr,
 	stringi
-RoxygenNote: 7.1.1
+RoxygenNote: 7.1.2

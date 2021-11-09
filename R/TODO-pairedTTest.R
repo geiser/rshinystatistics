@@ -87,15 +87,15 @@ pairedTTestMD <- function(id) {
               if (skew == 'posSqrt') {
                 dat[[dv]] <- sqrt(dat[[dv]])
               } else if (skew == 'negSqrt') {
-                dat[[dv]] <- sqrt(max(dat[[dv]]+1) - dat[[dv]])
+                dat[[dv]] <- -1*sqrt(max(dat[[dv]]+1) - dat[[dv]])
               } else if (skew == 'posLog') {
                 dat[[dv]] <- log10(dat[[dv]])
               } else if (skew == 'negLog') {
-                dat[[dv]] <- log10(max(dat[[dv]]+1) - dat[[dv]])
+                dat[[dv]] <- -1*log10(max(dat[[dv]]+1) - dat[[dv]])
               } else if (skew == 'posInv') {
                 dat[[dv]] <- 1/(dat[[dv]])
               } else  if (skew == 'negInv') {
-                dat[[dv]] <- 1/(max(dat[[dv]]+1) - dat[[dv]])
+                dat[[dv]] <- -1/(max(dat[[dv]]+1) - dat[[dv]])
               }
             }
 
