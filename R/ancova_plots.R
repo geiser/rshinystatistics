@@ -32,7 +32,8 @@ ggPlotAoC <- function(data, x, y, color = c(), aov, pwc, linetype = color, by = 
     if ('jitter' %in% addParam)
       lp <- lp + ggplot2::geom_jitter(data = data, ggplot2::aes_(x=as.name(x), y=as.name(y), colour=factor(data[[x]])), width=0.075, height=0.075, size=0.75)
   }
-  lp <- lp + ggplot2::labs(subtitle = rstatix::get_test_label(aov, detailed = T, row = which(min(aov$p) == aov$p)), caption = rstatix::get_pwc_label(pwc2))
+
+  lp <- lp + ggplot2::labs(subtitle = rstatix::get_test_label(aov, detailed = T, row = which(min(aov$p[seq(2,nrow(aov))]) == aov$p)), caption = rstatix::get_pwc_label(pwc2))
   lp <- lp + ggplot2::theme(text = ggplot2::element_text(size=font.label.size))
   return(lp)
 }

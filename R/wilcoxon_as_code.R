@@ -13,9 +13,10 @@ wilcoxon.as.code.plots <- function(backup, dataname, dvs, iv, ext = 'Rmd') {
       font.label.size <- plot.param$font.label.size
       width <- plot.param$width
       height <- plot.param$height
+      p.label <- plot.param$p.label
     }
     plot.code <- paste0('ggPlotWilcoxon(',dataname,'[["',dv,'"]], "',iv,'", "',dv,'"',"\n",
-                        ', res$wt[["',dv,'"]], c(',paste0(paste0('"',addParam,'"'),collapse =','),'), font.label.size=',font.label.size,')')
+                        ', res$wt[["',dv,'"]], c(',paste0(paste0('"',addParam,'"'),collapse =','),'), font.label.size=',font.label.size,', p.label="',p.label,'")')
     if (ext == 'Rmd') {
       plot.code <- paste0("```{r, fig.width=", ceiling(width/100),", fig.height=",ceiling(height/100), "}\n", plot.code,"\n```\n")
     }

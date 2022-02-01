@@ -13,9 +13,10 @@
 #' @param addParam the character vector with elements to be included in the plot (e.g. "dotplot", "jitter", "boxplot", "point", "mean", "mean_se", "mean_sd", "mean_ci", "mean_range", "median", "median_iqr", "median_mad", "median_range"); see ?desc_statby for more details.
 #' @param font.label.size the integer value with the font label size
 #' @param step.increase the numeric vector to be used to minimize the overlap
+#' @param p.label the label used for p-values
 #' @return A ggplot object with the non.parametric plot
 #' @export
-ggPlotFactNonParam <- function(data, x, y, color = c(), non, pwc, linetype = color, by = c(), addParam = c(), font.label.size = 14, step.increase = 0.25, type = NULL) {
+ggPlotFactNonParam <- function(data, x, y, color = c(), non, pwc, linetype = color, by = c(), addParam = c(), font.label.size = 14, step.increase = 0.25, type = NULL, p.label = "p.adj.signif") {
 
   data[[x]] <- factor(data[[x]])
   pd <- ggplot2::position_dodge(width = 0.15)
@@ -24,19 +25,29 @@ ggPlotFactNonParam <- function(data, x, y, color = c(), non, pwc, linetype = col
   if (is.null(pwc2)) return(ggplot2::ggplot())
   if (length(color) > 0) {
     bxp <- ggpubr::ggboxplot(data, x = x, y = y, color = color, palette = "jco", add=addParam, facet.by = by)
-    bxp1 <- bxp + ggpubr::stat_pvalue_manual(pwc2, color = color, linetype = linetype, hide.ns = T, tip.length = 0, step.group.by = by, position = pd)
+    if (p.label == "p.adj") {
+      pwc2[["p.adj"]] <- round(pwc2[["p.adj"]],3)
+      bxp1 <- bxp + ggpubr::stat_pvalue_manual(pwc2, color = color, linetype = linetype, hide.ns = T, tip.length = 0, step.group.by = by, position = pd, label = "p.adj = {p.adj}")
+    } else {
+      bxp1 <- bxp + ggpubr::stat_pvalue_manual(pwc2, color = color, linetype = linetype, hide.ns = T, tip.length = 0, step.group.by = by, position = pd)
+    }
     ggtest <- tryCatch(ggplot2::ggplot_build(bxp1), error = function(e) NULL)
     if (!is.null(ggtest)) bxp <- bxp1
   } else {
     bxp <- ggpubr::ggboxplot(data, x = x, y = y, color = x, palette = "jco", add=addParam, facet.by = by)
-    bxp1 <- bxp + ggpubr::stat_pvalue_manual(pwc2, linetype = linetype, hide.ns = T, tip.length = 0, step.group.by = by, position = pd)
+    if (p.label == "p.adj") {
+      pwc2[["p.adj"]] <- round(pwc2[["p.adj"]],3)
+      bxp1 <- bxp + ggpubr::stat_pvalue_manual(pwc2, linetype = linetype, hide.ns = T, tip.length = 0, step.group.by = by, position = pd, label = "p.adj = {p.adj}")
+    } else {
+      bxp1 <- bxp + ggpubr::stat_pvalue_manual(pwc2, linetype = linetype, hide.ns = T, tip.length = 0, step.group.by = by, position = pd)
+    }
     ggtest <- tryCatch(ggplot2::ggplot_build(bxp1), error = function(e) NULL)
     if (!is.null(ggtest)) bxp <- bxp1
   }
 
   if (!is.null(type) && 'srh' == type) {
     dnon <- data.frame(non)
-    idx <- which(rownames(dnon) == x)
+    idx <- which(min(dnon$p.value, na.rm = T) == dnon$p.value)
     statistic <- round(as.double(dnon$H[idx]), 3)
     dof <- floor(as.double(dnon[['Df']][idx]))
     dof.res <- floor(as.double(dnon[['Df']][which(rownames(dnon) == 'Residuals')]))
@@ -46,7 +57,7 @@ ggPlotFactNonParam <- function(data, x, y, color = c(), non, pwc, linetype = col
     bxp <- bxp + ggplot2::labs(
       subtitle = paste0('Scheirer-Ray-Hare H(',dof,',',dof.res,')=', statistic, pval), caption = rstatix::get_pwc_label(pwc2))
   } else {
-    bxp <- bxp + ggplot2::labs(subtitle = rstatix::get_test_label(non, detailed = T), caption = rstatix::get_pwc_label(pwc2))
+    bxp <- bxp + ggplot2::labs(subtitle = rstatix::get_test_label(non, detailed = T, row = which(min(non$p) == non$p)), caption = rstatix::get_pwc_label(pwc2))
   }
   bxp <- bxp + ggplot2::theme(text = ggplot2::element_text(size=font.label.size))
 
@@ -71,9 +82,10 @@ ggPlotFactNonParam <- function(data, x, y, color = c(), non, pwc, linetype = col
 #' @param addParam the character vector with elements to be included in the plot (e.g. "dotplot", "jitter", "boxplot", "point", "mean", "mean_se", "mean_sd", "mean_ci", "mean_range", "median", "median_iqr", "median_mad", "median_range"); see ?desc_statby for more details.
 #' @param font.label.size the integer value with the font label size
 #' @param step.increase the numeric vector to be used to minimize the overlap
+#' @param p.label the label used for p-values
 #' @return A list of ggplot objects with the Three-Way Non Parametric plots
 #' @export
-threeWayNonParamFactPlots <- function(data, dv, ivs, non, pwcs, addParam=c(), font.label.size = 14, step.increase = 0.25, type = NULL) {
+threeWayNonParamFactPlots <- function(data, dv, ivs, non, pwcs, addParam=c(), font.label.size = 14, step.increase = 0.25, type = NULL, p.label = "p.adj.signif") {
   livs <- as.list(ivs); names(livs) <- ivs
   toReturn <- lapply(livs, FUN = function(iv) {
     pwc <- pwcs[[iv]]
@@ -82,7 +94,7 @@ threeWayNonParamFactPlots <- function(data, dv, ivs, non, pwcs, addParam=c(), fo
     inner.toReturn <- lapply(lgbys, FUN = function(gby) {
       color <- setdiff(ivs, c(iv, gby))
       ggPlotFactNonParam(data, iv, dv, color=color, by=gby, non=non, pwc=pwc, addParam=addParam,
-                         font.label.size = font.label.size, step.increase = step.increase, type = type)
+                         font.label.size = font.label.size, step.increase = step.increase, type = type, p.label = p.label)
     })
     return(inner.toReturn)
   })
@@ -101,15 +113,16 @@ threeWayNonParamFactPlots <- function(data, dv, ivs, non, pwcs, addParam=c(), fo
 #' @param addParam the character vector with elements to be included in the plot (e.g. "dotplot", "jitter", "boxplot", "point", "mean", "mean_se", "mean_sd", "mean_ci", "mean_range", "median", "median_iqr", "median_mad", "median_range"); see ?desc_statby for more details.
 #' @param font.label.size the integer value with the font label size
 #' @param step.increase the numeric vector to be used to minimize the overlap
+#' @param p.label the label used for p-values
 #' @return A list of ggplot objects with the Two-Way  plots
 #' @export
-twoWayNonParamFactPlots <- function(data, dv, ivs, non, pwcs, addParam=c(), font.label.size = 14, step.increase = 0.25, type = NULL) {
+twoWayNonParamFactPlots <- function(data, dv, ivs, non, pwcs, addParam=c(), font.label.size = 14, step.increase = 0.25, type = NULL, p.label = "p.adj.signif") {
   livs <- as.list(ivs); names(livs) <- ivs
   return(lapply(livs, FUN = function(iv) {
     pwc <- pwcs[[iv]]
     color <- setdiff(ivs, iv)
     ggPlotFactNonParam(data, iv, dv, color=color, non=non, pwc=pwc, addParam=addParam,
-              font.label.size = font.label.size, step.increase = step.increase, type = type)
+              font.label.size = font.label.size, step.increase = step.increase, type = type, p.label = p.label)
   }))
 }
 
@@ -125,13 +138,14 @@ twoWayNonParamFactPlots <- function(data, dv, ivs, non, pwcs, addParam=c(), font
 #' @param addParam the character vector with elements to be included in the plot (e.g. "dotplot", "jitter", "boxplot", "point", "mean", "mean_se", "mean_sd", "mean_ci", "mean_range", "median", "median_iqr", "median_mad", "median_range"); see ?desc_statby for more details.
 #' @param font.label.size the integer value with the font label size
 #' @param step.increase the numeric vector to be used to minimize the overlap
+#' @param p.label the label used for p-values
 #' @return A list of ggplot objects with the One-Way  plots
 #' @export
-oneWayNonParamFactPlots <- function(data, dv, ivs, non, pwcs, addParam=c(), font.label.size = 14, step.increase = 0.25, type = NULL) {
+oneWayNonParamFactPlots <- function(data, dv, ivs, non, pwcs, addParam=c(), font.label.size = 14, step.increase = 0.25, type = NULL, p.label = "p.adj.signif") {
   livs <- as.list(ivs); names(livs) <- ivs
   return(lapply(livs, FUN = function(iv) {
     ggPlotFactNonParam(data, iv, dv, non=non, pwc=pwcs[[iv]], addParam=addParam,
-              font.label.size = font.label.size, step.increase = step.increase, type = type)
+              font.label.size = font.label.size, step.increase = step.increase, type = type, p.label = p.label)
   }))
 }
 

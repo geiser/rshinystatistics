@@ -264,13 +264,13 @@ shinyDoHypothesisMD <- function(id, test, dataset, dvs = "dvs", between = "betwe
             plots <- list()
             if (length(ivs) == 1)
               plots <- oneWayNonParamFactPlots(dat, dv, ivs, values[[test]][[dv]], values$pwc[[dv]], addParam=addParam,
-                                               font.label.size = font.label.size, step.increase = step.increase, type = 'srh')
+                                               font.label.size = font.label.size, step.increase = step.increase, type = 'srh', p.label=p.label)
             else if (length(ivs) == 2)
               plots <- twoWayNonParamFactPlots(dat, dv, ivs, values[[test]][[dv]], values$pwc[[dv]], addParam=addParam,
-                                               font.label.size = font.label.size, step.increase = step.increase, type = 'srh')
+                                               font.label.size = font.label.size, step.increase = step.increase, type = 'srh', p.label=p.label)
             else if (length(ivs) == 3)
               plots <- threeWayNonParamFactPlots(dat, dv, ivs, values[[test]][[dv]], values$pwc[[dv]], addParam=addParam,
-                                                 font.label.size = font.label.size, step.increase = step.increase, type = 'srh')
+                                                 font.label.size = font.label.size, step.increase = step.increase, type = 'srh', p.label=p.label)
             if (length(ivs) == 3) {
               do.call(verticalLayout, lapply(names(plots), FUN = function(iv) {
                 do.call(verticalLayout, lapply(names(plots[[iv]]), FUN = function(grpby) {
