@@ -13,7 +13,8 @@ oneWayNonParamFactPlots(
   addParam = c(),
   font.label.size = 14,
   step.increase = 0.25,
-  type = NULL
+  type = NULL,
+  p.label = "p.adj.signif"
 )
 }
 \arguments{
@@ -32,6 +33,8 @@ oneWayNonParamFactPlots(
 \item{font.label.size}{the integer value with the font label size}
 
 \item{step.increase}{the numeric vector to be used to minimize the overlap}
+
+\item{p.label}{the label used for p-values}
 }
 \value{
 A list of ggplot objects with the One-Way  plots

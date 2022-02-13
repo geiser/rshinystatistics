@@ -4,7 +4,15 @@
 \alias{ggPlotWilcoxon}
 \title{Non Parametric Wilcoxon Plot}
 \usage{
-ggPlotWilcoxon(data, x, y, wt, addParam = c(), font.label.size = 14)
+ggPlotWilcoxon(
+  data,
+  x,
+  y,
+  wt,
+  addParam = c(),
+  font.label.size = 14,
+  p.label = "p.adj.signif"
+)
 }
 \description{
 Non Parametric Wilcoxon Plot
