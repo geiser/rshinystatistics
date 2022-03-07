@@ -32,18 +32,13 @@ shinyLinearityMD <- function(id, dataset, dvs = "dvs", between = "between", cova
       covar = unique(unlist(dataset$variables[c(covar)], use.names = F))
     )
 
-    wid <- reactiveVal()
-    rdvs <- reactiveVal()
-    rbetween <- reactiveVal()
-    rcovar <- reactiveVal()
-
     observeEvent(dataset$variables, {
       req(dataset$isSetup)
       vars$wid <- dataset$variables$wid
       vars$dvs <- unique(unlist(dataset$variables[c(dvs)], use.names = F))
       vars$between <- unique(unlist(dataset$variables[c(between)], use.names = F))
       vars$covar <- unique(unlist(dataset$variables[c(covar)], use.names = F))
-      updateRadioButtons(session, "dv", choices = rdvs(), selected = rdvs()[1], inline = T)
+      updateRadioButtons(session, "dv", choices = vars$dvs, selected = vars$dvs[1], inline = T)
     })
 
     # ... plots linear plots

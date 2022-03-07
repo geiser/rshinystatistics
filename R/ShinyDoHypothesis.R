@@ -209,7 +209,7 @@ shinyDoHypothesisMD <- function(id, test, dataset, dvs = "dvs", between = "betwe
         req(dataset$isSetup)
 
         dv <- isolate(input$dv)
-        ivs <- isolate(rbetween())
+        ivs <- isolate(vars$between)
         width <- isolate(input$width)
         height <- isolate(input$height)
         addParam <- isolate(input$addParam)
