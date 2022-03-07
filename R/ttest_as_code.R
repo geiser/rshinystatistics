@@ -6,6 +6,7 @@ ind.ttest.as.code.plots <- function(backup, dataname, dvs, iv, ext = 'Rmd') {
     height <- 700
     font.label.size <- 14
     addParam <- c("jitter")
+    p.label <- "p.adj.signif"
     plot.param <- backup$ttestParams$plot[[dv]]
     if (!is.null(plot.param)) {
       addParam <- plot.param$addParam

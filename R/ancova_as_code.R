@@ -8,6 +8,7 @@ ancova.as.code.plots <- function(backup, dataname, dvs, between, covar, ext = 'R
     font.label.size <- 14
     step.increase <- 0.25
     addParam <- c("jitter")
+    p.label <- "p.adj.signif"
     plot.param <- backup$ancovaParams$plot[[dv]]
     if (!is.null(plot.param)) {
       addParam <- plot.param$addParam

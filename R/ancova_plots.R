@@ -13,7 +13,9 @@ ggPlotAoC <- function(data, x, y, color = c(), aov, pwc, linetype = color, by = 
     lp <- lp + ggplot2::geom_errorbar(ggplot2::aes_string(ymin="conf.low", ymax="conf.high", color=color), width=0.1, size = 1, position = pd)
     if (p.label == "p.adj") {
       pwc2[["p.adj"]] <- round(pwc2[["p.adj"]],3)
-      lp <- lp + ggpubr::stat_pvalue_manual(pwc2, color = color, linetype = linetype, hide.ns = T, tip.length = 0, step.group.by = by, position = pd, label = "p.adj = {p.adj}")
+      pwc2$p.adj[which(pwc2$p.adj < 0.001)] <- '< 0.001'
+      pwc2$p.adj[which(pwc2$p.adj >= 0.001)] <- paste0('= ', pwc2$p.adj[which(pwc2$p.adj >= 0.001)])
+      lp <- lp + ggpubr::stat_pvalue_manual(pwc2, color = color, linetype = linetype, hide.ns = T, tip.length = 0, step.group.by = by, position = pd, label = "p.adj {p.adj}")
     } else {
       lp <- lp + ggpubr::stat_pvalue_manual(pwc2, color = color, linetype = linetype, hide.ns = T, tip.length = 0, step.group.by = by, position = pd)
     }
@@ -25,7 +27,9 @@ ggPlotAoC <- function(data, x, y, color = c(), aov, pwc, linetype = color, by = 
     lp <- lp + ggplot2::geom_errorbar(ggplot2::aes_string(ymin="conf.low", ymax="conf.high"), width=0.1, size = 1, position = pd)
     if (p.label == "p.adj") {
       pwc2[["p.adj"]] <- round(pwc2[["p.adj"]],3)
-      lp <- lp + ggpubr::stat_pvalue_manual(pwc2, linetype = linetype, hide.ns = T, tip.length = 0, step.group.by = by, position = pd, label = "p.adj = {p.adj}")
+      pwc2$p.adj[which(pwc2$p.adj < 0.001)] <- '< 0.001'
+      pwc2$p.adj[which(pwc2$p.adj >= 0.001)] <- paste0('= ', pwc2$p.adj[which(pwc2$p.adj >= 0.001)])
+      lp <- lp + ggpubr::stat_pvalue_manual(pwc2, linetype = linetype, hide.ns = T, tip.length = 0, step.group.by = by, position = pd, label = "p.adj {p.adj}")
     } else {
       lp <- lp + ggpubr::stat_pvalue_manual(pwc2, linetype = linetype, hide.ns = T, tip.length = 0, step.group.by = by, position = pd)
     }

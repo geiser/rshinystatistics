@@ -7,6 +7,7 @@ wilcoxon.as.code.plots <- function(backup, dataname, dvs, iv, ext = 'Rmd') {
     height <- 700
     font.label.size <- 14
     addParam <- "jitter"
+    p.label <- "p.adj.signif"
     plot.param <- backup$wilcoxonParams$plot[[dv]]
     if (!is.null(plot.param)) {
       addParam <- plot.param$addParam

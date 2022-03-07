@@ -1,6 +1,6 @@
 Package: rshinystatistics
 Title: Shiny Statistics
-Version: 0.0.0.9400
+Version: 0.0.0.9500
 Authors@R: 
     person(given = "Geiser",
            family = "Chalco Challco",
@@ -17,29 +17,27 @@ Suggests:
   testthat 
 Imports:
   shiny (>= 1.5.0),
-  shiny.i18n,
   shinyjs,
-  shinyTree,
-  colourpicker,
+  shiny.i18n,
   DT,
-	stats,
-	fBasics,
-	rcompanion,
-	emmeans,
-	rstatix,
-	readxl,
-	readr,
-	plyr,
-	dplyr,
-	tidyr,
-	ggplot2,
-	ggpubr,
-	plotly,
-	zip,
-	tools,
-	digest,
-	templates,
-	DescTools,
-	stringr,
-	stringi
+  rstatix,
+  emmeans,
+  plotly,
+  stringr,
+  readxl,
+  readr,
+  dplyr,
+  stats,
+  ggpubr,
+  plyr,
+  rcompanion,
+  car,
+  ggplot2,
+  digest,
+  knitr,
+  templates,
+  zip,
+  rmarkdown,
+  timeDate,
+  fBasics
 RoxygenNote: 7.1.2

@@ -1,12 +1,7 @@
-
-#' @import shiny
-#' @export
-carelessApp <- function() {
-  shinyApp(ui = fluidPage(shinyCarelessUI("carelessApp")), server = function(input, output) {
-    observe({ shinyCarelessMD("carelessApp") })
-  })
-}
-
+#' Shiny Application to Run Wilcoxon Rank Sum Tests
+#'
+#' This function performs run a shiny application in which you can conduct two-sample Wilcoxon tests
+#'
 #' @import shiny
 #' @export
 wilcoxonApp <- function() {
@@ -15,6 +10,10 @@ wilcoxonApp <- function() {
   })
 }
 
+#' Shiny Application to Run Kruskal-Wallis Rank Sum Tests
+#'
+#' This function performs run a shiny application in which you can conduct Kruskal-Wallis rank sum tests
+#'
 #' @import shiny
 #' @export
 kruskalApp <- function() {
@@ -23,6 +22,10 @@ kruskalApp <- function() {
   })
 }
 
+#' Shiny Application to Run Scheirer Ray Hare Tests
+#'
+#' This function performs run a shiny application in which you can conduct Scheirer-Ray hare tests
+#'
 #' @import shiny
 #' @export
 scheirerApp <- function() {
@@ -31,6 +34,10 @@ scheirerApp <- function() {
   })
 }
 
+#' Shiny Application to Run Factorial ANCOVA Tests
+#'
+#' This function performs run a shiny application in which you can conduct Factorial ANCOVA tests
+#'
 #' @import shiny
 #' @export
 ancovaApp <- function() {
@@ -39,6 +46,10 @@ ancovaApp <- function() {
   })
 }
 
+#' Shiny Application to Run Factorial ANOVA Tests
+#'
+#' This function performs run a shiny application in which you can conduct Factorial ANOVA tests
+#'
 #' @import shiny
 #' @export
 anovaApp <- function() {
@@ -47,6 +58,10 @@ anovaApp <- function() {
   })
 }
 
+#' Shiny Application to Run Student's T-Tests
+#'
+#' This function performs run a shiny application in which you can conduct Student's t-tests
+#'
 #' @import shiny
 #' @export
 ttestApp <- function() {

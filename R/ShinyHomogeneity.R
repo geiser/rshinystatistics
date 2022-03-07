@@ -1,5 +1,7 @@
 #' @import shiny
 shinyHomogeneityUI <- function(id) {
+  ns <- NS(id)
+  tl <- getTranslator()
   homogeHelp <- paste(
     'Na tabela de avaliação da homogeneidade das variâncias, empregamos testes de Levene,',
     'e  os resultados de significância são apresentados na columna "p.signif" com os valores:<ul>',
@@ -12,50 +14,45 @@ shinyHomogeneityUI <- function(id) {
     '<li>Se está conduzindo ANCOVA é melhor empregar ANOVA considerando a covariante como uma variavel between-subject</li>',
     '<li>Se está conduzindo ANOVA, você deve utilizar o método não parametrico equivalente</li></ul>')
 
-  ns <- NS(id)
-  tl <- getTranslator()
-
   verticalLayout(
     h4(tl("Homogeneity Test")),
-    shiny2TableUI(ns("homogeneityTable")),
-    helpText(HTML(homogeHelp))
+    shiny2TableUI(ns("homogeneityTable")), helpText(HTML(homogeHelp))
   )
 }
 
 #' @import shiny
 shinyHomogeneityMD <- function(id, dataset, dvs = "dvs", between = "between", within = "within", covar = "covar", dataTable = 'dataTable') {
-  moduleServer(
-    id,
-    function(input, output, session) {
+  moduleServer(id, function(input, output, session) {
+    ns <- session$ns
+    tl <- getTranslator()
+    vars <- reactiveValues(
+      wid = dataset$variables$wid,
+      dvs = unique(unlist(dataset$variables[c(dvs)], use.names = F)),
+      between = unique(unlist(dataset$variables[c(between)], use.names = F)),
+      within = unique(unlist(dataset$variables[c(within)], use.names = F)),
+      covar = unique(unlist(dataset$variables[c(covar)], use.names = F))
+    )
 
-      ns <- session$ns
-      tl <- getTranslator()
+    observeEvent(dataset$variables, {
+      req(dataset$isSetup)
+      vars$wid = dataset$variables$wid
+      vars$dvs = unique(unlist(dataset$variables[c(dvs)], use.names = F))
+      vars$between = unique(unlist(dataset$variables[c(between)], use.names = F))
+      vars$within = unique(unlist(dataset$variables[c(within)], use.names = F))
+      vars$covar = unique(unlist(dataset$variables[c(covar)], use.names = F))
+    })
 
-      wid <- reactiveVal(dataset$variables$wid)
-      rdvs <- reactiveVal(unique(unlist(dataset$variables[c(dvs)], use.names = F)))
-      rbetween <- reactiveVal(unique(unlist(dataset$variables[c(between)], use.names = F)))
-      rwithin <- reactiveVal(unique(unlist(dataset$variables[c(within)], use.names = F)))
-      rcovar <- reactiveVal(unique(unlist(dataset$variables[c(covar)], use.names = F)))
-
-      observeEvent(dataset$variables, {
-        wid(dataset$variables$wid)
-        rdvs(unique(unlist(dataset$variables[c(dvs)], use.names = F)))
-        rbetween(unique(unlist(dataset$variables[c(between)], use.names = F)))
-        rwithin(unique(unlist(dataset$variables[c(within)], use.names = F)))
-        rcovar(unique(unlist(dataset$variables[c(covar)], use.names = F)))
-      })
-
-      # Homogeneity test
-      updateHomogTbl <- function() {
-        h.test <- homogeneity.test(
-          dataset[[dataTable]], rdvs(), rbetween(), rwithin(), rcovar()
-          , dv.var = 'var', skewness = getSkewnessMap(dataset$skewness))
-        shiny2TableMD("homogeneityTable", h.test, prefix = ns(''))
-      }
-
-      observeEvent(dataset$isSetup, { if (dataset$isSetup) updateHomogTbl() })
-      observeEvent(dataset[[dataTable]], { if (dataset$isSetup) updateHomogTbl() })
-
+    # Homogeneity test
+    updateHomogTbl <- function() {
+      req(dataset$isSetup)
+      h.test <- homogeneity.test(
+        dataset[[dataTable]], vars$dvs, vars$between, vars$within, vars$covar,
+        dv.var = 'var', skewness = getSkewnessMap(dataset$skewness))
+      shiny2TableMD("homogeneityTable", h.test, prefix = ns(''))
     }
-  )
+
+    observeEvent(dataset$isSetup, { updateHomogTbl() })
+    observeEvent(dataset[[dataTable]], { updateHomogTbl() })
+
+  })
 }
