@@ -39,12 +39,12 @@ shinyHypothesisMD <- function(id, test = id) {
     var.params <- list()
     if ('kruskal' == test) {
       var.params = list(
-        between = list(type = "convert.non.numeric", max = 1, label = tl("columns for the between-subject factors (independent variables)"), removeFrom = c("wid")),
+        between = list(type = "as.categorical", max = 1, label = tl("columns for the between-subject factors (independent variables)"), removeFrom = c("wid")),
         dvs = list(type = "numeric", label = tl("columns for the dependent variables (outcomes)"), removeFrom = c("wid","between"))
       )
     } else if ('srh' == test) {
       var.params = list(
-        between = list(type = "convert.non.numeric", min = 2, max = 3, label = tl("columns for the between-subject factors (independent variables)"), removeFrom = c("wid")),
+        between = list(type = "as.categorical", min = 2, max = 3, label = tl("columns for the between-subject factors (independent variables)"), removeFrom = c("wid")),
         dvs = list(type = "numeric", label = tl("columns for the dependent variables (outcomes)"), removeFrom = c("wid","between"))
       )
     } else if ('wilcoxon' == test) {
@@ -60,12 +60,12 @@ shinyHypothesisMD <- function(id, test = id) {
       )
     } else if ('anova' == test) {
       var.params = list(
-        between = list(type = "convert.non.numeric", min = 1, max = 3, label = tl("columns for the between-subject factors (independent variables)"), removeFrom = c("wid")),
+        between = list(type = "as.categorical", min = 1, max = 3, label = tl("columns for the between-subject factors (independent variables)"), removeFrom = c("wid")),
         dvs = list(type = "numeric", label = tl("columns for the dependent variables (outcomes)"), removeFrom = c("wid","between"))
       )
     } else if ('ttest' == test) {
       var.params = list(
-        between = list(type = "non.numeric", max = 1, label = tl("column for the independent variable"), values.count = 2, removeFrom = c("wid")),
+        between = list(type = "as.categorical", max = 1, label = tl("column for the independent variable"), values.count = 2, removeFrom = c("wid")),
         dvs = list(type = "numeric", label = tl("columns for the dependent variables (outcomes)"), removeFrom = c("wid","between"))
       )
     }

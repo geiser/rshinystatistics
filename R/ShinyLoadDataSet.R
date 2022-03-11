@@ -24,7 +24,7 @@ shinyLoadDataSetMD <- function(id, var.params = list(), dv.vars = NULL, rds.sign
       if (type == 'numeric') {
         if (is.numeric(data[[cname]])) return(cname)
       } else if (type == 'as.categorical') {
-        if (!is.numeric(data[[cname]])) return(cname)
+        return(cname)
       } else if (type == 'unique') {
         if (length(unique(data[[cname]])) == values.count) return(cname)
       } else {
