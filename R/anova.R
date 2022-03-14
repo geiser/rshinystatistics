@@ -1,4 +1,5 @@
-
+#' Anova Test
+#'
 #' @export
 anova.test <- function(data, dvs, between=c(), within=c(), wid = 'row.pos', type = NULL
                        , effect.size = 'ges', dv.var = NULL, as.table = F, skewness = c()) {
@@ -27,6 +28,8 @@ anova.test <- function(data, dvs, between=c(), within=c(), wid = 'row.pos', type
   return(toReturn)
 }
 
+#' Pair-wise Anova Test
+#'
 #' @export
 anova.pwc <- function(data, dvs, between=c(), within=c(), p.adjust.method = "bonferroni", dv.var = NULL, as.table = F, only.sig = F, skewness = c()) {
   ldvs <- as.list(dvs); names(ldvs) <- dvs
