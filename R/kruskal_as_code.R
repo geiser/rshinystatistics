@@ -23,7 +23,7 @@ kruskal.as.code.plots <- function(backup, dataname, dvs, between, ext = 'Rmd') {
       ', kruskal[["',dv,'"]]$kt, pwc[["',dv,'"]], c(',paste0(paste0('"',addParam,'"'), collapse = ','),
       '), font.label.size=',font.label.size,', step.increase=',step.increase,', p.label="',p.label,'")')
     if (ext == 'Rmd') {
-      plot.code <- paste0(c("```{r}", plot.code, "```"), collapse = "\n")
+      plot.code <- paste0(c("```{r, dpi=300}", plot.code, "```"), collapse = "\n")
     }
     plot.code <- paste0(plot.code,'\n',display.plots.str(ext, between, width=width, height=height, dv=dv))
 

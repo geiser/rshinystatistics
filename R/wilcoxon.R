@@ -1,9 +1,9 @@
 #' Wilcoxon Test
 #'
-#' This function provides a wrapper for rstatic::wilcox_test for the dependent variables `dvs`
+#' This function provides a wrapper for rstatix::wilcox_test for the dependent variables `dvs`
 #' including their effect sizes
 #'
-#' @param data a data.frame in which we will perform the wilcoxon-test
+#' @param data a data.frame or list containing the data
 #' @param dvs numeric columns with the dependent variables to be used in the wilcoxon-test
 #' @param iv independent (between) variable in which perform the wilcoxon-test
 #' @param alternative a character string specifying the alternative hypothesis, must be one of "two.sided" (default), "greater" or "less". You can specify just the initial letter.
@@ -47,7 +47,13 @@ wilcoxon.test <- function(data, dvs, iv, alternative = 'two.sided', dv.var = NUL
   }
 }
 
-
+#' Tabulate Wilcoxon's Pairwise Comparisons
+#'
+#' Creates table of pairwise comparisons based on results from Wilcoxon's test
+#'
+#' @param pwcs a data.frame with the results of Wilcoxon's pairwise comparisons
+#' @param only.sig logical; if TRUE, only statistical significant results will be tabulated
+#' @return A data.frame containing the pairwise comparisons
 #' @export
 get.wilcoxon.pwc.table <- function(pwcs, only.sig = F) {
   cnames <- c("var")

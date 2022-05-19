@@ -202,6 +202,7 @@ shinyLoadDataSetMD <- function(id, var.params = list(), dv.vars = NULL, rds.sign
         values$initTable <- NULL
         values$dataTable <- NULL
         values$isSetup <- FALSE
+        shinyjs::refresh()
       }
     })
 

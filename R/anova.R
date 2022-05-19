@@ -1,5 +1,19 @@
-#' Anova Test
+#' ANOVA Test
 #'
+#' This function provides a wrapper for rstatix::anova_test for the dependent variables `dvs`
+#' including their effect sizes
+#'
+#' @param data a data.frame or list containing the data
+#' @param dvs numeric columns with the dependent variables to be used in the anova test
+#' @param between independent (between) variable in which perform the anova test
+#' @param within independent (within) variable in which perform the anova test
+#' @param wid column with the unique identification
+#' @param type the type of sums of squares for ANOVA. Allowed values are either 1, 2 or 3. Default value is 2.
+#' @param effect.size the effect size to be computed, being "ges" (generalized eta squared) or "pes" (partial eta squared) Default is "ges".
+#' @param dv.var column with the information to classify observations
+#' @param as.table logical value indicating that the result should be returned after to apply `get.anova.table` function
+#' @param skewness named list in which each name represent the column of skewness data
+#' @return A data.frame containing the results for the anova test and their effect sizes
 #' @export
 anova.test <- function(data, dvs, between=c(), within=c(), wid = 'row.pos', type = NULL
                        , effect.size = 'ges', dv.var = NULL, as.table = F, skewness = c()) {

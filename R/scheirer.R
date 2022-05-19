@@ -1,3 +1,14 @@
+#' Scheirer Ray Hare test
+#'
+#' This function provides a wrapper for rcompanion::scheirerRayHare for the dependent variables `dvs`
+#' including their effect sizes
+#'
+#' @param data a data.frame or list containing the data
+#' @param dvs numeric columns with the dependent variables to be used in the scheirer test
+#' @param between independent (between) variable in which perform the scheirer test
+#' @param dv.var column with the information to classify observations
+#' @param as.table logical value indicating that the result should be returned as table or as list
+#' @return A data.frame containing the results for the scheirer test and their effect sizes
 #' @export
 scheirer.test <- function(data, dvs, between, dv.var = NULL, as.table = F) {
   ldvs <- as.list(dvs); names(ldvs) <- dvs

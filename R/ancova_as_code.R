@@ -37,7 +37,7 @@ ancova.as.code.plots <- function(backup, dataname, dvs, between, covar, ext = 'R
       plot.inner.code <- paste0('plots[["',iv,'"]]')
       if (ext == 'Rmd') {
         plot.inner.code <- paste0(
-          c(paste0("```{r, fig.width=", ceiling(width/100),", fig.height=", ceiling(height/100), "}"),
+          c(paste0("```{r, dpi=300, fig.width=", ceiling(width/100),", fig.height=", ceiling(height/100), "}"),
             plot.inner.code, "```"), collapse = "\n")
       }
       return(paste0('\n#### Plot for: `',dv,'` ~ `',iv,'`','\n',plot.inner.code,'\n'))

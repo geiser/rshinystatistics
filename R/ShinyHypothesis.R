@@ -49,7 +49,7 @@ shinyHypothesisMD <- function(id, test = id) {
       )
     } else if ('wilcoxon' == test) {
       var.params = list(
-        between = list(type = "non.numeric", max = 1, label = tl("column for the independent variable"), values.count = 2, removeFrom = c("wid")),
+        between = list(type = "as.categorical", max = 1, label = tl("column for the independent variable"), values.count = 2, removeFrom = c("wid")),
         dvs = list(type = "numeric", label = tl("columns for the dependent variables (outcomes)"), removeFrom = c("wid","between"))
       )
     } else if ('ancova' == test) {
@@ -162,6 +162,7 @@ shinyHypothesisMD <- function(id, test = id) {
         tabsetPanel(
           id = ns(paste0(test,"Panel")), type = "tabs", selected = "none"
           , tabPanel("DataSet", icon = icon("caret-right"), value = "none", shinyDisplayDataSetUI(ns("dataSet")))
+          , tabPanel(tl("Hypothesis Test"), value = "hypothesis", shinyDoHypothesisUI(ns("hypothesis"), test))
           , tabPanel(tl("Export"), value = "export-result", shinyExportHypothesisUI(ns("export-result")))
         )
       }

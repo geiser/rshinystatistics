@@ -1,5 +1,20 @@
-#' Ancova Test
+#' ANCOVA Test
 #'
+#' This function provides a wrapper for rstatix::anova_test for the dependent variables `dvs`
+#' including their effect sizes
+#'
+#' @param data a data.frame or list containing the data
+#' @param dvs numeric columns with the dependent variables to be used in the anova test
+#' @param between independent (between) variable in which perform the anova test
+#' @param covar column with the covariate information
+#' @param within independent (within) variable in which perform the anova test
+#' @param wid column with the unique identification
+#' @param type the type of sums of squares for ANOVA. Allowed values are either 1, 2 or 3. Default value is 2.
+#' @param effect.size the effect size to be computed, being "ges" (generalized eta squared) or "pes" (partial eta squared) Default is "ges".
+#' @param dv.var column with the information to classify observations
+#' @param as.table logical value indicating that the result should be returned after to apply `get.anova.table` function
+#' @param skewness named list in which each name represent the column of skewness data
+#' @return A data.frame containing the results for the anova test and their effect sizes
 #' @export
 ancova.test <- function(data, dvs, between, covar, type, effect.size, dv.var = NULL, as.table = F) {
   ldvs <- as.list(dvs); names(ldvs) <- dvs
@@ -21,6 +36,19 @@ ancova.test <- function(data, dvs, between, covar, type, effect.size, dv.var = N
   return(toReturn)
 }
 
+#' Pairwise Comparisons of Estimated Marginal Means for ANCOVA Test
+#'
+#' This function provides a wrapper for rstatix::emmeans_test for the dependent variables `dvs`
+#'
+#' @param data a data.frame or list containing the data
+#' @param dvs numeric columns with the dependent variables to be used in the anova test
+#' @param between independent (between) variable in which perform the anova test
+#' @param covar column with the covariate information
+#' @param p.adjust.method method to adjust p values for multiple comparisons.
+#' @param dv.var column with the information to classify observations
+#' @param as.table logical value indicating that the result should be returned after to apply `get.ancova.pwc.table` function
+#' @param only.sig logical; if TRUE, only statistical significant results will be tabulated
+#' @return A data.frame containing the results for the pairwise comparisons
 #' @export
 ancova.pwc <- function(data, dvs, between, covar, p.adjust.method = "bonferroni", dv.var = NULL, as.table = F, only.sig = F) {
   ldvs <- as.list(dvs); names(ldvs) <- dvs
