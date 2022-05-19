@@ -2,7 +2,7 @@
 % Please edit documentation in R/ancova.R
 \name{ancova.test}
 \alias{ancova.test}
-\title{Ancova Test}
+\title{ANCOVA Test}
 \usage{
 ancova.test(
   data,
@@ -15,6 +15,33 @@ ancova.test(
   as.table = F
 )
 }
+\arguments{
+\item{data}{a data.frame or list containing the data}
+
+\item{dvs}{numeric columns with the dependent variables to be used in the anova test}
+
+\item{between}{independent (between) variable in which perform the anova test}
+
+\item{covar}{column with the covariate information}
+
+\item{type}{the type of sums of squares for ANOVA. Allowed values are either 1, 2 or 3. Default value is 2.}
+
+\item{effect.size}{the effect size to be computed, being "ges" (generalized eta squared) or "pes" (partial eta squared) Default is "ges".}
+
+\item{dv.var}{column with the information to classify observations}
+
+\item{as.table}{logical value indicating that the result should be returned after to apply `get.anova.table` function}
+
+\item{within}{independent (within) variable in which perform the anova test}
+
+\item{wid}{column with the unique identification}
+
+\item{skewness}{named list in which each name represent the column of skewness data}
+}
+\value{
+A data.frame containing the results for the anova test and their effect sizes
+}
 \description{
-Ancova Test
+This function provides a wrapper for rstatix::anova_test for the dependent variables `dvs`
+including their effect sizes
 }

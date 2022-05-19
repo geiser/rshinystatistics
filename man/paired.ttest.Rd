@@ -16,9 +16,9 @@ paired.ttest(
 )
 }
 \arguments{
-\item{data}{a data.frame in which we will perform the t-test}
+\item{data}{a data.frame or list containing the data}
 
-\item{dvs}{numeric columns with the dependent variables to be used in the paired t-test}
+\item{dvs}{numeric columns with the dependent variables to be used in the independent t-test}
 
 \item{iv}{independent (between) variable in which perform the t-test}
 
@@ -33,9 +33,9 @@ paired.ttest(
 \item{as.list}{logical value indicating that the result should be returned as list indicating by separate the t_test and cohens_d effect size}
 }
 \value{
-A data.frame containing the results for the independent t_test or a list with the dataframe in t.test and the t_test with their effect sizes
+A data.frame containing the results for the independent t-test and their effect sizes
 }
 \description{
-This function provides a wrapper for rstatic::t_test using various dependent variables `dvs`
+This function provides a wrapper for rstatix::t_test for the dependent variables `dvs`
 including their effect sizes
 }

@@ -14,7 +14,7 @@ wilcoxon.test(
 )
 }
 \arguments{
-\item{data}{a data.frame in which we will perform the wilcoxon-test}
+\item{data}{a data.frame or list containing the data}
 
 \item{dvs}{numeric columns with the dependent variables to be used in the wilcoxon-test}
 
@@ -30,6 +30,6 @@ wilcoxon.test(
 A data.frame containing the results for the wilcoxon test and their effect sizes
 }
 \description{
-This function provides a wrapper for rstatic::wilcox_test for the dependent variables `dvs`
+This function provides a wrapper for rstatix::wilcox_test for the dependent variables `dvs`
 including their effect sizes
 }
