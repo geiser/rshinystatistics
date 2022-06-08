@@ -1,3 +1,5 @@
+#' You can change the color as follows:
+#'  lp + ggplot2::scale_color_manual(values=c("blue","pink"))
 #' @export
 ggPlotAoC <- function(data, x, y, color = c(), aov, pwc, linetype = color, by = c(), addParam = c(), font.label.size = 14, step.increase = 0.25, palette = "jco", p.label = "p.adj.signif") {
   if (is.null(aov) || is.null(pwc)) return(NULL)
@@ -9,7 +11,7 @@ ggPlotAoC <- function(data, x, y, color = c(), aov, pwc, linetype = color, by = 
   if (is.null(pwc2)) return(ggplot2::ggplot())
   if (length(color) > 0) {
     emms <- rstatix::get_emmeans(pwc2)
-    lp <- ggpubr::ggline(emms, x=x, y = "emmean", color=color, palette = palette, plot_type='b', size=0.4, position = pd, facet.by = by)
+    lp <- ggpubr::ggline(emms, x=x, y = "emmean", color=color, palette = palette, plot_type='b', size=0.4, position = pd, facet.by = by, ylab = y)
     lp <- lp + ggplot2::geom_errorbar(ggplot2::aes_string(ymin="conf.low", ymax="conf.high", color=color), width=0.1, size = 1, position = pd)
     if (p.label == "p.adj") {
       pwc2[["p.adj"]] <- round(pwc2[["p.adj"]],3)
@@ -23,7 +25,7 @@ ggPlotAoC <- function(data, x, y, color = c(), aov, pwc, linetype = color, by = 
       lp <- lp + ggplot2::geom_jitter(data = data, ggplot2::aes_(x=as.name(x), y=as.name(y), colour=factor(data[[color]])), width=0.075, height=0.075, size=0.75)
   } else {
     emms <- rstatix::get_emmeans(pwc2)
-    lp <- ggpubr::ggline(emms, x=x, y="emmean", color = "black", palette = palette, plot_type='b', size=0.4, position = pd, facet.by = by)
+    lp <- ggpubr::ggline(emms, x=x, y="emmean", color = "black", palette = palette, plot_type='b', size=0.4, position = pd, facet.by = by, ylab = y)
     lp <- lp + ggplot2::geom_errorbar(ggplot2::aes_string(ymin="conf.low", ymax="conf.high"), width=0.1, size = 1, position = pd)
     if (p.label == "p.adj") {
       pwc2[["p.adj"]] <- round(pwc2[["p.adj"]],3)
