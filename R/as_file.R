@@ -18,10 +18,17 @@ hypothesisAsFile <- function(ext, test, backup, dvs = 'dvs', between = 'between'
       )
     }
 
+    covar_part <- ''
+    if (length(rcovar) > 0) {
+      covar_part <- ',c(),covar'
+      if (length(backup$skewness[[rcovar]]) > 0 &&  backup$skewness[[rcovar]] != 'none')
+        covar_part <- ',c(),paste0("std.",covar)'
+    }
+
     line.code <- paste0(c(
-      paste0('density.plot.by.residual(rdat[["',dv,'"]],"',dv,'",between',ifelse(length(rcovar) > 0 && length(backup$skewness[[rcovar]]) > 0,',c(),covar',''),')'),
+      paste0('density.plot.by.residual(rdat[["',dv,'"]],"',dv,'",between',covar_part,')'),
       line.code,
-      paste0('density.plot.by.residual(rdat[["',dv,'"]],"std.',dv,'",between',ifelse(length(rcovar) > 0 && length(backup$skewness[[rcovar]]) > 0,',c(),paste0("std.",covar)',''),')')),
+      paste0('density.plot.by.residual(rdat[["',dv,'"]],"std.',dv,'",between',covar_part,')')),
       collapse = "\n")
 
     if (ext == 'Rmd') {
