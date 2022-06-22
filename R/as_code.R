@@ -54,11 +54,11 @@ skewness.as.code <- function(skew, dvname, initTable='dat', dataTable = 'rdat') 
     } else if (skew == 'negSqrt') {
       skewness.code <- paste0('-1*sqrt(max(',initTable,'[["',dvname,'"]]+1) - ',initTable,'[["',dvname,'"]])')
     } else if (skew == 'posLog') {
-      skewness.code <- paste0('log10(',initTable,'[["',dvname,'"]])')
+      skewness.code <- paste0('log10(',initTable,'[["',dvname,'"]]','-(min(',initTable,'[["',dvname,'"]])-1))')
     } else if (skew == 'negLog') {
       skewness.code <- paste0('-1*log10(max(',initTable,'[["',dvname,'"]]+1) - ',initTable,'[["',dvname,'"]])')
     } else if (skew == 'posInv') {
-      skewness.code <- paste0('1/(',initTable,'[["',dvname,'"]])')
+      skewness.code <- paste0('1/(',initTable,'[["',dvname,'"]]-(min(',initTable,'[["',dvname,'"]])-1))')
     } else  if (skew == 'negInv') {
       skewness.code <- paste0('-1/(max(',initTable,'[["',dvname,'"]]+1) - ',initTable,'[["',dvname,'"]])')
     }

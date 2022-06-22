@@ -123,9 +123,9 @@ shinySymmetryOutliersMD <- function(id, dataset, dvs = "dvs", ivs = "between", c
                    , switch(res$skewness.obs
                             , 'positive moderate skew' = 'sqrt(x)'
                             , 'negative moderate skew' = 'sqrt(max(x+1)-x)'
-                            , 'positive greater skew' = 'log10(x)'
+                            , 'positive greater skew' = 'log10(x-(min(x)-1))'
                             , 'negative greater skew' = 'log10(max(x+1)-x)'
-                            , 'positive severe skew' = '1/x'
+                            , 'positive severe skew' = '1/(x-(min(x)-1))'
                             , 'negative severe skew' = '1/(max(x+1)-x)'), " "
                    , "but you need to ensure this sugestion watching the histogram and density plots")
           }
