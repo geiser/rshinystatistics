@@ -88,6 +88,9 @@ shinyExportHypothesisMD <- function(id, test, dataset, dvs = "dvs", between = "b
         templates::tmpl(paste(readLines(system.file("templates/code", "run", package="rshinystatistics")), collapse="\n"), test = test)
       ), file = paste0(path(),'/code/run'))
 
+      # ... saving project file
+      file.copy(system.file("templates", "rproj.Rproj", package="rshinystatistics"), paste0(path(),'/',test,'.Rproj'), overwrite = T)
+
       # ... saving environment
       file.copy(system.file("templates/environment", "Dockerfile", package="rshinystatistics"), paste0(path(),'/environment/Dockerfile'), overwrite = T)
 

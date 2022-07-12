@@ -44,3 +44,7 @@ vignettes/*.pdf
 
 # R Environment Variables
 .Renviron
+
+# Other folders
+report
+
