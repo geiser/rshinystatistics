@@ -72,9 +72,12 @@ hypothesisAsFile <- function(ext, test, backup, dvs = 'dvs', between = 'between'
     title.test = 'Wilcoxon Signed-Rank'
     code.plots <- wilcoxon.as.code.plots(backup, 'sdat', rdvs, rbetween, ext)
 
-    code.hypothesis <- paste0('res <- wilcoxon.test(sdat, dvs, between, "', test.params$alternative ,'", as.list=T)',
-                              '\n', '(wdf <- res$wilcoxon.test)')
-    code.hypothesis.tbl <- 'kable(wdf[,c(".y.","group1","group2","n1","n2","statistic","estimate","conf.low","conf.high","effsize","magnitude","p","p.signif")], digits=3)'
+    code.hypothesis <- paste0(
+      'res <- wilcoxon.test(sdat, dvs, between, "', test.params$alternative ,'", as.list=T)','\n',
+      '(wdf <- res$wilcoxon.test)')
+    code.hypothesis.tbl <- paste0(
+      'wdf <- round.pval(wdf)','\n',
+      'kable(wdf[,c(".y.","group1","group2","n1","n2","statistic","estimate","conf.low","conf.high","effsize","magnitude","p","p.signif")], digits=3)')
 
     code.pwc <- ''; code.pwc.tbl <- ''; hypothesis.pwc.text <- ''
     hypothesis.text <- wilcoxon.as.text(backup$wilcoxon, backup$ds, rbetween, lang=lang)
@@ -82,11 +85,16 @@ hypothesisAsFile <- function(ext, test, backup, dvs = 'dvs', between = 'between'
     title.test = 'Independent t-Test'
     code.plots <- ind.ttest.as.code.plots(backup, 'sdat', rdvs, rbetween, ext)
 
-    code.hypothesis <- paste0('res <- ind.ttest(sdat, dvs, between, "', test.params$alternative ,'",',test.params$var.equal,',',test.params$hedges.correction,', as.list=T)',
-                              '\n', '(tdf <- res$t.test)')
-    code.hypothesis.tbl <- 'kable(tdf[,c(".y.","group1","group2","n1","n2","statistic","estimate","conf.low","conf.high","effsize","magnitude","p","p.signif")], digits=3)'
+    code.hypothesis <- paste0(
+      'res <- ind.ttest(sdat, dvs, between, "', test.params$alternative ,'",',test.params$var.equal,',',test.params$hedges.correction,', as.list=T)','\n',
+      '(tdf <- res$t.test)')
+    code.hypothesis.tbl <- paste0(
+      'tdf <- round.pval(tdf)','\n',
+      'kable(tdf[,c(".y.","group1","group2","n1","n2","statistic","estimate","conf.low","conf.high","effsize","magnitude","p","p.signif")], digits=3)')
 
-    code.pwc <- ''; code.pwc.tbl <- ''; hypothesis.pwc.text <- ''
+    code.pwc <- ''
+    code.pwc.tbl <- ''
+    hypothesis.pwc.text <- ''
 
     code.emms <- paste0('(df <- get.descriptives(sdat, dvs, between, "common"))')
     code.emms.tbl <- 'kable(df[,c("variable",colnames(df)[!colnames(df) %in% c("n","mean","median","min","max","q1","q3","sd","se","ci","iqr","mad")],"n","mean","median","sd","se","ci")], digits = 3)'
@@ -98,11 +106,16 @@ hypothesisAsFile <- function(ext, test, backup, dvs = 'dvs', between = 'between'
 
     code.hypothesis <- paste0(c("kruskal <- kruskal.test(sdat, dvs, between)",
                                 "(kdf <- get.kruskal.table(kruskal))"), collapse = '\n')
-    code.hypothesis.tbl <- 'kable(kdf[,c("var","n","df","statistic","effsize","magnitude","p","p.signif")], digits = 3)'
+    code.hypothesis.tbl <- paste0(
+      'kdf <- round.pval(kdf)','\n',
+      'kable(kdf[,c("var","n","df","statistic","effsize","magnitude","p","p.signif")], digits = 3)')
 
-    code.pwc <- paste0('pwc <- kruskal.pwc(sdat, dvs, between, pwc.method = "', test.params$pwc.method ,'", p.adjust.method = "', test.params$p.adjust.method ,'")',
-                       '\n','(pdf <- get.kruskal.pwc.table(pwc, only.sig = F))')
-    code.pwc.tbl <- 'kable(pdf[,c("var","group1","group2","n1","n2","estimate","statistic","p","p.adj","p.adj.signif")], digits = 3)'
+    code.pwc <- paste0(
+      'pwc <- kruskal.pwc(sdat, dvs, between, pwc.method = "', test.params$pwc.method ,'", p.adjust.method = "', test.params$p.adjust.method ,'")','\n',
+      '(pdf <- get.kruskal.pwc.table(pwc, only.sig = F))')
+    code.pwc.tbl <- paste0(
+      'pdf <- round.pval(pdf)','\n',
+      'kable(pdf[,c("var","group1","group2","n1","n2","estimate","statistic","p","p.adj","p.adj.signif")], digits = 3)')
 
     hypothesis.text <- kruskal.as.text(backup$kruskal, backup$dataTable, rbetween, lang=lang)
     hypothesis.pwc.text <- wilcoxon.pwc.as.text(backup$pwc, backup$ds, rbetween, p.adjust.method = test.params$p.adjust.method, lang=lang)
@@ -112,14 +125,21 @@ hypothesisAsFile <- function(ext, test, backup, dvs = 'dvs', between = 'between'
 
     code.hypothesis <- paste0(c("srh <- scheirer.test(sdat, dvs, between)",
                                 "(sdf <- get.scheirer.table(srh))"), collapse = '\n')
-    code.hypothesis.tbl <- 'kable(sdf[,c("var","Effect","Df","Sum Sq","H","p.value","p.value.signif")], digits = 3)'
+    code.hypothesis.tbl <- paste0(
+      'sdf <- round.pval(sdf)','\n',
+      'kable(sdf[,c("var","Effect","Df","Sum Sq","H","p.value","p.value.signif")], digits = 3)')
 
-    code.pwc <- paste0('pwc <- scheirer.pwc(sdat, dvs, between, pwc.method = "', test.params$pwc.method ,'", p.adjust.method = "', test.params$p.adjust.method ,'")',
-                       '\n','(pdf <- get.scheirer.pwc.table(pwc, only.sig = F))')
+    code.pwc <- paste0(
+      'pwc <- scheirer.pwc(sdat, dvs, between, pwc.method = "', test.params$pwc.method ,'", p.adjust.method = "', test.params$p.adjust.method ,'")','\n',
+      '(pdf <- get.scheirer.pwc.table(pwc, only.sig = F))')
     if (length(rbetween) > 1)
-      code.pwc.tbl <- 'kable(pdf[,c("var",between,"group1","group2","estimate","statistic","p", "p.adj","p.adj.signif")], digits = 3)'
+      code.pwc.tbl <- paste0(
+        'pdf <- round.pval(pdf)','\n',
+        'kable(pdf[,c("var",between,"group1","group2","estimate","statistic","p", "p.adj","p.adj.signif")], digits = 3)')
     else
-      code.pwc.tbl <- 'kable(pdf[,c("var","group1","group2","estimate","statistic","p", "p.adj","p.adj.signif")], digits = 3)'
+      code.pwc.tbl <- paste0(
+        'pdf <- round.pval(pdf)','\n',
+        'kable(pdf[,c("var","group1","group2","estimate","statistic","p", "p.adj","p.adj.signif")], digits = 3)')
 
     hypothesis.text <- srh.as.text(backup[[test]], backup$dataTable, rbetween, lang=lang)
     hypothesis.pwc.text <- wilcoxon.pwc.as.text(backup$pwc, backup$ds, rbetween, p.adjust.method = test.params$p.adjust.method, lang=lang)
@@ -127,20 +147,29 @@ hypothesisAsFile <- function(ext, test, backup, dvs = 'dvs', between = 'between'
     title.test = 'ANCOVA test'
     code.plots <- ancova.as.code.plots(backup, 'sdat', rdvs, rbetween, rcovar, ext)
 
-    code.hypothesis <- paste0('aov <- ancova.test(sdat, dvs, between, covar, ', test.params$type ,', "', test.params$effect.size ,'")',
-                              '\n','(adf <- get.ancova.table(aov))')
-    code.hypothesis.tbl <- paste0('kable(adf[,c("var","Effect","DFn","DFd","SSn","SSd","F","p","',test.params$effect.size,'","p.signif")], digits=3)')
+    code.hypothesis <- paste0(
+      'aov <- ancova.test(sdat, dvs, between, covar, ', test.params$type ,', "', test.params$effect.size ,'")','\n',
+      '(adf <- get.ancova.table(aov))')
+    code.hypothesis.tbl <- paste0(
+      'adf <- round.pval(adf)','\n',
+      'kable(adf[,c("var","Effect","DFn","DFd","SSn","SSd","F","p","',test.params$effect.size,'","p.signif")], digits=3)')
 
-    code.pwc <- paste0('pwc <- ancova.pwc(sdat, dvs, between, covar, p.adjust.method = "', test.params$p.adjust.method ,'")',
-                       '\n','(pdf <- get.ancova.pwc.table(pwc, only.sig = F))')
+    code.pwc <- paste0(
+      'pwc <- ancova.pwc(sdat, dvs, between, covar, p.adjust.method = "', test.params$p.adjust.method ,'")','\n',
+      '(pdf <- get.ancova.pwc.table(pwc, only.sig = F))')
     if (length(rbetween) > 1)
-      code.pwc.tbl <- 'kable(pdf[,c("var",between,"group1","group2","estimate","conf.low","conf.high","se","statistic","p","p.adj","p.adj.signif")], digits = 3)'
+      code.pwc.tbl <- paste0(
+        'pdf <- round.pval(pdf)','\n',
+        'kable(pdf[,c("var",between,"group1","group2","estimate","conf.low","conf.high","se","statistic","p","p.adj","p.adj.signif")], digits = 3)')
     else
-      code.pwc.tbl <- 'kable(pdf[,c("var","group1","group2","estimate","conf.low","conf.high","se","statistic","p","p.adj","p.adj.signif")], digits = 3)'
+      code.pwc.tbl <- paste0(
+        'pdf <- round.pval(pdf)','\n',
+        'kable(pdf[,c("var","group1","group2","estimate","conf.low","conf.high","se","statistic","p","p.adj","p.adj.signif")], digits = 3)')
 
     code.emms <- c('(apa <- get.ancova.emmeans.with.ds(pwc, sdat, dvs, between, "apa-format", covar = covar))'
                    ,'(emms <- get.ancova.emmeans.with.ds(pwc, sdat, dvs, between, "common", covar = covar))')
-    code.emms.tbl <- c('kable(apa, digits = 3)', 'kable(emms, digits = 3)')
+    code.emms.tbl <- c(paste0('kable(round.pval(apa), digits = 3)'),
+                       paste0('kable(round.pval(emms), digits = 3)'))
 
     hypothesis.text <- ancova.as.text(backup[[test]], backup$dataTable, rbetween, rcovar, test.params$effect.size, lang=lang)
     hypothesis.pwc.text <- aov.pwc.as.text(test, backup$pwc, backup$ds, rbetween, p.adjust.method = test.params$p.adjust.method, lang=lang)
@@ -155,22 +184,30 @@ hypothesisAsFile <- function(ext, test, backup, dvs = 'dvs', between = 'between'
     title.test = 'ANOVA test'
     code.plots <- anova.as.code.plots(backup, 'sdat', rdvs, rbetween, ext)
 
-    code.hypothesis <- paste0('aov <- anova.test(sdat, dvs, between, type=', test.params$type ,', effect.size="', test.params$effect.size ,'", skewness=skewness)',
-                              '\n','(adf <- get.anova.table(aov))')
-    code.hypothesis.tbl <- paste0('kable(adf[,c("var","Effect","DFn","DFd","SSn","SSd","F","p","',test.params$effect.size,'","p.signif")], digits=3)')
+    code.hypothesis <- paste0(
+      'aov <- anova.test(sdat, dvs, between, type=', test.params$type ,', effect.size="', test.params$effect.size ,'", skewness=skewness)','\n',
+      '(adf <- get.anova.table(aov))')
+    code.hypothesis.tbl <- paste0(
+      'adf <- round.pval(adf)','\n',
+      'kable(adf[,c("var","Effect","DFn","DFd","SSn","SSd","F","p","',test.params$effect.size,'","p.signif")], digits=3)')
 
-    code.pwc <- paste0('pwc <- anova.pwc(sdat, dvs, between, p.adjust.method = "', test.params$p.adjust.method ,'", skewness=skewness)',
-                       '\n','(pdf <- get.anova.pwc.table(pwc, only.sig = F))')
+    code.pwc <- paste0(
+      'pwc <- anova.pwc(sdat, dvs, between, p.adjust.method = "', test.params$p.adjust.method ,'", skewness=skewness)','\n',
+      '(pdf <- get.anova.pwc.table(pwc, only.sig = F))')
 
     if (length(rbetween) > 1)
-      code.pwc.tbl <- 'kable(pdf[,c("var",between,"group1","group2","estimate","conf.low","conf.high","se","statistic","p","p.adj","p.adj.signif")], digits = 3)'
+      code.pwc.tbl <- paste0(
+        'pdf <- round.pval(pdf)','\n',
+        'kable(pdf[,c("var",between,"group1","group2","estimate","conf.low","conf.high","se","statistic","p","p.adj","p.adj.signif")], digits = 3)')
     else
-      code.pwc.tbl <- 'kable(pdf[,c("var","group1","group2","estimate","conf.low","conf.high","se","statistic","p","p.adj","p.adj.signif")], digits = 3)'
+      code.pwc.tbl <- paste0(
+        'pdf <- round.pval(pdf)','\n',
+        'kable(pdf[,c("var","group1","group2","estimate","conf.low","conf.high","se","statistic","p","p.adj","p.adj.signif")], digits = 3)')
 
     code.emms <- c('(apa <- get.anova.emmeans.with.ds(pwc, sdat, dvs, between, "apa-format"))'
                    ,'(emms <- get.anova.emmeans.with.ds(pwc, sdat, dvs, between, "common"))')
-    code.emms.tbl <- c('kable(apa, digits = 3)'
-                       ,'kable(emms[,c("var",between,"n","emmean","mean","conf.low","conf.high","sd","sd.emms","se.emms")], digits = 3)')
+    code.emms.tbl <- c('kable(round.pval(apa), digits = 3)'
+                       ,'kable(round.pval(emms[,c("var",between,"n","emmean","mean","conf.low","conf.high","sd","sd.emms","se.emms")]), digits = 3)')
 
     hypothesis.text <- anova.as.text(backup[[test]], backup$dataTable, rbetween, test.params$effect.size, lang=lang)
     hypothesis.pwc.text <- aov.pwc.as.text(test, backup$pwc, backup$ds, rbetween, p.adjust.method = test.params$p.adjust.method, lang=lang)

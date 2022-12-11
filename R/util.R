@@ -85,6 +85,25 @@ removeFromDataTable <- function(data, to_remove, wid = 'row.pos', dv.var = NULL)
   }
 }
 
+#' Rounded p-values to a number of digits
+#'
+#' Removes elements from a data table previously setting based on dependent variables
+#'
+#' @param tbl a data.frame or data table with p-values to be rounded
+#' @param digits number of digits for the p-values
+#' @param min minimal value to be displayed as number
+#' @param cnames a vector containing the columns names in which the p-values are displayed
+#' @return A data.frame with the p-values rounded
+#' @export
+round.pval <- function(tbl, digits = 3, min = 0.001, cnames = c("p","p.adj")) {
+  for (cname in intersect(cnames, colnames(tbl))) {
+    tbl[[cname]] <- sapply(tbl[[cname]], function(x) {
+      ifelse(is.numeric(x) & x < min, paste0("<",min), round(x, digits = digits))
+    })
+  }
+  return(tbl)
+}
+
 #' Get Formula for ANOVA and ANCOVA
 as_formula <- function(dv, between = c(), within = c(), covar = NULL, wid = 'row.pos', as.character = F) {
   ivs <- c(between, within)

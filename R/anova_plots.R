@@ -22,7 +22,7 @@ ggPlotAoV <- function(data, x, y, color = c(), aov, pwc, linetype = color, by = 
   data[[x]] <- factor(data[[x]])
   pd <- ggplot2::position_dodge(width = 0.15)
 
-  pwc2 <- tryCatch(rstatix::add_xy_position(pwc, x = x, fun="max", step.increase = step.increase, scales = "free"), error = function(e) NULL)
+  pwc2 <- tryCatch(rstatix::add_xy_position(pwc, x = x, fun="max", step.increase = step.increase), error = function(e) NULL)
   if (is.null(pwc2)) return(ggplot2::ggplot())
   if (length(color) > 0) {
     bxp <- ggpubr::ggboxplot(data, x = x, y = y, color = color, palette = "jco", add=addParam, facet.by = by)

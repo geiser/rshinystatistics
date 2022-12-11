@@ -71,7 +71,7 @@ skewness.as.code <- function(skew, dvname, initTable='dat', dataTable = 'rdat') 
 #'
 #' @export
 linearity.as.code <- function(backup, dataname, dvname, covarname, ivsnames, ext = "Rmd") {
-  lmethod <- backup$lmethod
+  lmethod <- ifelse(backup$lmethod %in% c("lm","glm","gam","loess"), backup$lmethod, "lm")
   linearity.code <- paste0(
     'ggscatter(',dataname,', x=',covarname,', y=',dvname,', facet.by=',ivsnames,', short.panel.labs = F) + \n stat_smooth(method = "',lmethod,'", span = 0.9)')
   if (ext == "Rmd") {

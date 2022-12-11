@@ -2,7 +2,7 @@
 #'
 #' @export
 ggPlotWilcoxon <- function(data, x, y, wt, addParam = c(), font.label.size = 14, p.label = "p.adj.signif") {
-  stat.test <- rstatix::add_xy_position(rstatix::add_significance(wt), x=x, fun="max", scales = "free")
+  stat.test <- rstatix::add_xy_position(rstatix::add_significance(wt), x=x, fun="max")
   bxp <- ggpubr::ggboxplot(
     data, x=x, y=y, color=x, width=0.5, add=addParam, palette="jco"
   )

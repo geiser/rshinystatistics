@@ -1,3 +1,4 @@
+#' Code for ANCOVA Plot
 ancova.as.code.plots <- function(backup, dataname, dvs, between, covar, ext = 'Rmd') {
   ancova.plots <- paste0(lapply(dvs, FUN = function(dv) {
     width <- 700
