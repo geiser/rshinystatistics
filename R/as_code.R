@@ -73,7 +73,7 @@ skewness.as.code <- function(skew, dvname, initTable='dat', dataTable = 'rdat') 
 linearity.as.code <- function(backup, dataname, dvname, covarname, ivsnames, ext = "Rmd") {
   lmethod <- ifelse(backup$lmethod %in% c("lm","glm","gam","loess"), backup$lmethod, "lm")
   linearity.code <- paste0(
-    'ggscatter(',dataname,', x=',covarname,', y=',dvname,', facet.by=',ivsnames,', short.panel.labs = F) + \n stat_smooth(method = "',lmethod,'", span = 0.9)')
+    'ggscatter(',dataname,', x=',covarname,', y=',dvname,', facet.by=',ivsnames,', short.panel.labs = F) + \n stat_smooth(method = "lm", span = 0.9)')
   if (ext == "Rmd") {
     linearity.code <- paste0("\n```{r}\n", linearity.code, "\n```\n")
     linearity.code <- paste0('\n### Assumption: Linearity of dependent variables and covariate variable \n', linearity.code,'\n')
