@@ -16,7 +16,8 @@ ggPlotAoV(
   addParam = c(),
   font.label.size = 14,
   step.increase = 0.25,
-  p.label = "p.adj.signif"
+  p.label = "p.adj.signif",
+  subtitle = c()
 )
 }
 \arguments{
@@ -43,6 +44,8 @@ ggPlotAoV(
 \item{step.increase}{the numeric vector to be used to minimize the overlap}
 
 \item{p.label}{the label used for p-values}
+
+\item{subtitle}{the subtitle in the plot, use number to indicate the row from ANOVA table}
 }
 \value{
 A ggplot object with the ANOVA plot

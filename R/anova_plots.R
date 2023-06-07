@@ -14,9 +14,10 @@
 #' @param font.label.size the integer value with the font label size
 #' @param step.increase the numeric vector to be used to minimize the overlap
 #' @param p.label the label used for p-values
+#' @param subtitle the subtitle in the plot, use number to indicate the row from ANOVA table
 #' @return A ggplot object with the ANOVA plot
 #' @export
-ggPlotAoV <- function(data, x, y, color = c(), aov, pwc, linetype = color, by = c(), addParam = c(), font.label.size = 14, step.increase = 0.25, p.label = "p.adj.signif") {
+ggPlotAoV <- function(data, x, y, color = c(), aov, pwc, linetype = color, by = c(), addParam = c(), font.label.size = 14, step.increase = 0.25, p.label = "p.adj.signif", subtitle = c()) {
   if (is.null(aov) || is.null(pwc)) return(NULL)
 
   data[[x]] <- factor(data[[x]])
@@ -49,7 +50,13 @@ ggPlotAoV <- function(data, x, y, color = c(), aov, pwc, linetype = color, by = 
     ggtest <- tryCatch(ggplot2::ggplot_build(bxp1), error = function(e) NULL)
     if (!is.null(ggtest)) bxp <- bxp1
   }
-  bxp <- bxp + ggplot2::labs(subtitle = rstatix::get_test_label(aov, detailed = T, row = which(min(aov$p) == aov$p)), caption = rstatix::get_pwc_label(pwc2))
+
+  if (!is.null(subtitle) && is.numeric(subtitle)) {
+    row = 0; if (subtitle == 0) { row = which(aov$Effect == x) }
+    subtitle = rstatix::get_test_label(aov, detailed = T, row = row)
+  }
+
+  bxp <- bxp + ggplot2::labs(subtitle = subtitle, caption = rstatix::get_pwc_label(pwc2))
   bxp <- bxp + ggplot2::theme(text = ggplot2::element_text(size=font.label.size))
   return(bxp)
 }
@@ -68,9 +75,10 @@ ggPlotAoV <- function(data, x, y, color = c(), aov, pwc, linetype = color, by = 
 #' @param font.label.size the integer value with the font label size
 #' @param step.increase the numeric vector to be used to minimize the overlap
 #' @param p.label the label used for p-values
+#' @param subtitle the subtitle in the plot, use number to indicate the row from ANOVA table
 #' @return A list of ggplot objects with the Three-Way ANOVA plots
 #' @export
-threeWayAnovaPlots <- function(data, dv, ivs, aov, pwcs, addParam=c(), font.label.size = 14, step.increase = 0.25, p.label = "p.adj.signif") {
+threeWayAnovaPlots <- function(data, dv, ivs, aov, pwcs, addParam=c(), font.label.size = 14, step.increase = 0.25, p.label = "p.adj.signif", subtitle = c()) {
   livs <- as.list(ivs); names(livs) <- ivs
   toReturn <- lapply(livs, FUN = function(iv) {
     pwc <- pwcs[[iv]]
@@ -79,7 +87,7 @@ threeWayAnovaPlots <- function(data, dv, ivs, aov, pwcs, addParam=c(), font.labe
     inner.toReturn <- lapply(lgbys, FUN = function(gby) {
       color <- setdiff(ivs, c(iv, gby))
       ggPlotAoV(data, iv, dv, color=color, by=gby, aov=aov, pwc=pwc, addParam=addParam,
-                font.label.size = font.label.size, step.increase = step.increase, p.label = p.label)
+                font.label.size = font.label.size, step.increase = step.increase, p.label = p.label, subtitle = subtitle)
     })
     return(inner.toReturn)
   })
@@ -99,15 +107,16 @@ threeWayAnovaPlots <- function(data, dv, ivs, aov, pwcs, addParam=c(), font.labe
 #' @param font.label.size the integer value with the font label size
 #' @param step.increase the numeric vector to be used to minimize the overlap
 #' @param p.label the label used for p-values
+#' @param subtitle the subtitle in the plot, use number to indicate the row from ANOVA table
 #' @return A list of ggplot objects with the Two-Way ANOVA plots
 #' @export
-twoWayAnovaPlots <- function(data, dv, ivs, aov, pwcs, addParam=c(), font.label.size = 14, step.increase = 0.25, p.label = "p.adj.signif") {
+twoWayAnovaPlots <- function(data, dv, ivs, aov, pwcs, addParam=c(), font.label.size = 14, step.increase = 0.25, p.label = "p.adj.signif", subtitle = c()) {
   livs <- as.list(ivs); names(livs) <- ivs
   return(lapply(livs, FUN = function(iv) {
     pwc <- pwcs[[iv]]
     color <- setdiff(ivs, iv)
     ggPlotAoV(data, iv, dv, color=color, aov=aov, pwc=pwc, addParam=addParam,
-              font.label.size = font.label.size, step.increase = step.increase, p.label = p.label)
+              font.label.size = font.label.size, step.increase = step.increase, p.label = p.label, subtitle = subtitle)
   }))
 }
 
@@ -124,13 +133,14 @@ twoWayAnovaPlots <- function(data, dv, ivs, aov, pwcs, addParam=c(), font.label.
 #' @param font.label.size the integer value with the font label size
 #' @param step.increase the numeric vector to be used to minimize the overlap
 #' @param p.label the label used for p-values
+#' @param subtitle the subtitle in the plot, use number to indicate the row from ANOVA table
 #' @return A list of ggplot objects with the One-Way ANOVA plots
 #' @export
-oneWayAnovaPlots <- function(data, dv, ivs, aov, pwcs, addParam=c(), font.label.size = 14, step.increase = 0.25, p.label = "p.adj.signif") {
+oneWayAnovaPlots <- function(data, dv, ivs, aov, pwcs, addParam=c(), font.label.size = 14, step.increase = 0.25, p.label = "p.adj.signif", subtitle = c()) {
   livs <- as.list(ivs); names(livs) <- ivs
   return(lapply(livs, FUN = function(iv) {
     ggPlotAoV(data, iv, dv, aov=aov, pwc=pwcs[[iv]], addParam=addParam,
-              font.label.size = font.label.size, step.increase = step.increase, p.label = p.label)
+              font.label.size = font.label.size, step.increase = step.increase, p.label = p.label, subtitle = subtitle)
   }))
 }
 

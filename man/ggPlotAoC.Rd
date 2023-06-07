@@ -2,8 +2,7 @@
 % Please edit documentation in R/ancova_plots.R
 \name{ggPlotAoC}
 \alias{ggPlotAoC}
-\title{You can change the color as follows:
- lp + ggplot2::scale_color_manual(values=c("blue","pink"))}
+\title{ANCOVA Plot}
 \usage{
 ggPlotAoC(
   data,
@@ -18,10 +17,37 @@ ggPlotAoC(
   font.label.size = 14,
   step.increase = 0.25,
   palette = "jco",
-  p.label = "p.adj.signif"
+  p.label = "p.adj.signif",
+  subtitle = c()
 )
 }
+\arguments{
+\item{data}{a data.frame containing the data in which performing the ANOVA test}
+
+\item{x}{a character string containing the name of variable used as x-axis}
+
+\item{y}{a character string containing the name of variable used as y-axis}
+
+\item{color}{a vector or character string containing the name of variable used as color in the box-plot}
+
+\item{aov}{the ANOVA statistical results returned by rstatix::anova_test}
+
+\item{pwc}{the statistical results returned by a pairwise comparisons between groups from rstatix}
+
+\item{linetype}{the character string indicating the column in data for changing linetype}
+
+\item{by}{the character vector containing the columns in the data to be used as variable to generate the grouping panels}
+
+\item{addParam}{the character vector with elements to be included in the plot (e.g. "dotplot", "jitter", "boxplot", "point", "mean", "mean_se", "mean_sd", "mean_ci", "mean_range", "median", "median_iqr", "median_mad", "median_range"); see ?desc_statby for more details.}
+
+\item{font.label.size}{the integer value with the font label size}
+
+\item{step.increase}{the numeric vector to be used to minimize the overlap}
+
+\item{p.label}{the label used for p-values}
+
+\item{subtitle}{the subtitle in the plot, use number to indicate the row from ANCOVA table}
+}
 \description{
-You can change the color as follows:
- lp + ggplot2::scale_color_manual(values=c("blue","pink"))
+This function create box plots to report results from ANCOVA (AoV).
 }

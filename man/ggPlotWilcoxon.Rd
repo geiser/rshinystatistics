@@ -11,7 +11,8 @@ ggPlotWilcoxon(
   wt,
   addParam = c(),
   font.label.size = 14,
-  p.label = "p.adj.signif"
+  p.label = "p.adj.signif",
+  subtitle = -1
 )
 }
 \description{

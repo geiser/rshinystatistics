@@ -14,9 +14,10 @@
 #' @param font.label.size the integer value with the font label size
 #' @param step.increase the numeric vector to be used to minimize the overlap
 #' @param p.label the label used for p-values
+#' @param subtitle the subtitle in the plot, use number to indicate the row from non-parametric table
 #' @return A ggplot object with the non.parametric plot
 #' @export
-ggPlotFactNonParam <- function(data, x, y, color = c(), non, pwc, linetype = color, by = c(), addParam = c(), font.label.size = 14, step.increase = 0.25, type = NULL, p.label = "p.adj.signif") {
+ggPlotFactNonParam <- function(data, x, y, color = c(), non, pwc, linetype = color, by = c(), addParam = c(), font.label.size = 14, step.increase = 0.25, type = NULL, p.label = "p.adj.signif", subtitle = c()) {
 
   data[[x]] <- factor(data[[x]])
   pd <- ggplot2::position_dodge(width = 0.15)
@@ -54,10 +55,19 @@ ggPlotFactNonParam <- function(data, x, y, color = c(), non, pwc, linetype = col
     p <- round(as.double(dnon[['p.value']][idx]), 3)
     pval <- ifelse(p < 0.001, paste0(' , p<0.001'), paste0(' , p=', p))
 
-    bxp <- bxp + ggplot2::labs(
-      subtitle = paste0('Scheirer-Ray-Hare H(',dof,',',dof.res,')=', statistic, pval), caption = rstatix::get_pwc_label(pwc2))
+    if (!is.null(subtitle) && is.numeric(subtitle)) {
+      subtitle = paste0('Scheirer-Ray-Hare H(',dof,',',dof.res,')=', statistic, pval)
+    }
+
+    bxp <- bxp + ggplot2::labs(subtitle = subtitle, caption = rstatix::get_pwc_label(pwc2))
   } else {
-    bxp <- bxp + ggplot2::labs(subtitle = rstatix::get_test_label(non, detailed = T, row = which(min(non$p) == non$p)), caption = rstatix::get_pwc_label(pwc2))
+
+    if (!is.null(subtitle) && is.numeric(subtitle)) {
+      row = 0; if (subtitle == 0) { row = which(non$Effect == x) }
+      subtitle = rstatix::get_test_label(non, detailed = T, row = row)
+    }
+
+    bxp <- bxp + ggplot2::labs(subtitle = subtitle, caption = rstatix::get_pwc_label(pwc2))
   }
   bxp <- bxp + ggplot2::theme(text = ggplot2::element_text(size=font.label.size))
 
@@ -83,9 +93,10 @@ ggPlotFactNonParam <- function(data, x, y, color = c(), non, pwc, linetype = col
 #' @param font.label.size the integer value with the font label size
 #' @param step.increase the numeric vector to be used to minimize the overlap
 #' @param p.label the label used for p-values
+#' @param subtitle the subtitle in the plot, use number to indicate the row from non-parametric table
 #' @return A list of ggplot objects with the Three-Way Non Parametric plots
 #' @export
-threeWayNonParamFactPlots <- function(data, dv, ivs, non, pwcs, addParam=c(), font.label.size = 14, step.increase = 0.25, type = NULL, p.label = "p.adj.signif") {
+threeWayNonParamFactPlots <- function(data, dv, ivs, non, pwcs, addParam=c(), font.label.size = 14, step.increase = 0.25, type = NULL, p.label = "p.adj.signif", subtitle = c()) {
   livs <- as.list(ivs); names(livs) <- ivs
   toReturn <- lapply(livs, FUN = function(iv) {
     pwc <- pwcs[[iv]]
@@ -94,7 +105,7 @@ threeWayNonParamFactPlots <- function(data, dv, ivs, non, pwcs, addParam=c(), fo
     inner.toReturn <- lapply(lgbys, FUN = function(gby) {
       color <- setdiff(ivs, c(iv, gby))
       ggPlotFactNonParam(data, iv, dv, color=color, by=gby, non=non, pwc=pwc, addParam=addParam,
-                         font.label.size = font.label.size, step.increase = step.increase, type = type, p.label = p.label)
+                         font.label.size = font.label.size, step.increase = step.increase, type = type, p.label = p.label, subtitle = subtitle)
     })
     return(inner.toReturn)
   })
@@ -114,15 +125,16 @@ threeWayNonParamFactPlots <- function(data, dv, ivs, non, pwcs, addParam=c(), fo
 #' @param font.label.size the integer value with the font label size
 #' @param step.increase the numeric vector to be used to minimize the overlap
 #' @param p.label the label used for p-values
+#' @param subtitle the subtitle in the plot, use number to indicate the row from non-parametric table
 #' @return A list of ggplot objects with the Two-Way  plots
 #' @export
-twoWayNonParamFactPlots <- function(data, dv, ivs, non, pwcs, addParam=c(), font.label.size = 14, step.increase = 0.25, type = NULL, p.label = "p.adj.signif") {
+twoWayNonParamFactPlots <- function(data, dv, ivs, non, pwcs, addParam=c(), font.label.size = 14, step.increase = 0.25, type = NULL, p.label = "p.adj.signif", subtitle = c()) {
   livs <- as.list(ivs); names(livs) <- ivs
   return(lapply(livs, FUN = function(iv) {
     pwc <- pwcs[[iv]]
     color <- setdiff(ivs, iv)
     ggPlotFactNonParam(data, iv, dv, color=color, non=non, pwc=pwc, addParam=addParam,
-              font.label.size = font.label.size, step.increase = step.increase, type = type, p.label = p.label)
+              font.label.size = font.label.size, step.increase = step.increase, type = type, p.label = p.label, subtitle = subtitle)
   }))
 }
 
@@ -139,13 +151,14 @@ twoWayNonParamFactPlots <- function(data, dv, ivs, non, pwcs, addParam=c(), font
 #' @param font.label.size the integer value with the font label size
 #' @param step.increase the numeric vector to be used to minimize the overlap
 #' @param p.label the label used for p-values
+#' @param subtitle the subtitle in the plot, use number to indicate the row from non-parametric table
 #' @return A list of ggplot objects with the One-Way  plots
 #' @export
-oneWayNonParamFactPlots <- function(data, dv, ivs, non, pwcs, addParam=c(), font.label.size = 14, step.increase = 0.25, type = NULL, p.label = "p.adj.signif") {
+oneWayNonParamFactPlots <- function(data, dv, ivs, non, pwcs, addParam=c(), font.label.size = 14, step.increase = 0.25, type = NULL, p.label = "p.adj.signif", subtitle = c()) {
   livs <- as.list(ivs); names(livs) <- ivs
   return(lapply(livs, FUN = function(iv) {
     ggPlotFactNonParam(data, iv, dv, non=non, pwc=pwcs[[iv]], addParam=addParam,
-              font.label.size = font.label.size, step.increase = step.increase, type = type, p.label = p.label)
+              font.label.size = font.label.size, step.increase = step.increase, type = type, p.label = p.label, subtitle = subtitle)
   }))
 }
 

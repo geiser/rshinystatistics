@@ -8,15 +8,17 @@
 #' @param tt the statistical results returned by a t_test from rstatix
 #' @param addParam the character vector with elements to be included in the plot (e.g. "dotplot", "jitter", "boxplot", "point", "mean", "mean_se", "mean_sd", "mean_ci", "mean_range", "median", "median_iqr", "median_mad", "median_range"); see ?desc_statby for more details.
 #' @param font.label.size the integer value with the font label size
+#' @param subtitle the subtitle in the plot, default value -1 is the t-test value
 #' @return A ggplot object with the t-test plot
 #' @export
-ggPlotTTest <- function(data, x, y, tt, addParam = c(), font.label.size = 14) {
+ggPlotTTest <- function(data, x, y, tt, addParam = c(), font.label.size = 14, subtitle = -1) {
   stat.test <- rstatix::add_xy_position(rstatix::add_significance(tt), x=x, fun="max", step.increase = 0.25)
   bxp <- ggpubr::ggboxplot(
     data, x=x, y=y, color=x, width=0.5, add=addParam, palette="jco"
   )
   bxp <- bxp + ggpubr::stat_pvalue_manual(stat.test, hide.ns=T, tip.length = 0)
-  bxp <- bxp + ggplot2::labs(subtitle = rstatix::get_test_label(stat.test, detailed=T))
+  if (subtitle == -1) { subtitle = rstatix::get_test_label(stat.test, detailed=T) }
+  bxp <- bxp + ggplot2::labs(subtitle = subtitle)
   bxp <- bxp + ggplot2::theme(text = ggplot2::element_text(size=font.label.size))
   return(bxp)
 }
@@ -31,15 +33,17 @@ ggPlotTTest <- function(data, x, y, tt, addParam = c(), font.label.size = 14) {
 #' @param tt the statistical results returned by a t_test from rstatix
 #' @param id the identification column of observations in the data
 #' @param font.label.size the integer value with the font label size
+#' @param subtitle the subtitle in the plot, default value -1 is the t-test value
 #' @return A ggplot object with the t-test plot
 #' @export
-ggPlotPairedTTest <- function(data, x, y, tt, id, font.label.size = 14) {
+ggPlotPairedTTest <- function(data, x, y, tt, id, font.label.size = 14, subtitle = -1) {
   stat.test <- rstatix::add_xy_position(rstatix::add_significance(tt), x=x)
   bxp <- ggpubr::ggpaired(
     data, x=x, y=y, color=x, width=0.5, id=id, palette="jco",line.size=0.1, line.color = "gray"
   )
   bxp <- bxp + ggpubr::stat_pvalue_manual(stat.test, hide.ns=T, tip.length = 0)
-  bxp <- bxp + ggplot2::labs(subtitle = rstatix::get_test_label(stat.test, detailed=T))
+  if (subtitle == -1) { subtitle = rstatix::get_test_label(stat.test, detailed=T) }
+  bxp <- bxp + ggplot2::labs(subtitle = subtitle)
   bxp <- bxp + ggplot2::theme(text = ggplot2::element_text(size=font.label.size))
   return(bxp)
 }

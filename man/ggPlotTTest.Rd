@@ -4,7 +4,15 @@
 \alias{ggPlotTTest}
 \title{Independent T-Test Plot}
 \usage{
-ggPlotTTest(data, x, y, tt, addParam = c(), font.label.size = 14)
+ggPlotTTest(
+  data,
+  x,
+  y,
+  tt,
+  addParam = c(),
+  font.label.size = 14,
+  subtitle = -1
+)
 }
 \arguments{
 \item{data}{a data.frame containing the data in which performing the t-test}
@@ -18,6 +26,8 @@ ggPlotTTest(data, x, y, tt, addParam = c(), font.label.size = 14)
 \item{addParam}{the character vector with elements to be included in the plot (e.g. "dotplot", "jitter", "boxplot", "point", "mean", "mean_se", "mean_sd", "mean_ci", "mean_range", "median", "median_iqr", "median_mad", "median_range"); see ?desc_statby for more details.}
 
 \item{font.label.size}{the integer value with the font label size}
+
+\item{subtitle}{the subtitle in the plot, default value -1 is the t-test value}
 }
 \value{
 A ggplot object with the t-test plot

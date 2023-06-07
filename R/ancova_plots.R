@@ -1,7 +1,22 @@
-#' You can change the color as follows:
-#'  lp + ggplot2::scale_color_manual(values=c("blue","pink"))
+#' ANCOVA Plot
+#'
+#' This function create box plots to report results from ANCOVA (AoV).
+#'
+#' @param data a data.frame containing the data in which performing the ANOVA test
+#' @param x a character string containing the name of variable used as x-axis
+#' @param y a character string containing the name of variable used as y-axis
+#' @param color a vector or character string containing the name of variable used as color in the box-plot
+#' @param aov the ANOVA statistical results returned by rstatix::anova_test
+#' @param pwc the statistical results returned by a pairwise comparisons between groups from rstatix
+#' @param linetype the character string indicating the column in data for changing linetype
+#' @param by the character vector containing the columns in the data to be used as variable to generate the grouping panels
+#' @param addParam the character vector with elements to be included in the plot (e.g. "dotplot", "jitter", "boxplot", "point", "mean", "mean_se", "mean_sd", "mean_ci", "mean_range", "median", "median_iqr", "median_mad", "median_range"); see ?desc_statby for more details.
+#' @param font.label.size the integer value with the font label size
+#' @param step.increase the numeric vector to be used to minimize the overlap
+#' @param p.label the label used for p-values
+#' @param subtitle the subtitle in the plot, use number to indicate the row from ANCOVA table
 #' @export
-ggPlotAoC <- function(data, x, y, color = c(), aov, pwc, linetype = color, by = c(), addParam = c(), font.label.size = 14, step.increase = 0.25, palette = "jco", p.label = "p.adj.signif") {
+ggPlotAoC <- function(data, x, y, color = c(), aov, pwc, linetype = color, by = c(), addParam = c(), font.label.size = 14, step.increase = 0.25, palette = "jco", p.label = "p.adj.signif", subtitle = c()) {
   if (is.null(aov) || is.null(pwc)) return(NULL)
 
   data[[x]] <- factor(data[[x]])
@@ -38,7 +53,12 @@ ggPlotAoC <- function(data, x, y, color = c(), aov, pwc, linetype = color, by = 
       lp <- lp + ggplot2::geom_jitter(data = data, ggplot2::aes_(x=as.name(x), y=as.name(y), colour=factor(data[[x]])), width=0.075, height=0.075, size=0.75)
   }
 
-  lp <- lp + ggplot2::labs(subtitle = rstatix::get_test_label(aov, detailed = T, row = which(min(aov$p[seq(2,nrow(aov))]) == aov$p)), caption = rstatix::get_pwc_label(pwc2))
+  if (!is.null(subtitle) && is.numeric(subtitle)) {
+    row = 0; if (subtitle == 0) { row = which(aov$Effect == x) }
+    subtitle = rstatix::get_test_label(aov, detailed = T, row = row)
+  }
+
+  lp <- lp + ggplot2::labs(subtitle = subtitle, caption = rstatix::get_pwc_label(pwc2))
   lp <- lp + ggplot2::theme(text = ggplot2::element_text(size=font.label.size))
   return(lp)
 }
@@ -55,13 +75,14 @@ ggPlotAoC <- function(data, x, y, color = c(), aov, pwc, linetype = color, by = 
 #' @param font.label.size the integer value with the font label size
 #' @param step.increase the numeric vector to be used to minimize the overlap
 #' @param p.label the expression used in the p-values in the plot
+#' @param subtitle the subtitle in the plot, use number to indicate the row from ANCOVA table
 #' @return A list of ggplot objects with the Two-Way ANOVA plots
 #' @export
-oneWayAncovaPlots <- function(data, dv, ivs, aov, pwcs, addParam=c(), font.label.size = 14, step.increase = 0.25, p.label = "p.adj.signif") {
+oneWayAncovaPlots <- function(data, dv, ivs, aov, pwcs, addParam=c(), font.label.size = 14, step.increase = 0.25, p.label = "p.adj.signif", subtitle = c()) {
   livs <- as.list(ivs); names(livs) <- ivs
   return(lapply(livs, FUN = function(iv) {
     ggPlotAoC(data, iv, dv, aov=aov, pwc=pwcs[[iv]], addParam=addParam,
-              font.label.size = font.label.size, step.increase = step.increase, p.label = p.label)
+              font.label.size = font.label.size, step.increase = step.increase, p.label = p.label, subtitle = subtitle)
   }))
 }
 
@@ -78,15 +99,16 @@ oneWayAncovaPlots <- function(data, dv, ivs, aov, pwcs, addParam=c(), font.label
 #' @param font.label.size the integer value with the font label size
 #' @param step.increase the numeric vector to be used to minimize the overlap
 #' @param p.label the expression used in the p-values in the plot
+#' @param subtitle the subtitle in the plot, use number to indicate the row from ANCOVA table
 #' @return A list of ggplot objects with the Two-Way ANCOVA plots
 #' @export
-twoWayAncovaPlots <- function(data, dv, ivs, aov, pwcs, addParam=c(), font.label.size = 14, step.increase = 0.25, p.label = "p.adj.signif") {
+twoWayAncovaPlots <- function(data, dv, ivs, aov, pwcs, addParam=c(), font.label.size = 14, step.increase = 0.25, p.label = "p.adj.signif", subtitle = c()) {
   livs <- as.list(ivs); names(livs) <- ivs
   return(lapply(livs, FUN = function(iv) {
     pwc <- pwcs[[iv]]
     color <- setdiff(ivs, iv)
     ggPlotAoC(data, iv, dv, color=color, aov=aov, pwc=pwc, addParam=addParam,
-              font.label.size = font.label.size, step.increase = step.increase, p.label = p.label)
+              font.label.size = font.label.size, step.increase = step.increase, p.label = p.label, subtitle = subtitle)
   }))
 }
 

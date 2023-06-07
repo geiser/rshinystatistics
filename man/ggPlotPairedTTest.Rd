@@ -4,7 +4,7 @@
 \alias{ggPlotPairedTTest}
 \title{Paired T-Test Plot}
 \usage{
-ggPlotPairedTTest(data, x, y, tt, id, font.label.size = 14)
+ggPlotPairedTTest(data, x, y, tt, id, font.label.size = 14, subtitle = -1)
 }
 \arguments{
 \item{data}{a data.frame containing the data in which performing the t-test}
@@ -18,6 +18,8 @@ ggPlotPairedTTest(data, x, y, tt, id, font.label.size = 14)
 \item{id}{the identification column of observations in the data}
 
 \item{font.label.size}{the integer value with the font label size}
+
+\item{subtitle}{the subtitle in the plot, default value -1 is the t-test value}
 }
 \value{
 A ggplot object with the t-test plot

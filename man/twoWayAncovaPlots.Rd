@@ -13,7 +13,8 @@ twoWayAncovaPlots(
   addParam = c(),
   font.label.size = 14,
   step.increase = 0.25,
-  p.label = "p.adj.signif"
+  p.label = "p.adj.signif",
+  subtitle = c()
 )
 }
 \arguments{
@@ -32,6 +33,8 @@ twoWayAncovaPlots(
 \item{step.increase}{the numeric vector to be used to minimize the overlap}
 
 \item{p.label}{the expression used in the p-values in the plot}
+
+\item{subtitle}{the subtitle in the plot, use number to indicate the row from ANCOVA table}
 }
 \value{
 A list of ggplot objects with the Two-Way ANCOVA plots
