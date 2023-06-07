@@ -63,7 +63,7 @@ ggPlotFactNonParam <- function(data, x, y, color = c(), non, pwc, linetype = col
   } else {
 
     if (!is.null(subtitle) && is.numeric(subtitle)) {
-      row = 0; if (subtitle == 0) { row = which(non$Effect == x) }
+      if (subtitle == 0) { row = which(non$Effect == x) } else { row = subtitle }
       subtitle = rstatix::get_test_label(non, detailed = T, row = row)
     }
 

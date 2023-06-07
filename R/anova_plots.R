@@ -52,7 +52,7 @@ ggPlotAoV <- function(data, x, y, color = c(), aov, pwc, linetype = color, by = 
   }
 
   if (!is.null(subtitle) && is.numeric(subtitle)) {
-    row = 0; if (subtitle == 0) { row = which(aov$Effect == x) }
+    if (subtitle == 0) { row = which(aov$Effect == x) } else { row = subtitle }
     subtitle = rstatix::get_test_label(aov, detailed = T, row = row)
   }
 
