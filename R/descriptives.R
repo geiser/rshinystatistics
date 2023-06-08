@@ -47,7 +47,7 @@ get.descriptives <- function(data, dvs, ivs, type = "common", covar = NULL, dv.v
       for (col in names(skewness))
         dat[[col]] <- dat[[skewness[[col]]]]
 
-      dat <- dat[,c(dv, divs)]
+      dat <- dat[,c(dv, divs, covar)]
     } else if (is.list(data)) {
       dat <- as.data.frame(data[[dv]])
       divs <- intersect(ivs, colnames(dat))
