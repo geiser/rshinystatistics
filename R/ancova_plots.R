@@ -19,6 +19,8 @@
 ggPlotAoC <- function(data, x, y, color = c(), aov, pwc, linetype = color, by = c(), addParam = c(), font.label.size = 14, step.increase = 0.25, palette = "jco", p.label = "p.adj.signif", subtitle = c()) {
   if (is.null(aov) || is.null(pwc)) return(NULL)
 
+  pwc = pwc[pwc$.y. == y,]
+
   data[[x]] <- factor(data[[x]])
   pd <- ggplot2::position_dodge(width = 0.15)
   pwc2 <- tryCatch(rstatix::add_xy_position(pwc, x=x, fun="max", step.increase=step.increase), error = function(e) NULL)

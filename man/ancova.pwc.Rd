@@ -12,7 +12,8 @@ ancova.pwc(
   p.adjust.method = "bonferroni",
   dv.var = NULL,
   as.table = F,
-  only.sig = F
+  only.sig = F,
+  pwc.covar = T
 )
 }
 \arguments{
@@ -31,6 +32,8 @@ ancova.pwc(
 \item{as.table}{logical value indicating that the result should be returned after to apply `get.ancova.pwc.table` function}
 
 \item{only.sig}{logical; if TRUE, only statistical significant results will be tabulated}
+
+\item{pwc.covar}{logical; if TRUE (default value), results include covar comparisons}
 }
 \value{
 A data.frame containing the results for the pairwise comparisons

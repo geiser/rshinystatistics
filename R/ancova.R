@@ -48,9 +48,11 @@ ancova.test <- function(data, dvs, between, covar, type, effect.size, dv.var = N
 #' @param dv.var column with the information to classify observations
 #' @param as.table logical value indicating that the result should be returned after to apply `get.ancova.pwc.table` function
 #' @param only.sig logical; if TRUE, only statistical significant results will be tabulated
+#' @param pwc.covar logical; if TRUE (default value), results include covar comparisons
 #' @return A data.frame containing the results for the pairwise comparisons
 #' @export
-ancova.pwc <- function(data, dvs, between, covar, p.adjust.method = "bonferroni", dv.var = NULL, as.table = F, only.sig = F) {
+ancova.pwc <- function(data, dvs, between, covar, p.adjust.method = "bonferroni",
+                       dv.var = NULL, as.table = F, only.sig = F, pwc.covar = T) {
   ldvs <- as.list(dvs); names(ldvs) <- dvs
   livs <- as.list(as.character(between))
   names(livs) <- as.character(between)
@@ -65,9 +67,15 @@ ancova.pwc <- function(data, dvs, between, covar, p.adjust.method = "bonferroni"
 
     lapply(livs, FUN = function(iv) {
       gdat <-  dplyr::group_by_at(dat, dplyr::vars(setdiff(names(livs), iv)))
-      emme <- tryCatch(rstatix::emmeans_test(gdat, as.formula(paste0('`',dv,'`'," ~ ",'`',iv,'`')),
-                                             covariate = covar, p.adjust.method = p.adjust.method, detailed=T),
-                       error = function(e) NULL)
+      emme <- tryCatch(rstatix::emmeans_test(
+        gdat, as.formula(paste0('`',dv,'`'," ~ ",'`',iv,'`')), covariate = covar,
+        p.adjust.method = p.adjust.method, detailed=T), error = function(e) NULL)
+      if (pwc.covar) {
+        emme <- tryCatch(rbind(
+          emme, rstatix::emmeans_test(
+            gdat, as.formula(paste0('`',covar,'`'," ~ ",'`',iv,'`')),
+            p.adjust.method = p.adjust.method, detailed = T)), error = function(e) NULL)
+      }
       if (!is.null(emme)) return(emme)
     })
   })
