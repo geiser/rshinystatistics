@@ -15,6 +15,7 @@ oneWayAncovaBarPlots(
   bar.width = 0.75,
   color = c(),
   show.errorbar = T,
+  theme = c(),
   font.size = list(text.x = 10, text.y = 10, title.x = 12, title.y = 12),
   step.increase = 0.2,
   subtitle = c(),
@@ -41,6 +42,8 @@ oneWayAncovaBarPlots(
 \item{color}{a vector containing the colors in the box-plot}
 
 \item{show.errorbar}{a boolean that indicates if the plot shows error bar}
+
+\item{theme}{the theme used in the bar plot}
 
 \item{font.size}{the list with the font label sizes}
 

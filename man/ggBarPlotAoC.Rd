@@ -43,6 +43,8 @@ ggBarPlotAoC(
 
 \item{show.errorbar}{a boolean that indicates if the plot shows error bar}
 
+\item{theme}{the theme used in the bar plot}
+
 \item{font.size}{the list with the font label sizes}
 
 \item{step.increase}{the numeric vector to be used to minimize the overlap}
