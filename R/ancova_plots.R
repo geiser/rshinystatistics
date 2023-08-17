@@ -129,6 +129,7 @@ twoWayAncovaPlots <- function(data, dv, ivs, aov, pwcs, addParam=c(), font.label
 #' @param bar.width the numeric value for the bar plots
 #' @param color a vector containing the colors in the box-plot
 #' @param show.errorbar a boolean that indicates if the plot shows error bar
+#' @param theme the theme used in the bar plot
 #' @param font.size the list with the font label sizes
 #' @param step.increase the numeric vector to be used to minimize the overlap
 #' @param subtitle the subtitle in the plot, use number to indicate the row from ANCOVA table
@@ -237,13 +238,14 @@ ggBarPlotAoC <- function(data, dv, iv, aov, pwc, covar = NULL, pre.post = NULL,
 #' @param bar.width the numeric value for the bar plots
 #' @param color a vector containing the colors in the box-plot
 #' @param show.errorbar a boolean that indicates if the plot shows error bar
+#' @param theme the theme used in the bar plot
 #' @param font.size the list with the font label sizes
 #' @param step.increase the numeric vector to be used to minimize the overlap
 #' @param subtitle the subtitle in the plot, use number to indicate the row from ANCOVA table
 #' @param ylim the number that indicates the axis-y limit
 #' @export
 oneWayAncovaBarPlots <- function(data, dv, ivs, aov, pwcs, covar = c(), pre.post = c(),
-                                 bar.width = 0.75, color = c(), show.errorbar = T,
+                                 bar.width = 0.75, color = c(), show.errorbar = T, theme = c(),
                                  font.size = list(text.x=10, text.y=10, title.x=12, title.y=12),
                                  step.increase = 0.2, subtitle = c(), ylim = NA) {
   livs <- as.list(ivs); names(livs) <- ivs
@@ -251,7 +253,7 @@ oneWayAncovaBarPlots <- function(data, dv, ivs, aov, pwcs, covar = c(), pre.post
     pwc = pwcs
     if (is.list(pwcs) && is.data.frame(pwcs[[iv]])) pwc = pwcs[[iv]]
     ggBarPlotAoC(data, dv, iv, aov, pwc, covar, pre.post, bar.width, color,
-                 show.errorbar, font.size, step.increase, subtitle, ylim)
+                 show.errorbar, theme, font.size, step.increase, subtitle, ylim)
   }))
 }
 
@@ -270,13 +272,14 @@ oneWayAncovaBarPlots <- function(data, dv, ivs, aov, pwcs, covar = c(), pre.post
 #' @param bar.width the numeric value for the bar plots
 #' @param color a vector containing the colors in the box-plot
 #' @param show.errorbar a boolean that indicates if the plot shows error bar
+#' @param theme the theme used in the bar plot
 #' @param font.size the list with the font label sizes
 #' @param step.increase the numeric vector to be used to minimize the overlap
 #' @param subtitle the subtitle in the plot, use number to indicate the row from ANCOVA table
 #' @param ylim the number that indicates the axis-y limit
 #' @export
 twoWayAncovaBarPlots <- function(data, dv, ivs, aov, pwcs, covar=c(), pre.post = c(),
-                                 bar.width = 0.75, color = c(), show.errorbar = T,
+                                 bar.width = 0.75, color = c(), show.errorbar = T, theme = c(),
                                  font.size = list(text.x=10, text.y=10, title.x=12, title.y=12),
                                  step.increase = 0.2, subtitle = c(), ylim = NA) {
 
@@ -303,7 +306,7 @@ twoWayAncovaBarPlots <- function(data, dv, ivs, aov, pwcs, covar=c(), pre.post =
   toReturn = list()
   toReturn[[paste0(ivs, collapse = ":")]] = ggBarPlotAoC(
     data, dv, paste0(ivs, collapse = ":"), aov, pwc, covar, pre.post, bar.width,
-    color, show.errorbar, font.size, step.increase, subtitle, ylim)
+    color, show.errorbar, theme, font.size, step.increase, subtitle, ylim)
   return(toReturn)
 }
 
