@@ -43,19 +43,21 @@ ancova.test <- function(data, dvs, between, covar, type, effect.size, dv.var = N
 #' @param data a data.frame or list containing the data
 #' @param dvs numeric columns with the dependent variables to be used in the anova test
 #' @param between independent (between) variable in which perform the anova test
-#' @param covar column with the covariate information
+#' @param covar column with the covariance information
 #' @param p.adjust.method method to adjust p values for multiple comparisons.
 #' @param dv.var column with the information to classify observations
 #' @param as.table logical value indicating that the result should be returned after to apply `get.ancova.pwc.table` function
 #' @param only.sig logical; if TRUE, only statistical significant results will be tabulated
-#' @param pwc.covar logical; if TRUE (default value), results include covar comparisons
+#' @param pwc.covar logical; if TRUE, the results include covariance comparisons
 #' @return A data.frame containing the results for the pairwise comparisons
 #' @export
-ancova.pwc <- function(data, dvs, between, covar, p.adjust.method = "bonferroni",
-                       dv.var = NULL, as.table = F, only.sig = F, pwc.covar = T) {
+ancova.pwc <- function(
+    data, dvs, between, covar, p.adjust.method = "bonferroni", dv.var = NULL,
+    as.table = F, only.sig = F, pwc.covar = F) {
   ldvs <- as.list(dvs); names(ldvs) <- dvs
   livs <- as.list(as.character(between))
   names(livs) <- as.character(between)
+
   toReturn <- lapply(ldvs, FUN = function(dv) {
     if (is.data.frame(data)) {
       dat <- as.data.frame(data)
@@ -83,6 +85,12 @@ ancova.pwc <- function(data, dvs, between, covar, p.adjust.method = "bonferroni"
   return(toReturn)
 }
 
+#' ANCOVA test results into data.frame
+#'
+#' This function performs a transformation of ANCOVA test results into a data.frame
+#'
+#' @param aovs a list of anova tests
+#' @return A data.frame containing the results for the anova test
 #' @export
 get.ancova.table <- function(aovs) {
   do.call(rbind, lapply(names(aovs), FUN = function(dv) {
@@ -91,6 +99,13 @@ get.ancova.table <- function(aovs) {
   }))
 }
 
+
+#' ANCOVA pairwise comparisons into data.frame
+#'
+#' This function performs a transformation of ANCOVA pairwise comparisons into a data.frame
+#'
+#' @param pwcs a list of pairwise comparisons
+#' @return A data.frame containing the results for the anova test
 #' @export
 get.ancova.pwc.table <- function(pwcs, only.sig = F) {
   cnames <- c("var")

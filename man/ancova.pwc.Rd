@@ -13,7 +13,7 @@ ancova.pwc(
   dv.var = NULL,
   as.table = F,
   only.sig = F,
-  pwc.covar = T
+  pwc.covar = F
 )
 }
 \arguments{
@@ -23,7 +23,7 @@ ancova.pwc(
 
 \item{between}{independent (between) variable in which perform the anova test}
 
-\item{covar}{column with the covariate information}
+\item{covar}{column with the covariance information}
 
 \item{p.adjust.method}{method to adjust p values for multiple comparisons.}
 
@@ -33,7 +33,7 @@ ancova.pwc(
 
 \item{only.sig}{logical; if TRUE, only statistical significant results will be tabulated}
 
-\item{pwc.covar}{logical; if TRUE (default value), results include covar comparisons}
+\item{pwc.covar}{logical; if TRUE, the results include covariance comparisons}
 }
 \value{
 A data.frame containing the results for the pairwise comparisons
