@@ -149,18 +149,21 @@ ggBarPlotAoC <- function(data, dv, iv, aov, pwc, covar = NULL, pre.post = NULL,
 
   if (!is.null(covar)) {
     df <- get.descriptives(data, c(dv, covar), iv)
+    df$variable <- factor(df$variable, c(covar, dv))
     gg1 <- ggplot2::ggplot(data=df, aes(x=variable, y=mean, fill=.data[[iv]]))
 
     ngroup = length(unique((df[[iv]])))
-    xvars = unique(df$variable)
+    xvars = levels(df$variable)
     sig.g.comb = combn(unique(df[[iv]]), 2, simplify = F)
     ycol = ".y."
   } else if (!is.null(pre.post)) {
     df <- get.descriptives(data, dv, c(pre.post, iv))
+    if (is.factor(data[[iv]]))
+      df[[iv]] <- factor(df[[iv]], levels(data[[iv]]))
     gg1 <- ggplot2::ggplot(data=df, aes(x=.data[[iv]], y=mean, fill=.data[[pre.post]]))
 
     ngroup = length(unique((df[[pre.post]])))
-    xvars = unique(df[[iv]])
+    xvars = levels(df[[iv]])
     sig.g.comb = combn(unique(df[[pre.post]]), 2, simplify = F)
     ycol = iv
   }
