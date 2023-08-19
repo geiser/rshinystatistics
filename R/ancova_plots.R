@@ -192,7 +192,8 @@ ggBarPlotAoC <- function(data, dv, iv, aov, pwc, covar = NULL, pre.post = NULL,
   ylim1 = ylim
   for (i in 1:length(xvars)) {
     x = xvars[i]
-    sig.pre.y = max(df$mean + df$sd) + step.increase
+    print(x)
+    sig.pre.y = max(df$mean + df$sd, na.rm = F) + step.increase
 
     x.space = bar.width/ngroup
     sig.y = i-(bar.width/2)+(x.space/2)
