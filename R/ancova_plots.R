@@ -204,7 +204,7 @@ ggBarPlotAoC <- function(data, dv, iv, aov, pwc, covar = NULL, pre.post = NULL,
       p <- pwc$p.adj[
         pwc[[ycol]] == x & ((pwc$group1 == g1 & pwc$group2 == g2)
                             | (pwc$group1 == g2 & pwc$group2 == g1))]
-      if (length(p) > 0 && p < 0.05) {
+      if (!is.null(p) && !is.na(p) && length(p>0) && p < 0.05) {
         label = ifelse(p<=0.01, ifelse(p<=0.001, "***", "**"), "*")
         gg1 <- gg1 +
           ggplot2::geom_segment(x = x1, y = sig.pre.y, xend = x2, yend = sig.pre.y) +
