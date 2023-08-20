@@ -492,24 +492,24 @@ twoWayAncovaBoxPlots <- function(
     pwc <- do.call(rbind, lapply(ivs, FUN = function(iv) {
       pwc = pwcs[[iv]]
       if (iv == ivs[1]) {
-        pwc$group1 = paste0(pwc$group1, ":" , pwc[[setdiff(ivs, iv)]])
-        pwc$group2 = paste0(pwc$group2, ":" , pwc[[setdiff(ivs, iv)]])
+        pwc$group1 = paste0(pwc$group1, "." , pwc[[setdiff(ivs, iv)]])
+        pwc$group2 = paste0(pwc$group2, "." , pwc[[setdiff(ivs, iv)]])
       } else {
-        pwc$group1 = paste0(pwc[[setdiff(ivs, iv)]], ":", pwc$group1)
-        pwc$group2 = paste0(pwc[[setdiff(ivs, iv)]], ":", pwc$group2)
+        pwc$group1 = paste0(pwc[[setdiff(ivs, iv)]], ".", pwc$group1)
+        pwc$group2 = paste0(pwc[[setdiff(ivs, iv)]], ".", pwc$group2)
       }
       pwc = pwc[,-c(1)]
       return(pwc)
     }))
   } else {
-    pwc[[paste0(ivs, collapse = ":")]] = apply(pwc[,ivs], 1, paste0, collapse=":")
+    pwc[[paste0(ivs, collapse = ".")]] = apply(pwc[,ivs], 1, paste0, collapse=".")
   }
 
-  data[[paste0(ivs, collapse = ":")]] = apply(data[,ivs], 1, paste0, collapse=":")
+  data[[paste0(ivs, collapse = ".")]] = apply(data[,ivs], 1, paste0, collapse=".")
 
   toReturn = list()
   toReturn[[paste0(ivs, collapse = ":")]] = ggBoxPlotAoC(
-    data, dv, paste0(ivs, collapse = ":"), aov, pwc, covar, pre.post,
+    data, dv, paste0(ivs, collapse = "."), aov, pwc, covar, pre.post,
     color, theme, step.increase, subtitle, ylim)
   return(toReturn)
 }

@@ -120,9 +120,15 @@ remove_group_data <- function(pdat, dv, ivs, n.limit = 5) {
   ds = ds[which(ds$n < n.limit),]
 
   toReturn = pdat
-  toReturn[[".toRemove."]] = ifelse(length(ivs) > 1, apply(toReturn[,ivs],1,paste0, collapse = ":"), toReturn[[ivs]])
-  idx = ifelse(length(ivs) > 1, unique(apply(ds[,ivs],1,paste0, collapse = ":")), unique(ds[[ivs]]))
-  toReturn <- toReturn[!toReturn$.toRemove. %in% idx,]
+  if (length(ivs) > 1){
+    idx_del = unique(apply(ds[,ivs], 1, paste0, collapse = ":"))
+    toReturn[[".toRemove."]] = apply(toReturn[,ivs], 1, paste0, collapse = ":")
+  } else {
+    idx_del <- unique(ds[[ivs]])
+    toReturn[[".toRemove."]] = toReturn[[ivs]]
+  }
+
+  toReturn <- toReturn[!toReturn$.toRemove. %in% idx_del,]
   toReturn <- toReturn[, -which(names(toReturn) == ".toRemove.")]
 
   for (iv in ivs) {
