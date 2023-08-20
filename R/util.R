@@ -114,10 +114,10 @@ round.pval <- function(tbl, digits = 3, min = 0.001, cnames = c("p","p.adj")) {
 #' @param n.limit minimal value for a group
 #' @export
 remove_group_data <- function(pdat, dv, ivs, n.limit = 5) {
-  ds = get.descriptives(pdat, dv, ivs)
+  ds = data.frame(get.descriptives(pdat, dv, ivs))
   if (length(which(ds$n < n.limit)) < 1) return(pdat)
 
-  ds = ds[which(ds$n < n.limit), ivs]
+  ds = ds[which(ds$n < n.limit),]
 
   toReturn <- pdat[!sapply(1:nrow(pdat), FUN = function(i) {
     all(sapply(ivs, FUN = function(iv) {
@@ -126,6 +126,8 @@ remove_group_data <- function(pdat, dv, ivs, n.limit = 5) {
   }),]
 
   for (iv in ivs) {
+    if (length(unique(toReturn[[iv]])) < 2)
+      stop(paste0("Column `",iv,"` have only one level, to apply inferencial statistics at least the column should have 2 or more levels!"))
     if (is.factor(toReturn[[iv]])) {
       levs = levels(toReturn[[iv]])
       toReturn[[iv]] <- factor(toReturn[[iv]], levs[levs %in% unique(toReturn[[iv]])])
