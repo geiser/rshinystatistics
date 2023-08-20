@@ -119,15 +119,15 @@ remove_group_data <- function(pdat, dv, ivs, n.limit = 5) {
 
   ds = ds[which(ds$n < n.limit),]
 
-  toReturn <- pdat[!sapply(1:nrow(pdat), FUN = function(i) {
-    all(sapply(ivs, FUN = function(iv) {
-      pdat[[iv]][i] %in% ds[[iv]]
-    }))
-  }),]
+  toReturn = pdat
+  toReturn[[".toRemove."]] = apply(toReturn[,ivs],1,paste0, collapse = ":")
+  toReturn <- toReturn[!toReturn$.toRemove. %in% unique(apply(ds[,ivs],1,paste0, collapse = ":")),]
+  toReturn <- toReturn[, -which(names(toReturn) == ".toRemove.")]
 
   for (iv in ivs) {
-    if (length(unique(toReturn[[iv]])) < 2)
+    if (length(unique(toReturn[[iv]])) < 2) {
       stop(paste0("Column `",iv,"` have only one level, to apply inferencial statistics at least the column should have 2 or more levels!"))
+    }
     if (is.factor(toReturn[[iv]])) {
       levs = levels(toReturn[[iv]])
       toReturn[[iv]] <- factor(toReturn[[iv]], levs[levs %in% unique(toReturn[[iv]])])
