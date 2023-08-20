@@ -104,6 +104,36 @@ round.pval <- function(tbl, digits = 3, min = 0.001, cnames = c("p","p.adj")) {
   return(tbl)
 }
 
+#' Remove elements for perforimg statiscits analysis
+#'
+#' Removes groups of elements from a data table in which we can not perform statistics analysis
+#'
+#' @param pdat a data.frame or data table with data to be removed
+#' @param dv dependent variable
+#' @param ivs independent variables
+#' @param n.limit minimal value for a group
+#' @export
+remove_group_data <- function(pdat, dv, ivs, n.limit = 5) {
+  ds = get.descriptives(pdat, dv, ivs)
+  if (length(which(ds$n < n.limit)) < 1) return(pdat)
+
+  ds = ds[which(ds$n < n.limit), ivs]
+
+  toReturn <- pdat[!sapply(1:nrow(pdat), FUN = function(i) {
+    all(sapply(ivs, FUN = function(iv) {
+      pdat[[iv]][i] %in% ds[[iv]]
+    }))
+  }),]
+
+  for (iv in ivs) {
+    if (is.factor(toReturn[[iv]])) {
+      levs = levels(toReturn[[iv]])
+      toReturn[[iv]] <- factor(toReturn[[iv]], levs[levs %in% unique(toReturn[[iv]])])
+    }
+  }
+  return(toReturn)
+}
+
 #' Get Formula for ANOVA and ANCOVA
 as_formula <- function(dv, between = c(), within = c(), covar = NULL, wid = 'row.pos', as.character = F) {
   ivs <- c(between, within)
@@ -121,6 +151,7 @@ as_formula <- function(dv, between = c(), within = c(), covar = NULL, wid = 'row
   if (as.character) return(sformula)
   else return(stats::as.formula(sformula))
 }
+
 
 
 subset_by_tbl <- function(data, tbl, group = intersect(colnames(data), colnames(tbl))) {

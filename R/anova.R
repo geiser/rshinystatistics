@@ -64,7 +64,15 @@ anova.pwc <- function(data, dvs, between=c(), within=c(), p.adjust.method = "bon
     names(livs) <- c(rbetween, rwithin)
 
     lapply(livs, FUN = function(iv) {
-      gdat <-  dplyr::group_by_at(dat, dplyr::vars(setdiff(names(livs), iv)))
+      gdat <- dat[,c(names(livs),dv)]
+      for (f in c(names(livs))) {
+        if (is.factor(gdat[[f]])) {
+          levs = levels(gdat[[f]])
+          gdat[[f]] <- factor(gdat[[f]], levs[levs %in% unique(gdat[[f]])])
+        }
+      }
+      gdat <- dplyr::group_by_at(gdat, dplyr::vars(setdiff(names(livs), iv)))
+
       col <- dv; if (col %in% names(skewness)) col <- skewness[[dv]]
       if (length(rwithin) > 0) {
         pwc <- tryCatch(rstatix::pairwise_t_test(gdat, as.formula(paste0('`',dv,'`'," ~ ",'`',iv,'`')),

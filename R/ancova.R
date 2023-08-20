@@ -68,7 +68,15 @@ ancova.pwc <- function(
     }
 
     lapply(livs, FUN = function(iv) {
-      gdat <-  dplyr::group_by_at(dat, dplyr::vars(setdiff(names(livs), iv)))
+      gdat <- dat[,c(names(livs),dv,covar)]
+      for (f in c(names(livs))) {
+        if (is.factor(gdat[[f]])) {
+          levs = levels(gdat[[f]])
+          gdat[[f]] <- factor(gdat[[f]], levs[levs %in% unique(gdat[[f]])])
+        }
+      }
+      gdat <- dplyr::group_by_at(gdat, dplyr::vars(setdiff(names(livs), iv)))
+
       emme <- tryCatch(rstatix::emmeans_test(
         gdat, as.formula(paste0('`',dv,'`'," ~ ",'`',iv,'`')), covariate = covar,
         p.adjust.method = p.adjust.method, detailed=T), error = function(e) NULL)

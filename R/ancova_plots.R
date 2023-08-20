@@ -160,6 +160,8 @@ ggBarPlotAoC <- function(data, dv, iv, aov, pwc, covar = NULL, pre.post = NULL,
     df <- get.descriptives(data, dv, c(pre.post, iv))
     if (is.factor(data[[iv]]))
       df[[iv]] <- factor(df[[iv]], levels(data[[iv]]))
+    else
+      df[[iv]] <- factor(df[[iv]], unique(data[[iv]]))
     gg1 <- ggplot2::ggplot(data=df, aes(x=.data[[iv]], y=mean, fill=.data[[pre.post]]))
 
     ngroup = length(unique((df[[pre.post]])))
@@ -195,8 +197,7 @@ ggBarPlotAoC <- function(data, dv, iv, aov, pwc, covar = NULL, pre.post = NULL,
   ylim1 = ylim
   for (i in 1:length(xvars)) {
     x = xvars[i]
-    print(x)
-    sig.pre.y = max(df$mean + df$sd, na.rm = F) + step.increase
+    sig.pre.y = max(df$mean + df$sd, na.rm = T) + step.increase
 
     x.space = bar.width/ngroup
     sig.y = i-(bar.width/2)+(x.space/2)
