@@ -483,7 +483,7 @@ oneWayAncovaBoxPlots <- function(
 #' @param subtitle the subtitle in the plot, use number to indicate the row from ANCOVA table
 #' @param ylim the number that indicates the axis-y limit
 #' @export
-twoWayAncovaBarPlots <- function(
+twoWayAncovaBoxPlots <- function(
     data, dv, ivs, aov, pwcs, covar=c(), pre.post = c(), color = c(), theme = c(),
     step.increase = 0.2, subtitle = c(), ylim = NA) {
 
