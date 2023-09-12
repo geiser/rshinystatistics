@@ -143,7 +143,8 @@ twoWayAncovaPlots <- function(data, dv, ivs, aov, pwcs, addParam=c(), font.label
 ggBarPlotAoC <- function(data, dv, iv, aov, pwc, covar = NULL, pre.post = NULL,
                          bar.width = 0.75, color = c(), show.errorbar = T, theme = c(),
                          font.size = list(text.x=10, text.y=10, title.x=12, title.y=12),
-                         step.increase = 0.2, subtitle = c(), ylim = NA) {
+                         step.increase = 0.05, subtitle = c(), ylim = NA) {
+  step.increase = max(data[[dv]])*step.increase
   if (is.null(aov) || is.null(pwc)) return(NULL)
   if (is.null(covar) && is.null(pre.post)) return(NULL)
 
@@ -262,7 +263,7 @@ ggBarPlotAoC <- function(data, dv, iv, aov, pwc, covar = NULL, pre.post = NULL,
 oneWayAncovaBarPlots <- function(data, dv, ivs, aov, pwcs, covar = c(), pre.post = c(),
                                  bar.width = 0.75, color = c(), show.errorbar = T, theme = c(),
                                  font.size = list(text.x=10, text.y=10, title.x=12, title.y=12),
-                                 step.increase = 0.2, subtitle = c(), ylim = NA) {
+                                 step.increase = 0.05, subtitle = c(), ylim = NA) {
   livs <- as.list(ivs); names(livs) <- ivs
   return(lapply(livs, FUN = function(iv) {
     pwc = pwcs
@@ -296,7 +297,7 @@ oneWayAncovaBarPlots <- function(data, dv, ivs, aov, pwcs, covar = c(), pre.post
 twoWayAncovaBarPlots <- function(data, dv, ivs, aov, pwcs, covar=c(), pre.post = c(),
                                  bar.width = 0.75, color = c(), show.errorbar = T, theme = c(),
                                  font.size = list(text.x=10, text.y=10, title.x=12, title.y=12),
-                                 step.increase = 0.2, subtitle = c(), ylim = NA) {
+                                 step.increase = 0.05, subtitle = c(), ylim = NA) {
 
   pwc = pwcs
   if (!is.data.frame(pwcs)) {
@@ -344,7 +345,8 @@ twoWayAncovaBarPlots <- function(data, dv, ivs, aov, pwcs, covar=c(), pre.post =
 #' @param ylim the number that indicates the axis-y limit
 #' @export
 ggBoxPlotAoC <- function (data, dv, iv, aov, pwc, covar = c(), pre.post = c(), color = c(),
-                          theme = c(), step.increase = 0.2, subtitle = c(), ylim = NA) {
+                          theme = c(), step.increase = 0.05, subtitle = c(), ylim = NA) {
+  step.increase = max(data[[dv]])*step.increase
   bar.width = 0.75
   if (is.null(aov) || is.null(pwc)) return(NULL)
   if (is.null(covar) && is.null(pre.post)) return(NULL)
@@ -396,19 +398,21 @@ ggBoxPlotAoC <- function (data, dv, iv, aov, pwc, covar = c(), pre.post = c(), c
   for (i in 1:length(xvars)) {
     x = xvars[i]
     sig.pre.y = max(df[[dv]], na.rm = T) + step.increase
+
     x.space = bar.width/ngroup
     sig.y = i - (bar.width/2) + (x.space/2)
     sig.x.comb = combn(seq(sig.y, by = x.space, length.out = ngroup), 2, simplify = F)
+
     for (j in 1:length(sig.x.comb)) {
       x1 = sig.x.comb[[j]][1]; x2 = sig.x.comb[[j]][2]
       g1 = sig.g.comb[[j]][1]; g2 = sig.g.comb[[j]][2]
-
-      p <- pwc$p.adj[pwc[[ycol]] == x & ((pwc$group1 == g1 & pwc$group2 == g2) |
-                                           (pwc$group1 == g2 & pwc$group2 == g1))]
-
-      if (!is.null(p) && !is.na(p) && length(p > 0) && p < 0.05) {
+      p <- pwc$p.adj[
+        pwc[[ycol]] == x & ((pwc$group1 == g1 & pwc$group2 == g2)
+                            | (pwc$group1 == g2 & pwc$group2 == g1))]
+      if (!is.null(p) && !is.na(p) && length(p>0) && p < 0.05) {
         label = ifelse(p <= 0.01, ifelse(p <= 0.001, "***", "**"), "*")
-        gg1 <- gg1 + ggplot2::geom_segment(x = x1, y = sig.pre.y, xend = x2, yend = sig.pre.y) +
+        gg1 <- gg1 +
+          ggplot2::geom_segment(x = x1, y = sig.pre.y, xend = x2, yend = sig.pre.y) +
           ggplot2::geom_text(x = (x1 + x2)/2, y = sig.pre.y + 0.02, label = label)
         sig.pre.y = sig.pre.y + step.increase
       }
@@ -417,6 +421,7 @@ ggBoxPlotAoC <- function (data, dv, iv, aov, pwc, covar = c(), pre.post = c(), c
       ylim1 = sig.pre.y
   }
   gg1 <- gg1 + ylim(NA, ylim1)
+
   if (!is.null(subtitle) && is.numeric(subtitle)) {
     if (subtitle == 0) {
       row = which(aov$Effect == x)
@@ -454,7 +459,7 @@ ggBoxPlotAoC <- function (data, dv, iv, aov, pwc, covar = c(), pre.post = c(), c
 #' @param ylim the number that indicates the axis-y limit
 oneWayAncovaBoxPlots <- function(
     data, dv, ivs, aov, pwcs, covar = c(), pre.post = c(), color = c(), theme = c(),
-    step.increase = 0.2, subtitle = c(), ylim = NA) {
+    step.increase = 0.05, subtitle = c(), ylim = NA) {
   livs <- as.list(ivs)
   names(livs) <- ivs
   return(lapply(livs, FUN = function(iv) {
@@ -485,7 +490,7 @@ oneWayAncovaBoxPlots <- function(
 #' @export
 twoWayAncovaBoxPlots <- function(
     data, dv, ivs, aov, pwcs, covar=c(), pre.post = c(), color = c(), theme = c(),
-    step.increase = 0.2, subtitle = c(), ylim = NA) {
+    step.increase = 0.05, subtitle = c(), ylim = NA) {
 
   pwc = pwcs
   if (!is.data.frame(pwcs)) {
