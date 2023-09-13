@@ -151,23 +151,29 @@ ggBarPlotAoC <- function(data, dv, iv, aov, pwc, covar = NULL, pre.post = NULL,
   if (!is.null(covar)) {
     df <- get.descriptives(data, c(dv, covar), iv)
     df$variable <- factor(df$variable, c(covar, dv))
+    if (!is.factor(df[[iv]]))
+      df[[iv]] <- factor(df[[iv]], sort(unique(df[[iv]])))
+
     gg1 <- ggplot2::ggplot(data=df, aes(x=variable, y=mean, fill=.data[[iv]]))
 
     ngroup = length(unique((df[[iv]])))
     xvars = levels(df$variable)
-    sig.g.comb = combn(unique(df[[iv]]), 2, simplify = F)
+    sig.g.comb = combn(levels(df[[iv]]), 2, simplify = F)
     ycol = ".y."
   } else if (!is.null(pre.post)) {
     df <- get.descriptives(data, dv, c(pre.post, iv))
     if (is.factor(data[[iv]]))
       df[[iv]] <- factor(df[[iv]], levels(data[[iv]]))
     else
-      df[[iv]] <- factor(df[[iv]], unique(data[[iv]]))
+      df[[iv]] <- factor(df[[iv]], sort(unique(data[[iv]])))
+    if (!is.factor(df[[pre.post]]))
+      df[[pre.post]] <- factor(df[[pre.post]], sort(unique(df[[pre.post]])))
+
     gg1 <- ggplot2::ggplot(data=df, aes(x=.data[[iv]], y=mean, fill=.data[[pre.post]]))
 
     ngroup = length(unique((df[[pre.post]])))
     xvars = levels(df[[iv]])
-    sig.g.comb = combn(unique(df[[pre.post]]), 2, simplify = F)
+    sig.g.comb = combn(levels(df[[pre.post]]), 2, simplify = F)
     ycol = iv
   }
   gg1 <- gg1 + ggplot2::geom_bar(stat="identity", position=position_dodge(), width = bar.width)
@@ -214,7 +220,7 @@ ggBarPlotAoC <- function(data, dv, iv, aov, pwc, covar = NULL, pre.post = NULL,
         label = ifelse(p<=0.01, ifelse(p<=0.001, "***", "**"), "*")
         gg1 <- gg1 +
           ggplot2::geom_segment(x = x1, y = sig.pre.y, xend = x2, yend = sig.pre.y) +
-          ggplot2::geom_text(x=(x1+x2)/2, y = sig.pre.y+0.02, label=label)
+          ggplot2::geom_text(x=(x1+x2)/2, y = sig.pre.y+0.025, label=label)
         sig.pre.y = sig.pre.y + step.increase
       }
     }
@@ -355,25 +361,30 @@ ggBoxPlotAoC <- function (data, dv, iv, aov, pwc, covar = c(), pre.post = c(), c
     df <- data.frame(variable = c(rep(covar, nrow(data)), rep(dv, nrow(data))))
     df[[dv]] <- c(data[[covar]], data[[dv]])
     df[[iv]] <- c(data[[iv]], data[[iv]])
+    if (!is.factor(df[[iv]]))
+      df[[iv]] <- factor(df[[iv]], sort(unique(df[[iv]])))
+
     df$variable <- factor(df$variable, c(covar, dv))
 
     gg1 <- ggpubr::ggboxplot(df, "variable", dv, fill = iv, palette = color)
 
     ngroup = length(unique((df[[iv]])))
     xvars = levels(df$variable)
-    sig.g.comb = combn(unique(df[[iv]]), 2, simplify = F)
+    sig.g.comb = combn(levels(df[[iv]]), 2, simplify = F)
     ycol = ".y."
   }
   else if (!is.null(pre.post)) {
     df = data
     if (!is.factor(df[[iv]]))
-      df[[iv]] <- factor(df[[iv]], unique(df[[iv]]))
+      df[[iv]] <- factor(df[[iv]], sort(unique(df[[iv]])))
+    if (!is.factor(df[[pre.post]]))
+      df[[pre.post]] <- factor(df[[pre.post]], sort(unique(df[[pre.post]])))
 
     gg1 <- ggpubr::ggboxplot(df, iv, dv, fill = pre.post, palette = color)
 
     ngroup = length(unique((df[[pre.post]])))
     xvars = levels(df[[iv]])
-    sig.g.comb = combn(unique(df[[pre.post]]), 2, simplify = F)
+    sig.g.comb = combn(levels(df[[pre.post]]), 2, simplify = F)
     ycol = iv
   }
 
@@ -413,7 +424,7 @@ ggBoxPlotAoC <- function (data, dv, iv, aov, pwc, covar = c(), pre.post = c(), c
         label = ifelse(p <= 0.01, ifelse(p <= 0.001, "***", "**"), "*")
         gg1 <- gg1 +
           ggplot2::geom_segment(x = x1, y = sig.pre.y, xend = x2, yend = sig.pre.y) +
-          ggplot2::geom_text(x = (x1 + x2)/2, y = sig.pre.y + 0.02, label = label)
+          ggplot2::geom_text(x = (x1 + x2)/2, y = sig.pre.y + 0.025, label = label)
         sig.pre.y = sig.pre.y + step.increase
       }
     }
