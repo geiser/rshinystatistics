@@ -14,7 +14,7 @@ oneWayAncovaBoxPlots(
   pre.post = c(),
   color = c(),
   theme = c(),
-  step.increase = 0.2,
+  step.increase = 0.05,
   subtitle = c(),
   ylim = NA
 )

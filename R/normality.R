@@ -200,6 +200,7 @@ normality.test.per.groups <- function(data, dvs, ivs, dv.var = NULL
   return(non.normal)
 }
 
+#' @export
 getNonNormal <- function(x, x.name = paste0('', seq(1, length(x))), step = 1, plimit = 0.05, max.step = step+6) {
   if (length(unique(x)) < 4) return(c())
   names(x) <- x.name

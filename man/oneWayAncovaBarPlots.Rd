@@ -17,7 +17,7 @@ oneWayAncovaBarPlots(
   show.errorbar = T,
   theme = c(),
   font.size = list(text.x = 10, text.y = 10, title.x = 12, title.y = 12),
-  step.increase = 0.2,
+  step.increase = 0.05,
   subtitle = c(),
   ylim = NA
 )
