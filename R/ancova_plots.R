@@ -22,6 +22,12 @@ ggPlotAoC <- function(data, x, y, color = c(), aov, pwc, linetype = color, by = 
   pwc = pwc[pwc$.y. == y,]
 
   data[[x]] <- factor(data[[x]])
+  if (is.list(color)) {
+    color = as.vector(sapply(unique(data[[x]])[!is.na(unique(data[[x]]))], function(ncor) {
+      color[[ncor]]
+    }))
+  }
+
   pd <- ggplot2::position_dodge(width = 0.15)
   pwc2 <- tryCatch(rstatix::add_xy_position(pwc, x=x, fun="max", step.increase=step.increase), error = function(e) NULL)
   if (is.null(pwc2)) return(ggplot2::ggplot())
@@ -160,6 +166,12 @@ ggBarPlotAoC <- function(data, dv, iv, aov, pwc, covar = NULL, pre.post = NULL,
     xvars = levels(df$variable)
     sig.g.comb = combn(levels(df[[iv]]), 2, simplify = F)
     ycol = ".y."
+
+    if (is.list(color)) {
+      color = as.vector(sapply(unique(df$variable)[!is.na(unique(df$variable))], function(ncor) {
+        color[[ncor]]
+      }))
+    }
   } else if (!is.null(pre.post)) {
     df <- get.descriptives(data, dv, c(pre.post, iv))
     if (is.factor(data[[iv]]))
@@ -181,8 +193,9 @@ ggBarPlotAoC <- function(data, dv, iv, aov, pwc, covar = NULL, pre.post = NULL,
   if (show.errorbar)
     gg1 <- gg1 + ggplot2::geom_errorbar(aes(ymin=mean-sd, ymax=mean+sd), width=.1, position=position_dodge(bar.width))
 
-  if (!is.null(color))
+  if (!is.null(color)) {
     gg1 <- gg1 + ggplot2::scale_fill_manual(values=color)
+  }
 
   if (!is.null(theme)) {
     if (theme == "gray")
@@ -372,6 +385,12 @@ ggBoxPlotAoC <- function (data, dv, iv, aov, pwc, covar = c(), pre.post = c(), c
     xvars = levels(df$variable)
     sig.g.comb = combn(levels(df[[iv]]), 2, simplify = F)
     ycol = ".y."
+
+    if (is.list(color)) {
+      color = as.vector(sapply(unique(df$variable)[!is.na(unique(df$variable))], function(ncor) {
+        color[[ncor]]
+      }))
+    }
   }
   else if (!is.null(pre.post)) {
     df = data
