@@ -148,7 +148,7 @@ twoWayAncovaPlots <- function(data, dv, ivs, aov, pwcs, addParam=c(), font.label
 #' @export
 ggBarPlotAoC <- function(data, dv, iv, aov, pwc, covar = NULL, pre.post = NULL,
                          bar.width = 0.75, color = c(), show.errorbar = T, theme = c(),
-                         font.size = list(text.x=10, text.y=10, title.x=12, title.y=12),
+                         font.size = list(text.x=12, text.y=12, title.x=14, title.y=14),
                          step.increase = 0.05, subtitle = c(), ylim = NA) {
   step.increase = max(data[[dv]])*step.increase
   if (is.null(aov) || is.null(pwc)) return(NULL)
@@ -255,6 +255,12 @@ ggBarPlotAoC <- function(data, dv, iv, aov, pwc, covar = NULL, pre.post = NULL,
   }
 
   gg1 <- gg1 + ggplot2::labs(subtitle = subtitle, caption = rstatix::get_pwc_label(pwc))
+  gg1 <- gg1 + ggplot2::theme(
+    axis.text.x = ggplot2::element_text(size = font.size$text.x),
+    axis.text.y = ggplot2::element_text(size = font.size$text.y),
+    axis.title.x = ggplot2::element_text(size = font.size$title.x),
+    axis.title.y = ggplot2::element_text(size = font.size$title.y)
+  )
 
   return(gg1)
 }
@@ -281,7 +287,7 @@ ggBarPlotAoC <- function(data, dv, iv, aov, pwc, covar = NULL, pre.post = NULL,
 #' @export
 oneWayAncovaBarPlots <- function(data, dv, ivs, aov, pwcs, covar = c(), pre.post = c(),
                                  bar.width = 0.75, color = c(), show.errorbar = T, theme = c(),
-                                 font.size = list(text.x=10, text.y=10, title.x=12, title.y=12),
+                                 font.size = list(text.x=12, text.y=12, title.x=14, title.y=14),
                                  step.increase = 0.05, subtitle = c(), ylim = NA) {
   livs <- as.list(ivs); names(livs) <- ivs
   return(lapply(livs, FUN = function(iv) {
@@ -315,7 +321,7 @@ oneWayAncovaBarPlots <- function(data, dv, ivs, aov, pwcs, covar = c(), pre.post
 #' @export
 twoWayAncovaBarPlots <- function(data, dv, ivs, aov, pwcs, covar=c(), pre.post = c(),
                                  bar.width = 0.75, color = c(), show.errorbar = T, theme = c(),
-                                 font.size = list(text.x=10, text.y=10, title.x=12, title.y=12),
+                                 font.size = list(text.x=12, text.y=12, title.x=14, title.y=14),
                                  step.increase = 0.05, subtitle = c(), ylim = NA) {
 
   pwc = pwcs
@@ -363,8 +369,9 @@ twoWayAncovaBarPlots <- function(data, dv, ivs, aov, pwcs, covar=c(), pre.post =
 #' @param subtitle the subtitle in the plot, use number to indicate the row from ANCOVA table
 #' @param ylim the number that indicates the axis-y limit
 #' @export
-ggBoxPlotAoC <- function (data, dv, iv, aov, pwc, covar = c(), pre.post = c(), color = c(),
-                          theme = c(), step.increase = 0.05, subtitle = c(), ylim = NA) {
+ggBoxPlotAoC <- function (data, dv, iv, aov, pwc, covar = c(), pre.post = c(), color = c(), theme = c(),
+                          font.size = list(text.x=12, text.y=12, title.x=14, title.y=14),
+                          step.increase = 0.05, subtitle = c(), ylim = NA) {
   step.increase = max(data[[dv]])*step.increase
   bar.width = 0.75
   if (is.null(aov) || is.null(pwc)) return(NULL)
@@ -387,9 +394,11 @@ ggBoxPlotAoC <- function (data, dv, iv, aov, pwc, covar = c(), pre.post = c(), c
     ycol = ".y."
 
     if (is.list(color)) {
-      color = as.vector(sapply(unique(df$variable)[!is.na(unique(df$variable))], function(ncor) {
-        color[[ncor]]
-      }))
+      color = as.vector(
+        sapply(unique(df$variable)[!is.na(unique(df$variable))], function(ncor) {
+          color[[ncor]]
+        })
+      )
     }
   }
   else if (!is.null(pre.post)) {
@@ -467,7 +476,15 @@ ggBoxPlotAoC <- function (data, dv, iv, aov, pwc, covar = c(), pre.post = c(), c
                         ", ", p, paste0(", eta^2 = ", round(aov$ges[row], 2)))
     }
   }
+
   gg1 <- gg1 + ggplot2::labs(subtitle = subtitle, caption = rstatix::get_pwc_label(pwc))
+  gg1 <- gg1 + ggplot2::theme(
+    axis.text.x = ggplot2::element_text(size = font.size$text.x),
+    axis.text.y = ggplot2::element_text(size = font.size$text.y),
+    axis.title.x = ggplot2::element_text(size = font.size$title.x),
+    axis.title.y = ggplot2::element_text(size = font.size$title.y)
+  )
+
   return(gg1)
 }
 
@@ -489,13 +506,14 @@ ggBoxPlotAoC <- function (data, dv, iv, aov, pwc, covar = c(), pre.post = c(), c
 #' @param ylim the number that indicates the axis-y limit
 oneWayAncovaBoxPlots <- function(
     data, dv, ivs, aov, pwcs, covar = c(), pre.post = c(), color = c(), theme = c(),
+    font.size = list(text.x=12, text.y=12, title.x=14, title.y=14),
     step.increase = 0.05, subtitle = c(), ylim = NA) {
   livs <- as.list(ivs)
   names(livs) <- ivs
   return(lapply(livs, FUN = function(iv) {
     pwc = pwcs
     if (is.list(pwcs) && is.data.frame(pwcs[[iv]])) pwc = pwcs[[iv]]
-    ggBoxPlotAoC(data, dv, iv, aov, pwc, covar, pre.post, color, theme,
+    ggBoxPlotAoC(data, dv, iv, aov, pwc, covar, pre.post, color, theme, font.size,
                  step.increase, subtitle, ylim)
   }))
 }
@@ -520,6 +538,7 @@ oneWayAncovaBoxPlots <- function(
 #' @export
 twoWayAncovaBoxPlots <- function(
     data, dv, ivs, aov, pwcs, covar=c(), pre.post = c(), color = c(), theme = c(),
+    font.size = list(text.x=12, text.y=12, title.x=14, title.y=14),
     step.increase = 0.05, subtitle = c(), ylim = NA) {
 
   pwc = pwcs
@@ -545,6 +564,6 @@ twoWayAncovaBoxPlots <- function(
   toReturn = list()
   toReturn[[paste0(ivs, collapse = ":")]] = ggBoxPlotAoC(
     data, dv, paste0(ivs, collapse = "."), aov, pwc, covar, pre.post,
-    color, theme, step.increase, subtitle, ylim)
+    color, theme, font.size, step.increase, subtitle, ylim)
   return(toReturn)
 }
