@@ -28,8 +28,13 @@ ggPlotAoC <- function(data, x, y, color = c(), aov, pwc, linetype = color, by = 
     }))
   }
 
+  fun = "max"
+  sfun = intersect(c("mean_se","mean_ci","median","median_iqr","median_mad"),addParam)
+  if (length(sfun) > 0)
+    fun = sfun[1]
+
   pd <- ggplot2::position_dodge(width = 0.15)
-  pwc2 <- tryCatch(rstatix::add_xy_position(pwc, x=x, fun="max", step.increase=step.increase), error = function(e) NULL)
+  pwc2 <- tryCatch(rstatix::add_xy_position(pwc, x=x, fun=fun, step.increase=step.increase), error = function(e) NULL)
   if (is.null(pwc2)) return(ggplot2::ggplot())
   if (length(color) > 0) {
     emms <- rstatix::get_emmeans(pwc2)
