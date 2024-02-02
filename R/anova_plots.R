@@ -53,7 +53,12 @@ ggPlotAoV <- function(data, x, y, color = c(), aov, pwc, linetype = color, by = 
 
   if (!is.null(subtitle) && is.numeric(subtitle)) {
     if (subtitle == 0) { row = which(aov$Effect == x) } else { row = subtitle }
-    subtitle = rstatix::get_test_label(aov, detailed = T, row = row)
+    subtitle = tryCatch(rstatix::get_test_label(aov, detailed = T, row = row), error = function(e) NULL)
+    if (is.null(subtitle)) {
+      p = ifelse(aov$p[row] < 0.01, "p < 0.01", paste0("p = ",round(aov$p[row],2)))
+      subtitle = paste0("Anova, F(",aov$DFn[row],", ",aov$DFd[row],")", " = ", round(aov$F[row], 2),
+                        ", ", p, paste0(", eta^2 = ", round(aov$ges[row],2)))
+    }
   }
 
   bxp <- bxp + ggplot2::labs(subtitle = subtitle, caption = rstatix::get_pwc_label(pwc2))
