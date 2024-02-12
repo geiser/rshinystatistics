@@ -201,10 +201,14 @@ normality.test.per.groups <- function(data, dvs, ivs, dv.var = NULL
 }
 
 #' @export
-getNonNormal <- function(x, x.name = paste0('', seq(1, length(x))), step = 1, plimit = 0.05, max.step = step+6) {
+getNonNormal <- function(x, x.name = paste0('', seq(1, length(x))), step = 1, plimit = NULL, max.step = step+6) {
   if (length(unique(x)) < 4) return(c())
   names(x) <- x.name
-  if (length(x) > 100) plimit <- 0.01
+
+  if (is.null(plimit) && length(x) > 100)
+    plimit <- 0.01
+  else if(is.null(plimit))
+    plimit <- 0.05
 
   toReturn <- c()
   max.length <- Inf
