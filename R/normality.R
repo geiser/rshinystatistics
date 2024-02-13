@@ -43,7 +43,7 @@ symmetry.test <- function(x) {
 #' @param x a numeric vector of data values
 #' @return A data frame containing the value of the normality statistic and its corresponding p.value
 #' @export
-normality.test <- function(x) {
+normality.test <- function(x, test = "sw", plimit = 0.05) {
   if (length(unique(x)) < 4) {
     df <- data.frame(
       n = length(x),
@@ -59,15 +59,16 @@ normality.test <- function(x) {
     return(df)
   }
 
-  plimit <- 0.05
-  n.test <- shapiro.test(x)
   cutpoints <- c(0, 1e-04, 0.001, 0.01, 0.05, 1)
-
   if (length(x) > 100) {
-    plimit <- 0.01
     cutpoints <- c(0, 1e-05, 1e-04, 0.001, 0.01, 1)
   }
-  if (length(x) > 50) n.test <- fBasics::dagoTest(x)@test
+
+  if (test == "sw") {
+    n.test <- shapiro.test(x)
+  } else if (test == "da") {
+    n.test <- fBasics::dagoTest(x)@test
+  }
 
   normality <- ifelse(n.test$p.value[1] < plimit, 'NO', 'YES')
   if (length(x) > 100) normality <- 'QQ'
@@ -201,7 +202,8 @@ normality.test.per.groups <- function(data, dvs, ivs, dv.var = NULL
 }
 
 #' @export
-getNonNormal <- function(x, x.name = paste0('', seq(1, length(x))), step = 1, plimit = NULL, max.step = step+6) {
+getNonNormal <- function(x, x.name = paste0('', seq(1, length(x))), step = 1,
+                         plimit = NULL, max.step = step+6) {
   if (length(unique(x)) < 4) return(c())
   names(x) <- x.name
 
