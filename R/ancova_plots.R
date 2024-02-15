@@ -82,6 +82,90 @@ ggPlotAoC <- function(data, x, y, color = c(), aov, pwc, linetype = color, by = 
 }
 
 
+
+#' ANCOVA Plot version 2
+#'
+#' This function create box plots to report results from ANCOVA (AoV).
+#'
+#' @export
+ggPlotAoC2 <- function(pwcs, x, group, aov = NULL, linetype = group, addParam = c(), ylab = "emmean", font.label.size = 10, step.increase = 0.15, dodge = 0.1, palette = "jco", subtitle = c()) {
+  if (is.null(pwcs)) return(NULL)
+
+  pwc2 = rstatix::add_xy_position(pwcs[[x]], dodge = dodge)
+  emms <- rstatix::get_emmeans(pwc2)
+
+  y.pos = max(emms$conf.high + step.increase*2)
+  pwc2$y.position <- y.pos
+  pwc2$y.position[which(pwc2$p.adj < 0.05)] <- seq(y.pos, length.out = sum(pwc2$p.adj < 0.05), by = step.increase)
+
+  x.seg = sum(!is.na(unique(pwc2[[group]])))-1
+  d.seg = -1*dodge*x.seg/2
+  for (f in unique(pwc2[[group]])) {
+    pwc2$xmin[which(pwc2[[group]] == f)] <- pwc2$xmin[which(pwc2[[group]] == f)]+d.seg
+    pwc2$xmax[which(pwc2[[group]] == f)] <- pwc2$xmax[which(pwc2[[group]] == f)]+d.seg
+    d.seg <- d.seg + dodge
+  }
+
+  pwc2g <- cbind(
+    pwcs[[group]],
+    xmin = apply(pwcs[[group]], 1, FUN = function(rw) {
+      idx1 = which(pwc2[[group]] == rw["group1"] & pwc2$group1 == rw[x])
+      idx2 = which(pwc2[[group]] == rw["group1"] & pwc2$group2 == rw[x])
+      unique(c(pwc2$xmin[idx1], pwc2$xmax[idx2]))
+    }),
+    xmax = apply(pwcs[[group]], 1, FUN = function(rw) {
+      idx1 = which(pwc2[[group]] == rw["group2"] & pwc2$group2 == rw[x])
+      idx2 = which(pwc2[[group]] == rw["group2"] & pwc2$group1 == rw[x])
+      unique(c(pwc2$xmax[idx1], pwc2$xmin[idx2]))
+    }),
+    y.position = apply(pwcs[[group]], 1, FUN = function(rw) {
+      idx1 = which(emms[[x]] == rw[x])
+      max(emms$conf.high[idx1] + step.increase)
+    })
+  )
+
+  pd <- ggplot2::position_dodge(width = 2*dodge)
+
+  lp <- ggpubr::ggline(emms, x=x, y = "emmean", color = group, palette = palette, plot_type='b', size=0.4, position = pd, ylab = ylab)
+  lp <- lp + ggpubr::stat_pvalue_manual(pwc2, color = group, linetype = group, hide.ns = T, tip.length = 0)
+
+  for (i in which(pwc2g$p.adj < 0.05)) {
+    x1 = pwc2g$xmin[i]
+    x2 = pwc2g$xmax[i]
+    y.pos = pwc2g$y.position[i]
+    label = pwc2g$p.adj.signif[i]
+    lp <- lp + ggplot2::geom_segment(x = x1, y = y.pos, xend = x2, yend = y.pos) +
+      ggplot2::geom_text(x=(x1+x2)/2, y = y.pos+0.025, label=label)
+  }
+
+  if ('errorbar' %in% addParam)
+    lp <- lp + ggplot2::geom_errorbar(
+      ggplot2::aes_string(ymin="conf.low", ymax="conf.high", color=group),
+      width=0.1, size = 1, position = pd)
+
+  if (!is.null(subtitle) || !is.null(aov)) {
+    if (!is.null(aov)) {
+      if (is.null(subtitle) || subtitle == 0) {
+        row = which(aov$Effect == x)
+      } else { row = subtitle }
+
+      subtitle = tryCatch(
+        rstatix::get_test_label(aov, detailed = T, row = row),
+        error = function(e) NULL)
+      if (is.null(subtitle)) {
+        p = ifelse(aov$p[row] < 0.01, "p < 0.01", paste0("p = ",round(aov$p[row],2)))
+        subtitle = paste0("Ancova, F(",aov$DFn[row],", ",aov$DFd[row],")", " = ", round(aov$F[row], 2),
+                          ", ", p, paste0(", eta^2 = ", round(aov$ges[row],2)))
+      }
+    }
+    lp <- lp + ggplot2::labs(subtitle = subtitle, caption = rstatix::get_pwc_label(pwc2))
+  }
+
+  lp <- lp + ggplot2::theme(text = ggplot2::element_text(size=font.label.size))
+  return(lp)
+}
+
+
 #' One-Way ANCOVA Plots
 #'
 #' This functions returns a list of Plots related to one-Way ANCOVA test.
