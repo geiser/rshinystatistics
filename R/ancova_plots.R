@@ -88,15 +88,11 @@ ggPlotAoC <- function(data, x, y, color = c(), aov, pwc, linetype = color, by = 
 #' This function create box plots to report results from ANCOVA (AoV).
 #'
 #' @export
-ggPlotAoC2 <- function(pwcs, x, group, aov = NULL, linetype = group, addParam = c(), ylab = "emmean", font.label.size = 10, step.increase = 0.15, dodge = 0.1, palette = "jco", subtitle = c()) {
+ggPlotAoC2 <- function(pwcs, x, group, aov = NULL, linetype = group, addParam = c(), ylab = "emmean", font.label.size = 10, step.increase = 0.15, dodge = 0.08, palette = "jco", subtitle = c()) {
   if (is.null(pwcs)) return(NULL)
 
+  emms <- rstatix::get_emmeans(pwcs[[x]])
   pwc2 = rstatix::add_xy_position(pwcs[[x]], dodge = dodge)
-  emms <- rstatix::get_emmeans(pwc2)
-
-  y.pos = max(emms$conf.high + step.increase*2)
-  pwc2$y.position <- y.pos
-  pwc2$y.position[which(pwc2$p.adj < 0.05)] <- seq(y.pos, length.out = sum(pwc2$p.adj < 0.05), by = step.increase)
 
   x.seg = sum(!is.na(unique(pwc2[[group]])))-1
   d.seg = -1*dodge*x.seg/2
@@ -124,7 +120,22 @@ ggPlotAoC2 <- function(pwcs, x, group, aov = NULL, linetype = group, addParam = 
     })
   )
 
-  pd <- ggplot2::position_dodge(width = 2*dodge)
+  for (val in unique(pwc2g[[x]])) {
+    idx2g <- (pwc2g$p.adj < 0.05 & pwc2g[[x]] == val)
+    if (sum(idx2g) > 1) {
+      pwc2g$y.position[which(idx2g)] <- pwc2g$y.position[which(idx2g)] +
+        seq(0, by = step.increase, length.out = sum(idx2g))
+    }
+  }
+
+
+  y.pos = max(pwc2g$y.position + step.increase)
+  pwc2$y.position <- y.pos
+  pwc2$y.position[which(pwc2$p.adj < 0.05)] <- seq(
+    y.pos, length.out = sum(pwc2$p.adj < 0.05), by = step.increase)
+
+
+  pd <- ggplot2::position_dodge(width = sum(!is.na(unique(pwc2[[group]])))*dodge)
 
   lp <- ggpubr::ggline(emms, x=x, y = "emmean", color = group, palette = palette, plot_type='b', size=0.4, position = pd, ylab = ylab)
   lp <- lp + ggpubr::stat_pvalue_manual(pwc2, color = group, linetype = group, hide.ns = T, tip.length = 0)
